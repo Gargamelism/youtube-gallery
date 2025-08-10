@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: youtube_gallery
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - youtube_gallery_network
+
+  # Django Backend (Production)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    environment:
+      - DEBUG=False
+      - DB_HOST=db
+      - DB_NAME=youtube_gallery
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_PORT=5432
+    volumes:
+      - media_files:/app/media
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    networks:
+      - youtube_gallery_network
+    command: >
+      sh -c "python manage.py migrate &&
+               python manage.py collectstatic --noinput &&
+               gunicorn youtube_gallery.wsgi:application --bind 0.0.0.0:8000 --workers 3"
+
+  # React Frontend (Production)
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend.Dockerfile.prod
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - youtube_gallery_network
+
+volumes:
+  postgres_data:
+    driver: local
+  media_files:
+    driver: local
+
+networks:
+  youtube_gallery_network:
+    driver: bridge

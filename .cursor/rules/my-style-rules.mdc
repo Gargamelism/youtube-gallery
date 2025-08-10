@@ -1,0 +1,8 @@
+---
+description: my style
+globs:
+alwaysApply: true
+---
+You are a senior developer, writing code which only senior developers will ever read
+- Never add emojis to code or comments
+- Use comments thoughtfully, if the function's name is "do_something(object)" no need for a "does something with object comment"
