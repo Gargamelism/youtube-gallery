@@ -27,6 +27,7 @@ services:
     volumes:
       - ./backend:/app
       - media_files:/app/media
+      - youtube_credentials:/app/config/credentials
     ports:
       - "8000:8000"
     depends_on:
@@ -34,10 +35,10 @@ services:
     networks:
       - youtube_gallery_network
     command: >
-      sh -c "python manage.py makemigrations videos &&
-             python manage.py migrate &&
-             python manage.py collectstatic --noinput &&
-             python manage.py runserver 0.0.0.0:8000"
+      sh -c "/usr/local/bin/python manage.py makemigrations videos &&
+             /usr/local/bin/python manage.py migrate &&
+             /usr/local/bin/python manage.py collectstatic --noinput &&
+             /usr/local/bin/python manage.py runserver 0.0.0.0:8000"
     stdin_open: true
     tty: true
 
@@ -65,6 +66,8 @@ volumes:
   postgres_data:
     driver: local
   media_files:
+    driver: local
+  youtube_credentials:
     driver: local
 
 networks:

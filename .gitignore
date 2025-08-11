@@ -48,6 +48,10 @@ staticfiles/
 db.sqlite3
 media/
 
+# credentials
+/backend/config/credentials/*
+!backend/config/credentials/.gitkeep
+
 client_secret*
 
 .devcontainer/

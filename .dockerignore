@@ -30,3 +30,10 @@ scripts/
 *.db
 *.sqlite3
 
+# Exclude backend directory and Python files from frontend build
+backend/
+*.py
+requirements.txt
+setup.py
+setup.sh
+

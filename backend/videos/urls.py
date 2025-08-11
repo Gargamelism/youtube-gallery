@@ -1,8 +1,8 @@
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
+from .utils.router import KebabCaseRouter
 from .views import ChannelViewSet, VideoViewSet
 
-router = DefaultRouter()
+router = KebabCaseRouter()
 router.register(r'channels', ChannelViewSet)
 router.register(r'videos', VideoViewSet)
 

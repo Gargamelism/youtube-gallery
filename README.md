@@ -1,4 +1,92 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# YouTube Gallery
+
+A Next.js and Django application for managing and viewing YouTube videos with watched/unwatched tracking.
+
+## API Conventions
+
+All API endpoints follow the kebab-case convention:
+- Words are separated by hyphens
+- All letters are lowercase
+- Example: `/api/channels/fetch-from-youtube/`
+
+## API Endpoints
+
+### Videos
+
+```http
+GET /api/videos/
+```
+List all videos with pagination and filtering options.
+- Query Parameters:
+  - `search`: Search in title and description
+  - `ordering`: Sort by title, published_at, view_count, like_count
+  - `channel`: Filter by channel UUID
+  - `is_watched`: Filter by watch status
+
+```http
+GET /api/videos/{uuid}/
+```
+Get details for a specific video
+
+```http
+GET /api/videos/watched/
+```
+List all watched videos
+
+```http
+GET /api/videos/unwatched/
+```
+List all unwatched videos
+
+```http
+POST /api/videos/{uuid}/mark_as_watched/
+```
+Mark a video as watched
+
+```http
+POST /api/videos/{uuid}/mark_as_unwatched/
+```
+Mark a video as unwatched
+
+### Channels
+
+```http
+GET /api/channels/
+```
+List all channels with pagination and filtering options.
+- Query Parameters:
+  - `search`: Search in title and description
+  - `ordering`: Sort by title, created_at
+  - `channel_id`: Filter by YouTube channel ID
+
+```http
+GET /api/channels/{uuid}/
+```
+Get channel details including video statistics
+
+```http
+GET /api/channels/{uuid}/videos/
+```
+List all videos from a specific channel
+
+```http
+GET /api/channels/{uuid}/stats/
+```
+Get channel statistics including:
+- Total videos count
+- Watched videos count
+- Unwatched videos count
+
+```http
+POST /api/channels/fetch-from-youtube/
+```
+Import a channel and all its videos from YouTube
+- Request Body:
+  ```json
+  {
+    "channel_id": "UC..." // YouTube channel ID
+  }
+  ```
 
 ## Getting Started
 
@@ -29,8 +117,43 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+## Configuration
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### YouTube API Setup
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Place your OAuth2 credentials in:
+   ```
+   backend/config/credentials/client_secret.json
+   ```
+
+2. Set environment variables in `backend/.env`:
+   ```env
+   YOUTUBE_CREDENTIALS_DIR=/app/config/credentials
+   YOUTUBE_CLIENT_SECRET_FILE=client_secret.json
+   YOUTUBE_TOKEN_FILE=token.json
+   ```
+
+3. First-time authentication:
+   - The service will open a browser window for OAuth authentication
+   - Log in to your Google account
+   - Grant the required permissions
+   - The token will be saved for future use
+
+### Example API Usage
+
+Import a YouTube channel:
+```bash
+curl -X POST http://localhost:8000/api/channels/fetch-from-youtube/ \
+  -H "Content-Type: application/json" \
+  -d '{"channel_id": "UC..."}'
+```
+
+List unwatched videos from a specific channel:
+```bash
+curl "http://localhost:8000/api/videos/?channel={uuid}&is_watched=false"
+```
+
+Get channel statistics:
+```bash
+curl http://localhost:8000/api/channels/{uuid}/stats/
+```

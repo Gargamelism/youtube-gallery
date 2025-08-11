@@ -1,4 +1,4 @@
-import { Video, VideoResponse } from "@/types";
+import { Video, VideoResponse, VideoStats } from "@/types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
@@ -21,9 +21,18 @@ async function handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
     return { data };
 }
 
-export async function fetchVideos(): Promise<ApiResponse<VideoResponse>> {
-    const response = await fetch(`${API_BASE_URL}/videos/`);
+export async function fetchVideos(filter?: string): Promise<ApiResponse<VideoResponse>> {
+    let url = `${API_BASE_URL}/videos/`;
+    if (filter && filter !== 'all') {
+        url = `${API_BASE_URL}/videos/${filter}/`;
+    }
+    const response = await fetch(url);
     return handleResponse<VideoResponse>(response);
+}
+
+export async function fetchVideoStats(): Promise<ApiResponse<VideoStats>> {
+    const response = await fetch(`${API_BASE_URL}/videos/stats/`);
+    return handleResponse<VideoStats>(response);
 }
 
 export interface WatchStatusResponse {

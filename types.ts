@@ -12,3 +12,9 @@ export interface VideoResponse {
     previous: string | null;
     results: Video[];
 }
+
+export interface VideoStats {
+    total: number;
+    watched: number;
+    unwatched: number;
+}

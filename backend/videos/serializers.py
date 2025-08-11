@@ -3,9 +3,22 @@ from .models import Channel, Video
 
 
 class ChannelSerializer(serializers.ModelSerializer):
+    total_videos = serializers.SerializerMethodField()
+    watched_videos = serializers.SerializerMethodField()
+    unwatched_videos = serializers.SerializerMethodField()
+
     class Meta:
         model = Channel
         fields = '__all__'
+
+    def get_total_videos(self, obj):
+        return obj.videos.count()
+
+    def get_watched_videos(self, obj):
+        return obj.videos.filter(is_watched=True).count()
+
+    def get_unwatched_videos(self, obj):
+        return obj.videos.filter(is_watched=False).count()
 
 
 class VideoSerializer(serializers.ModelSerializer):

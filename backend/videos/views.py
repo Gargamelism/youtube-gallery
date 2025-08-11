@@ -7,7 +7,12 @@ from .models import Channel, Video
 from .serializers import ChannelSerializer, VideoSerializer, VideoListSerializer
 
 
-class ChannelViewSet(viewsets.ModelViewSet):
+from rest_framework.exceptions import ValidationError
+from .services.youtube import YouTubeService
+
+from .utils.viewset_mixins import KebabCaseEndpointsMixin
+
+class ChannelViewSet(KebabCaseEndpointsMixin, viewsets.ModelViewSet):
     queryset = Channel.objects.all()
     serializer_class = ChannelSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -16,8 +21,65 @@ class ChannelViewSet(viewsets.ModelViewSet):
     ordering_fields = ['title', 'created_at']
     ordering = ['title']
 
+    @action(detail=False, methods=['post'], url_path='fetch-from-youtube')
+    def fetch_from_youtube(self, request):
+        """Fetch a channel and all its videos from YouTube"""
+        channel_id = request.data.get('channel_id')
+        if not channel_id:
+            raise ValidationError({'channel_id': 'This field is required.'})
 
-class VideoViewSet(viewsets.ModelViewSet):
+        try:
+            youtube_service = YouTubeService()
+            channel = youtube_service.fetch_channel(channel_id)
+            
+            if not channel:
+                return Response(
+                    {'error': 'Channel not found on YouTube'}, 
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            serializer = self.get_serializer(channel)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=['get'])
+    def videos(self, request, pk=None):
+        channel = self.get_object()
+        videos = Video.objects.filter(channel=channel)
+        page = self.paginate_queryset(videos)
+        
+        # Use VideoListSerializer for consistent video list representation
+        serializer_class = VideoListSerializer
+        
+        if page is not None:
+            serializer = serializer_class(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        
+        serializer = serializer_class(videos, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['get'])
+    def stats(self, request, pk=None):
+        channel = self.get_object()
+        total_videos = channel.videos.count()
+        watched_videos = channel.videos.filter(is_watched=True).count()
+        unwatched_videos = total_videos - watched_videos
+        
+        return Response({
+            'total_videos': total_videos,
+            'watched_videos': watched_videos,
+            'unwatched_videos': unwatched_videos,
+            'title': channel.title,
+            'channel_id': channel.channel_id,
+            'description': channel.description
+        })
+
+
+class VideoViewSet(KebabCaseEndpointsMixin, viewsets.ModelViewSet):
     queryset = Video.objects.select_related('channel').all()
     serializer_class = VideoSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
