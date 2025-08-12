@@ -90,7 +90,23 @@ Import a channel and all its videos from YouTube
 
 ## Getting Started
 
-First, run the development server:
+### Building the Project
+
+The project uses a test-driven build process. To build the project:
+
+```bash
+# Using Python (works on all platforms)
+python build.py
+
+# Or using the shell script (Unix/Linux/WSL)
+./build.sh
+```
+
+The build will only succeed if all tests pass. This ensures code quality and prevents broken builds.
+
+### Development Server
+
+Once built, run the development server:
 
 ```bash
 npm run dev

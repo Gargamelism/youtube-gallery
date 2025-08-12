@@ -12,11 +12,30 @@ services:
     networks:
       - youtube_gallery_network
 
+  # Django Backend Tests
+  backend_test:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: test
+    working_dir: /app
+    environment:
+      - TESTING=1
+      - PYTHONPATH=/app
+      - DJANGO_SETTINGS_MODULE=youtube_gallery.settings
+      - YOUTUBE_CREDENTIALS_DIR=/app/config/credentials
+      - YOUTUBE_CLIENT_SECRET_FILE=client_secret.json
+      - YOUTUBE_TOKEN_FILE=token.json
+    volumes:
+      - ./backend:/app
+      - youtube_credentials:/app/config/credentials
+
   # Django Backend (Development with hot reload)
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      target: production
     environment:
       - DEBUG=True
       - DB_HOST=db
