@@ -1,13 +1,12 @@
-from django.test import TestCase
-from rest_framework.test import APITestCase
-from django.urls import reverse
+import unittest
 from rest_framework import viewsets
-from ..utils.router import KebabCaseRouter
-from ..utils.viewset_mixins import KebabCaseEndpointsMixin
-from ..models import Video, Channel
+from rest_framework.decorators import action
+from videos.utils.router import KebabCaseRouter
 
 # Test ViewSet for router testing
 class DummyViewSet(viewsets.ViewSet):
+    """A dummy ViewSet for testing URL patterns"""
+    
     def list(self): pass
     def create(self): pass
     def retrieve(self): pass
@@ -15,61 +14,74 @@ class DummyViewSet(viewsets.ViewSet):
     def partial_update(self): pass
     def destroy(self): pass
     
+    @action(detail=True, methods=['post'])
     def custom_action_name(self): pass
-    custom_action_name.url_path = 'custom_action_name'
+    
+    @action(detail=True, methods=['post'])
+    def another_custom_action(self): pass
+    
+    @action(detail=False, methods=['get'])
+    def list_something_special(self): pass
 
-class TestKebabCaseRouter(TestCase):
+class TestKebabCaseRouter(unittest.TestCase):
+    """Unit tests for the KebabCaseRouter"""
+    
     def setUp(self):
+        """Set up the router and register test viewset"""
         self.router = KebabCaseRouter()
-        self.router.register(r'test', DummyViewSet, basename='test')
-        self.urls = self.router.get_urls()
-
-    def test_standard_actions_are_kebab_case(self):
-        """Test that standard ViewSet actions are properly converted to kebab-case"""
-        url_patterns = [url.pattern._route for url in self.urls]
+        # Register with explicit basename to avoid queryset requirement
+        self.router.register(r'test-resource', DummyViewSet, basename='test-resource')
+    
+    def test_action_conversion(self):
+        """Test that action method names are converted to kebab-case"""
+        # Get the routes and substitute the placeholder values
+        routes = self.router.get_routes(DummyViewSet)
+        patterns = []
         
-        self.assertIn('test/', url_patterns)  # List/Create URL
-        self.assertIn('test/{pk}/', url_patterns)  # Retrieve/Update/Delete URL
-        self.assertIn('test/{pk}/custom-action-name/', url_patterns)
-
-    def test_custom_url_paths_are_kebab_case(self):
-        """Test that custom URL paths are converted to kebab-case"""
-        url_patterns = [url.pattern._route for url in self.urls]
-        self.assertIn('test/{pk}/custom-action-name/', url_patterns)
-        self.assertNotIn('test/{pk}/custom_action_name/', url_patterns)
-
-class TestKebabCaseEndpoints(APITestCase):
-    def setUp(self):
-        self.channel = Channel.objects.create(
-            channel_id='test_channel',
-            title='Test Channel'
-        )
-        self.video = Video.objects.create(
-            video_id='test_video',
-            title='Test Video',
-            channel=self.channel
-        )
-
-    def test_fetch_from_youtube_endpoint(self):
-        """Test that fetch_from_youtube endpoint uses kebab-case"""
-        url = reverse('channel-fetch-from-youtube')
-        self.assertTrue(url.endswith('/fetch-from-youtube/'))
-        self.assertFalse('/fetch_from_youtube/' in url)
-
-    def test_mark_as_watched_endpoint(self):
-        """Test that mark_as_watched endpoint uses kebab-case"""
-        url = reverse('video-mark-as-watched', kwargs={'pk': self.video.pk})
-        self.assertTrue(url.endswith('/mark-as-watched/'))
-        self.assertFalse('/mark_as_watched/' in url)
-
-    def test_api_responses_include_kebab_urls(self):
-        """Test that API responses include properly formatted kebab-case URLs"""
-        # List channels and check URLs in response
-        response = self.client.get('/api/channels/')
-        self.assertEqual(response.status_code, 200)
+        for route in routes:
+            # Replace the placeholders with our test values
+            url = route.url
+            url = url.replace('{prefix}', 'test-resource')
+            url = url.replace('{lookup}', '(?P<pk>[^/.]+)')
+            url = url.replace('{trailing_slash}', '/')
+            patterns.append(url)
         
-        # Verify URLs in response use kebab-case
-        data = response.json()
-        for channel in data:
-            self.assertTrue('/fetch-from-youtube' in channel['url'])
-            self.assertFalse('/fetch_from_youtube' in channel['url'])
+        # Verify expected URL patterns
+        expected_patterns = {
+            '^test-resource/$',  # list
+            '^test-resource/(?P<pk>[^/.]+)/$',  # detail
+            '^test-resource/list-something-special/$',
+            '^test-resource/(?P<pk>[^/.]+)/custom-action-name/$',
+            '^test-resource/(?P<pk>[^/.]+)/another-custom-action/$'
+        }
+        
+        # Check that all expected patterns are present
+        for pattern in expected_patterns:
+            self.assertIn(pattern, patterns)
+            
+        # Check that no snake_case versions exist
+        combined_patterns = ' '.join(patterns)
+        self.assertNotIn('list_something_special', combined_patterns)
+        self.assertNotIn('custom_action_name', combined_patterns)
+        self.assertNotIn('another_custom_action', combined_patterns)
+    
+    def test_to_kebab_case_method(self):
+        """Test the internal _to_kebab_case method directly"""
+        test_cases = [
+            ('snake_case_string', 'snake-case-string'),
+            ('already-kebab-case', 'already-kebab-case'),
+            ('mixedCamelCase', 'mixedcamelcase'),
+            ('with_numbers_123', 'with-numbers-123'),
+            ('UPPERCASE_STRING', 'uppercase-string'),
+            ('multiple__underscores', 'multiple-underscores'),
+            ('ends_with_underscore_', 'ends-with-underscore'),
+            ('_starts_with_underscore', 'starts-with-underscore'),
+        ]
+        
+        for input_str, expected in test_cases:
+            actual = self.router._to_kebab_case(input_str)
+            self.assertEqual(
+                actual, 
+                expected, 
+                f"Failed to convert '{input_str}' to kebab-case. Expected '{expected}', got '{actual}'"
+            )

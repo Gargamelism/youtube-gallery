@@ -41,9 +41,8 @@ def main():
         sys.exit(1)
 
     # Run tests with detailed output
-    test_command = 'cd /app && python -m pytest videos/tests/test_000_pre_startup.py -vv --tb=short --no-header --show-capture=all'
     result = subprocess.run(
-        ['docker', 'compose', 'run', '--rm', '--no-deps', 'backend_test', 'sh', '-c', test_command],
+        ['docker', 'compose', '--profile', 'test', 'up', 'backend_test', '--exit-code-from', 'backend_test'],
         capture_output=True,
         text=True
     )

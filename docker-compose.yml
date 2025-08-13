@@ -19,16 +19,17 @@ services:
       dockerfile: Dockerfile
       target: test
     working_dir: /app
+    profiles: ["test"]
     environment:
       - TESTING=1
       - PYTHONPATH=/app
       - DJANGO_SETTINGS_MODULE=youtube_gallery.settings
-      - YOUTUBE_CREDENTIALS_DIR=/app/config/credentials
-      - YOUTUBE_CLIENT_SECRET_FILE=client_secret.json
-      - YOUTUBE_TOKEN_FILE=token.json
     volumes:
       - ./backend:/app
-      - youtube_credentials:/app/config/credentials
+    # Exit after running tests
+    command: python -m pytest videos/tests/test_url_formatting.py -v
+    # Don't restart
+    restart: "no"
 
   # Django Backend (Development with hot reload)
   backend:

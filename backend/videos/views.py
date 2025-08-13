@@ -21,7 +21,7 @@ class ChannelViewSet(KebabCaseEndpointsMixin, viewsets.ModelViewSet):
     ordering_fields = ['title', 'created_at']
     ordering = ['title']
 
-    @action(detail=False, methods=['post'], url_path='fetch-from-youtube')
+    @action(detail=False, methods=['post'])
     def fetch_from_youtube(self, request):
         """Fetch a channel and all its videos from YouTube"""
         channel_id = request.data.get('channel_id')
@@ -98,6 +98,7 @@ class VideoViewSet(KebabCaseEndpointsMixin, viewsets.ModelViewSet):
         video = self.get_object()
         video.is_watched = True
         video.save()
+        return Response({'status': 'success'})
         return Response({'status': 'marked as watched'})
 
     @action(detail=True, methods=['post'])
