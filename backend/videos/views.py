@@ -10,9 +10,7 @@ from .serializers import ChannelSerializer, VideoSerializer, VideoListSerializer
 from rest_framework.exceptions import ValidationError
 from .services.youtube import YouTubeService
 
-from .utils.viewset_mixins import KebabCaseEndpointsMixin
-
-class ChannelViewSet(KebabCaseEndpointsMixin, viewsets.ModelViewSet):
+class ChannelViewSet(viewsets.ModelViewSet):
     queryset = Channel.objects.all()
     serializer_class = ChannelSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -79,7 +77,7 @@ class ChannelViewSet(KebabCaseEndpointsMixin, viewsets.ModelViewSet):
         })
 
 
-class VideoViewSet(KebabCaseEndpointsMixin, viewsets.ModelViewSet):
+class VideoViewSet(viewsets.ModelViewSet):
     queryset = Video.objects.select_related('channel').all()
     serializer_class = VideoSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
