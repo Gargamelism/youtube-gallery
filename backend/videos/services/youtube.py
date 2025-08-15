@@ -47,27 +47,87 @@ class YouTubeService:
 
         self.youtube = build('youtube', 'v3', credentials=self.credentials)
 
-    def get_channel_details(self, channel_id: str) -> Optional[Dict[str, Any]]:
+    def _get_channel_by_id(self, channel_id: str) -> Optional[Dict[str, Any]]:
+        """Get channel details using channel ID"""
+        request = self.youtube.channels().list(
+            part="snippet,statistics,contentDetails",
+            id=channel_id
+        )
+        response = request.execute()
+        
+        if not response['items']:
+            return None
+            
+        return response['items'][0]
+
+    def _get_channel_by_username(self, username: str) -> Optional[Dict[str, Any]]:
+        """Get channel details using username (without @ symbol)"""
+        request = self.youtube.channels().list(
+            part="snippet,statistics,contentDetails",
+            forUsername=username
+        )
+        response = request.execute()
+
+        if response['pageInfo']['totalResults'] == 0:
+            return None
+            
+        return response['items'][0]
+
+    def _search_channel_by_handle(self, handle: str) -> Optional[str]:
+        """Search for channel ID using handle via search API"""
+        request = self.youtube.search().list(
+            part="snippet",
+            q=handle,
+            type="channel",
+            maxResults=1
+        )
+        response = request.execute()
+
+        if not response['items']:
+            return None
+            
+        return response['items'][0]['snippet']['channelId']
+
+    def _format_channel_response(self, channel_info: Dict[str, Any]) -> Dict[str, Any]:
+        """Format channel API response into standardized structure"""
+        channel_id = channel_info['id']
+        return {
+            'channel_id': channel_id,
+            'title': channel_info['snippet']['title'],
+            'description': channel_info['snippet']['description'],
+            'url': f'https://www.youtube.com/channel/{channel_id}',
+            'uploads_playlist_id': channel_info['contentDetails']['relatedPlaylists']['uploads']
+        }
+
+    def get_channel_details(self, channel_identifier: str) -> Optional[Dict[str, Any]]:
+        """Get channel details by ID or handle (@username)"""
         try:
-            request = self.youtube.channels().list(
-                part="snippet,statistics,contentDetails",
-                id=channel_id
-            )
-            response = request.execute()
+            if channel_identifier.startswith('@'):
+                # Handle channel username/handle
+                username = channel_identifier[1:]  # Remove @ symbol
+                
+                # Try direct username lookup first
+                channel_info = self._get_channel_by_username(username)
 
-            if not response['items']:
-                return None
+                if not channel_info:
+                    # Fall back to search API
+                    channel_id = self._search_channel_by_handle(channel_identifier)
+                    if not channel_id:
+                        return None
+                    
+                    channel_info = self._get_channel_by_id(channel_id)
+                    if not channel_info:
+                        return None
+            else:
+                # Handle regular channel ID
+                channel_info = self._get_channel_by_id(channel_identifier)
+                if not channel_info:
+                    return None
 
-            channel_info = response['items'][0]
-            return {
-                'channel_id': channel_id,
-                'title': channel_info['snippet']['title'],
-                'description': channel_info['snippet']['description'],
-                'url': f'https://www.youtube.com/channel/{channel_id}',
-                'uploads_playlist_id': channel_info['contentDetails']['relatedPlaylists']['uploads']
-            }
+            return self._format_channel_response(channel_info)
+            
         except Exception as e:
-            print(f"Error fetching channel details: {e}")
+            print(f"Error fetching channel details for {channel_identifier}: {e}")
             return None
 
     def get_channel_videos(self, uploads_playlist_id: str) -> List[Dict[str, Any]]:
@@ -134,16 +194,16 @@ class YouTubeService:
 
         return videos
 
-    def fetch_channel(self, channel_id: str) -> Optional[Channel]:
+    def fetch_channel(self, channel_identifier: str) -> Optional[Channel]:
         """Fetch a channel and all its videos from YouTube"""
         # Get channel details
-        channel_info = self.get_channel_details(channel_id)
+        channel_info = self.get_channel_details(channel_identifier)
         if not channel_info:
             return None
 
-        # Create or update channel
+        # Create or update channel using the actual channel ID from the response
         channel, _ = Channel.objects.update_or_create(
-            channel_id=channel_id,
+            channel_id=channel_info['channel_id'],
             defaults={
                 'title': channel_info['title'],
                 'description': channel_info['description'],
