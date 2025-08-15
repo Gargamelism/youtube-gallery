@@ -149,11 +149,15 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
    YOUTUBE_TOKEN_FILE=token.json
    ```
 
-3. First-time authentication:
-   - The service will open a browser window for OAuth authentication
-   - Log in to your Google account
-   - Grant the required permissions
-   - The token will be saved for future use
+3. First-time authentication for development:
+   ```bash
+   docker-compose exec -it backend python scripts/docker-youtube-auth.py
+   ```
+   - Follow the interactive prompts
+   - Copy the OAuth URL to your browser
+   - Complete the Google authentication
+   - Copy the authorization code back to the terminal
+   - The token will be saved for future use in the container
 
 ### Example API Usage
 

@@ -46,8 +46,6 @@ services:
       - DB_PORT=5432
     volumes:
       - ./backend:/app
-      - media_files:/app/media
-      - youtube_credentials:/app/config/credentials
     ports:
       - "8000:8000"
     depends_on:

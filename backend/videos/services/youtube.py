@@ -33,7 +33,7 @@ class YouTubeService:
             if self.credentials and self.credentials.expired and self.credentials.refresh_token:
                 self.credentials.refresh(Request())
             else:
-                # Load client secrets
+                print(client_secret_path)
                 if not client_secret_path.exists():
                     raise ValueError("client_secret.json not found in the project root")
 
