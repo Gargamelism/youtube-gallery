@@ -39,7 +39,7 @@ class Video(TimestampMixin):
     default_language = models.CharField(max_length=10, blank=True, null=True)
     upload_status = models.CharField(max_length=20, blank=True, null=True)
     tags = models.TextField(blank=True, null=True)
-    thumbnail_path = models.CharField(max_length=500, blank=True, null=True)
+    thumbnail_url = models.CharField(max_length=500, blank=True, null=True)
     video_url = models.URLField(blank=True, null=True)
     is_watched = models.BooleanField(default=False)
     

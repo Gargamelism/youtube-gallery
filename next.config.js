@@ -8,6 +8,16 @@ const nextConfig = {
                 hostname: 'localhost',
                 port: '8000',
                 pathname: '/media/**',
+            },
+            {
+                protocol: 'https',
+                hostname: 'i.ytimg.com',
+                pathname: '/**',
+            },
+            {
+                protocol: 'https',
+                hostname: 'img.youtube.com',
+                pathname: '/**',
             }
         ],
     },

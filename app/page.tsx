@@ -30,7 +30,7 @@ export default function Home() {
 
   const { mutate: toggleWatchStatus } = useMutation({
     mutationFn: (videoId: string) => {
-      const video = videosResponse?.data?.results?.find((v: Video) => v.id === videoId);
+      const video = videosResponse?.data?.results?.find((v: Video) => v.uuid === videoId);
       return updateVideoWatchStatus(videoId, !video?.watched);
     },
     onSuccess: () => {

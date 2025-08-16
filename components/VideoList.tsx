@@ -42,10 +42,10 @@ export function VideoList({ videos, onWatchVideo, isLoading, error }: VideoListP
       <div className="grid grid-cols-1 gap-6">
         {videos.map((video) => (
           <VideoCard
-            key={video.id}
+            key={video.uuid}
             video={video}
-            onWatch={() => handleVideoClick(video.url)}
-            onMarkWatched={() => onWatchVideo(video.id)}
+            onWatch={() => handleVideoClick(video.video_url)}
+            onMarkWatched={() => onWatchVideo(video.uuid)}
           />
         ))}
       </div>

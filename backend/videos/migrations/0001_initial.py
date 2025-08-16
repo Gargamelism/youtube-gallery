@@ -46,7 +46,7 @@ class Migration(migrations.Migration):
                 ('default_language', models.CharField(blank=True, max_length=10, null=True)),
                 ('upload_status', models.CharField(blank=True, max_length=20, null=True)),
                 ('tags', models.TextField(blank=True, null=True)),
-                ('thumbnail_path', models.CharField(blank=True, max_length=500, null=True)),
+                ('thumbnail_url', models.CharField(blank=True, max_length=500, null=True)),
                 ('video_url', models.URLField(blank=True, null=True)),
                 ('is_watched', models.BooleanField(default=False)),
                 ('duration', videos.fields.YouTubeDurationField(blank=True, max_length=20, null=True)),

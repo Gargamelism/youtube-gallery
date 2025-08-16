@@ -1,8 +1,11 @@
 export interface Video {
-    id: string;
+    uuid: string;
+    video_id: string;
+    channel_title: string;
     title: string;
-    url: string;
-    thumbnail: string;
+    desctription: string | null;
+    video_url: string;
+    thumbnail_url: string;
     watched: boolean;
 }
 

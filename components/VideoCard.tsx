@@ -29,10 +29,10 @@ export function VideoCard({ video, onWatch, onMarkWatched }: VideoCardProps) {
   };
 
   return (
-    <div className="relative overflow-hidden rounded-lg border bg-background shadow p-4">
-      <div className="flex flex-col sm:flex-row items-start gap-4">
-        <div className="w-full sm:w-64 h-40 relative overflow-hidden rounded-md">
-          <Image src={video.thumbnail} alt={video.title} fill className="object-cover" />
+    <div className="video-card-container relative overflow-hidden rounded-lg border bg-background shadow p-4">
+      <div className="video-card-content flex flex-col sm:flex-row items-start gap-4">
+        <div className="video-thumbnail-container w-full sm:w-64 h-40 relative overflow-hidden rounded-md">
+          <Image src={video.thumbnail_url} alt={video.title} fill className="object-cover" />
           <button
             onClick={onWatch}
             className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 hover:opacity-100 transition-opacity"
@@ -41,7 +41,7 @@ export function VideoCard({ video, onWatch, onMarkWatched }: VideoCardProps) {
           </button>
         </div>
 
-        <div className="flex-1 min-w-0">
+        <div className="video-details-container flex-1 min-w-0">
           <h3
             className={`text-lg font-semibold mb-2 ${getTextAlign(video.title)}`}
             style={{ direction: getTextDirection(video.title) }}
@@ -49,7 +49,7 @@ export function VideoCard({ video, onWatch, onMarkWatched }: VideoCardProps) {
             {video.title}
           </h3>
 
-          <div className="space-y-2">
+          <div className="video-actions-container space-y-2">
             <button
               onClick={onMarkWatched}
               className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm ${

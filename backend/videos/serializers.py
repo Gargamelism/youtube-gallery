@@ -48,6 +48,6 @@ class VideoListSerializer(serializers.ModelSerializer):
         fields = [
             'uuid', 'video_id', 'title', 'description', 'published_at',
             'duration', 'view_count', 'like_count', 'comment_count',
-            'thumbnail_path', 'video_url', 'is_watched', 'channel_title'
+            'thumbnail_url', 'video_url', 'is_watched', 'channel_title'
         ]
 

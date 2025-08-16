@@ -167,7 +167,7 @@ class YouTubeService:
                             'like_count': int(video['statistics'].get('likeCount', 0)),
                             'comment_count': int(video['statistics'].get('commentCount', 0)),
                             'duration': video['contentDetails']['duration'],
-                            'thumbnail_path': video['snippet']['thumbnails']['high']['url'],
+                            'thumbnail_url': video['snippet']['thumbnails']['high']['url'],
                             'video_url': f'https://www.youtube.com/watch?v={video["id"]}',
                             'category_id': video['snippet'].get('categoryId'),
                             'default_language': video['snippet'].get('defaultLanguage'),
