@@ -3,7 +3,7 @@ export interface Video {
     video_id: string;
     channel_title: string;
     title: string;
-    desctription: string | null;
+    description: string | null;
     video_url: string;
     thumbnail_url: string;
     watched: boolean;

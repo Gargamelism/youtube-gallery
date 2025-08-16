@@ -1,6 +1,7 @@
 "use client";
 
-import { Play, Check } from "lucide-react";
+import { useState } from "react";
+import { Play, Check, ChevronDown, ChevronUp } from "lucide-react";
 import Image from "next/image";
 import { Video } from "@/types";
 
@@ -11,6 +12,7 @@ interface VideoCardProps {
 }
 
 export function VideoCard({ video, onWatch, onMarkWatched }: VideoCardProps) {
+  const [showDescription, setShowDescription] = useState(false);
   // Hebrew text detection
   const isHebrew = (text: string | null) => {
     if (!text) return false;
@@ -48,6 +50,28 @@ export function VideoCard({ video, onWatch, onMarkWatched }: VideoCardProps) {
           >
             {video.title}
           </h3>
+
+          {video.description && (
+            <div className="video-description-container mb-3 w-full flex flex-col items-center justify-center">
+              <button
+                onClick={() => setShowDescription(!showDescription)}
+                className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-800 mb-2"
+              >
+                {showDescription ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                {showDescription ? "Hide description" : "Show description"}
+              </button>
+              
+              {showDescription && (
+                <div
+                  className={`text-sm text-gray-700 leading-relaxed cursor-pointer ${getTextAlign(video.description)}`}
+                  style={{ direction: getTextDirection(video.description) }}
+                  onClick={() => setShowDescription(false)}
+                >
+                  {video.description}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="video-actions-container flex items-center justify-center mt-2">
             <button
