@@ -30,7 +30,7 @@ export function VideoCard({ video, onWatch, onMarkWatched }: VideoCardProps) {
 
   return (
     <div className="video-card-container relative overflow-hidden rounded-lg border bg-background shadow p-4">
-      <div className="video-card-content flex flex-col sm:flex-row items-start gap-4">
+      <div className="video-card-content flex flex-col items-start gap-4">
         <div className="video-thumbnail-container w-full sm:w-64 h-40 relative overflow-hidden rounded-md">
           <Image src={video.thumbnail_url} alt={video.title} fill className="object-cover" />
           <button
@@ -49,7 +49,7 @@ export function VideoCard({ video, onWatch, onMarkWatched }: VideoCardProps) {
             {video.title}
           </h3>
 
-          <div className="video-actions-container space-y-2">
+          <div className="video-actions-container flex items-center justify-center mt-2">
             <button
               onClick={onMarkWatched}
               className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm ${
