@@ -69,7 +69,7 @@ class Command(BaseCommand):
         for row in videos_data:
             # Assuming columns: uuid, video_id, channel_uuid, title, description, published_at, 
             # duration, view_count, like_count, comment_count, category_id, default_language,
-            # privacy_status, upload_status, tags, thumbnail_path, video_url, is_watched, created_at, updated_at
+            # upload_status, tags, thumbnail_path, video_url, is_watched, created_at, updated_at
             
             # Get channel by UUID
             try:
@@ -99,7 +99,6 @@ class Command(BaseCommand):
                     'comment_count': row[9],  # comment_count
                     'category_id': row[10] or '',  # category_id
                     'default_language': row[11] or '',  # default_language
-                    'privacy_status': row[12] or '',  # privacy_status
                     'upload_status': row[13] or '',  # upload_status
                     'tags': row[14] or '',  # tags
                     'thumbnail_path': row[15] or '',  # thumbnail_path

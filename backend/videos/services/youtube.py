@@ -5,9 +5,10 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
-from ..models import Channel, Video
+from videos.models import Channel, Video
+from videos.utils.dateutils import timezone_aware_datetime
 
 SCOPES = ['https://www.googleapis.com/auth/youtube.readonly']
 
@@ -33,7 +34,6 @@ class YouTubeService:
             if self.credentials and self.credentials.expired and self.credentials.refresh_token:
                 self.credentials.refresh(Request())
             else:
-                print(client_secret_path)
                 if not client_secret_path.exists():
                     raise ValueError("client_secret.json not found in the project root")
 
@@ -98,6 +98,7 @@ class YouTubeService:
             'url': f'https://www.youtube.com/channel/{channel_id}',
             'uploads_playlist_id': channel_info['contentDetails']['relatedPlaylists']['uploads']
         }
+    
 
     def get_channel_details(self, channel_identifier: str) -> Optional[Dict[str, Any]]:
         """Get channel details by ID or handle (@username)"""
@@ -157,32 +158,22 @@ class YouTubeService:
                     video_response = video_request.execute()
 
                     for video in video_response['items']:
-                        try:
-                            published_at = datetime.strptime(
-                                video['snippet']['publishedAt'], 
-                                '%Y-%m-%dT%H:%M:%SZ'
-                            ).replace(tzinfo=timezone.utc)
-
-                            video_data = {
-                                'video_id': video['id'],
-                                'title': video['snippet'].get('title'),
-                                'description': video['snippet'].get('description'),
-                                'published_at': published_at,
-                                'view_count': int(video['statistics'].get('viewCount', 0)),
-                                'like_count': int(video['statistics'].get('likeCount', 0)),
-                                'comment_count': int(video['statistics'].get('commentCount', 0)),
-                                'duration': video['contentDetails']['duration'],
-                                'thumbnail_path': video['snippet']['thumbnails']['high']['url'],
-                                'video_url': f'https://www.youtube.com/watch?v={video["id"]}',
-                                'privacy_status': video['status']['privacyStatus'],
-                                'category_id': video['snippet'].get('categoryId'),
-                                'default_language': video['snippet'].get('defaultLanguage'),
-                                'tags': ','.join(video['snippet'].get('tags', [])) if video['snippet'].get('tags') else None
-                            }
-                            videos.append(video_data)
-                        except Exception as e:
-                            print(f"Error processing video {video['id']}: {e}")
-                            continue
+                        video_data = {
+                            'video_id': video['id'],
+                            'title': video['snippet'].get('title'),
+                            'description': video['snippet'].get('description'),
+                            'published_at': timezone_aware_datetime(video['snippet']['publishedAt']),
+                            'view_count': int(video['statistics'].get('viewCount', 0)),
+                            'like_count': int(video['statistics'].get('likeCount', 0)),
+                            'comment_count': int(video['statistics'].get('commentCount', 0)),
+                            'duration': video['contentDetails']['duration'],
+                            'thumbnail_path': video['snippet']['thumbnails']['high']['url'],
+                            'video_url': f'https://www.youtube.com/watch?v={video["id"]}',
+                            'category_id': video['snippet'].get('categoryId'),
+                            'default_language': video['snippet'].get('defaultLanguage'),
+                            'tags': ','.join(video['snippet'].get('tags', [])) if video['snippet'].get('tags') else None
+                        }
+                        videos.append(video_data)
 
                 next_page_token = playlist_response.get('nextPageToken')
                 if not next_page_token:

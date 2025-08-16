@@ -44,7 +44,6 @@ class Migration(migrations.Migration):
                 ('comment_count', models.IntegerField(blank=True, null=True)),
                 ('category_id', models.CharField(blank=True, max_length=50, null=True)),
                 ('default_language', models.CharField(blank=True, max_length=10, null=True)),
-                ('privacy_status', models.CharField(blank=True, max_length=20, null=True)),
                 ('upload_status', models.CharField(blank=True, max_length=20, null=True)),
                 ('tags', models.TextField(blank=True, null=True)),
                 ('thumbnail_path', models.CharField(blank=True, max_length=500, null=True)),

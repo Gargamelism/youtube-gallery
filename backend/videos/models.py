@@ -37,7 +37,6 @@ class Video(TimestampMixin):
     comment_count = models.IntegerField(blank=True, null=True)
     category_id = models.CharField(max_length=50, blank=True, null=True)
     default_language = models.CharField(max_length=10, blank=True, null=True)
-    privacy_status = models.CharField(max_length=20, blank=True, null=True)
     upload_status = models.CharField(max_length=20, blank=True, null=True)
     tags = models.TextField(blank=True, null=True)
     thumbnail_path = models.CharField(max_length=500, blank=True, null=True)

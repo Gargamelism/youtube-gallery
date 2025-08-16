@@ -81,7 +81,7 @@ class VideoViewSet(viewsets.ModelViewSet):
     queryset = Video.objects.select_related('channel').all()
     serializer_class = VideoSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['channel', 'is_watched', 'privacy_status']
+    filterset_fields = ['channel', 'is_watched']
     search_fields = ['title', 'description']
     ordering_fields = ['title', 'published_at', 'view_count', 'like_count']
     ordering = ['-published_at']
