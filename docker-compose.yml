@@ -46,6 +46,7 @@ services:
       - DB_PORT=5432
     volumes:
       - ./backend:/app
+      - python_venv:/usr/local
     ports:
       - "8000:8000"
     depends_on:
@@ -86,6 +87,8 @@ volumes:
   media_files:
     driver: local
   youtube_credentials:
+    driver: local
+  python_venv:
     driver: local
 
 networks:

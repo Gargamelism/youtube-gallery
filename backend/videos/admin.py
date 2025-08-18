@@ -12,9 +12,8 @@ class ChannelAdmin(admin.ModelAdmin):
 
 @admin.register(Video)
 class VideoAdmin(admin.ModelAdmin):
-    list_display = ['title', 'channel', 'published_at', 'is_watched', 'view_count']
-    list_filter = ['is_watched', 'published_at', 'channel']
+    list_display = ['title', 'channel', 'published_at', 'view_count']
+    list_filter = ['published_at', 'channel']
     search_fields = ['title', 'description', 'video_id']
     readonly_fields = ['uuid', 'created_at', 'updated_at']
-    list_editable = ['is_watched']
 

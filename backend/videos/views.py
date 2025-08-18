@@ -1,10 +1,12 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
+from django.utils import timezone
 from .models import Channel, Video
 from .serializers import ChannelSerializer, VideoSerializer, VideoListSerializer
+from users.models import UserChannel, UserVideo
 
 
 from rest_framework.exceptions import ValidationError
@@ -13,6 +15,7 @@ from .services.youtube import YouTubeService
 class ChannelViewSet(viewsets.ModelViewSet):
     queryset = Channel.objects.all()
     serializer_class = ChannelSerializer
+    permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['channel_id']
     search_fields = ['title', 'description']
@@ -63,8 +66,15 @@ class ChannelViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def stats(self, request, pk=None):
         channel = self.get_object()
+        user = request.user
         total_videos = channel.videos.count()
-        watched_videos = channel.videos.filter(is_watched=True).count()
+        
+        watched_videos = UserVideo.objects.filter(
+            user=user, 
+            video__channel=channel, 
+            is_watched=True
+        ).count()
+        
         unwatched_videos = total_videos - watched_videos
         
         return Response({
@@ -78,37 +88,75 @@ class ChannelViewSet(viewsets.ModelViewSet):
 
 
 class VideoViewSet(viewsets.ModelViewSet):
-    queryset = Video.objects.select_related('channel').all()
     serializer_class = VideoSerializer
+    permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['channel', 'is_watched']
+    filterset_fields = ['channel']
     search_fields = ['title', 'description']
     ordering_fields = ['title', 'published_at', 'view_count', 'like_count']
     ordering = ['-published_at']
+
+    def get_queryset(self):
+        user = self.request.user
+        # Only show videos from channels the user has subscribed to
+        subscribed_channels = UserChannel.objects.filter(
+            user=user, is_active=True
+        ).values_list('channel', flat=True)
+        return Video.objects.filter(channel__in=subscribed_channels).select_related('channel')
 
     def get_serializer_class(self):
         if self.action == 'list':
             return VideoListSerializer
         return VideoSerializer
 
-    @action(detail=True, methods=['post'])
-    def mark_as_watched(self, request, pk=None):
+    @action(detail=True, methods=['put'])
+    def watch(self, request, pk=None):
         video = self.get_object()
-        video.is_watched = True
-        video.save()
-        return Response({'status': 'success'})
-        return Response({'status': 'marked as watched'})
-
-    @action(detail=True, methods=['post'])
-    def mark_as_unwatched(self, request, pk=None):
-        video = self.get_object()
-        video.is_watched = False
-        video.save()
-        return Response({'status': 'marked as unwatched'})
+        user = request.user
+        
+        is_watched = request.data.get('is_watched', True)
+        notes = request.data.get('notes', '')
+        
+        user_video, created = UserVideo.objects.get_or_create(
+            user=user, 
+            video=video,
+            defaults={'is_watched': is_watched, 'notes': notes}
+        )
+        
+        if not created:
+            user_video.is_watched = is_watched
+            user_video.notes = notes
+            if is_watched and not user_video.watched_at:
+                user_video.watched_at = timezone.now()
+            user_video.save()
+        elif is_watched:
+            user_video.watched_at = timezone.now()
+            user_video.save()
+        
+        return Response({
+            'status': 'success',
+            'is_watched': user_video.is_watched,
+            'watched_at': user_video.watched_at,
+            'notes': user_video.notes
+        })
 
     @action(detail=False, methods=['get'])
     def unwatched(self, request):
-        videos = self.queryset.filter(is_watched=False)
+        user = request.user
+        
+        # Get videos from subscribed channels that are not watched
+        subscribed_channels = UserChannel.objects.filter(
+            user=user, is_active=True
+        ).values_list('channel', flat=True)
+        
+        watched_video_ids = UserVideo.objects.filter(
+            user=user, is_watched=True
+        ).values_list('video', flat=True)
+        
+        videos = Video.objects.filter(
+            channel__in=subscribed_channels
+        ).exclude(uuid__in=watched_video_ids).select_related('channel')
+        
         page = self.paginate_queryset(videos)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -118,7 +166,16 @@ class VideoViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def watched(self, request):
-        videos = self.queryset.filter(is_watched=True)
+        user = request.user
+        
+        watched_video_ids = UserVideo.objects.filter(
+            user=user, is_watched=True
+        ).values_list('video', flat=True)
+        
+        videos = Video.objects.filter(
+            uuid__in=watched_video_ids
+        ).select_related('channel')
+        
         page = self.paginate_queryset(videos)
         if page is not None:
             serializer = self.get_serializer(page, many=True)

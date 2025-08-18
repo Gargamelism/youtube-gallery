@@ -1,11 +1,13 @@
 from rest_framework import serializers
 from .models import Channel, Video
+from users.models import UserChannel, UserVideo
 
 
 class ChannelSerializer(serializers.ModelSerializer):
     total_videos = serializers.SerializerMethodField()
     watched_videos = serializers.SerializerMethodField()
     unwatched_videos = serializers.SerializerMethodField()
+    is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = Channel
@@ -15,10 +17,22 @@ class ChannelSerializer(serializers.ModelSerializer):
         return obj.videos.count()
 
     def get_watched_videos(self, obj):
-        return obj.videos.filter(is_watched=True).count()
+        user = self.context['request'].user
+        return UserVideo.objects.filter(
+            user=user, 
+            video__channel=obj, 
+            is_watched=True
+        ).count()
 
     def get_unwatched_videos(self, obj):
-        return obj.videos.filter(is_watched=False).count()
+        user = self.context['request'].user
+        total_videos = obj.videos.count()
+        watched_count = self.get_watched_videos(obj)
+        return total_videos - watched_count
+    
+    def get_is_subscribed(self, obj):
+        user = self.context['request'].user
+        return UserChannel.objects.filter(user=user, channel=obj, is_active=True).exists()
 
 
 class VideoSerializer(serializers.ModelSerializer):
@@ -42,12 +56,30 @@ class VideoSerializer(serializers.ModelSerializer):
 
 class VideoListSerializer(serializers.ModelSerializer):
     channel_title = serializers.CharField(source='channel.title', read_only=True)
+    is_watched = serializers.SerializerMethodField()
+    watched_at = serializers.SerializerMethodField()
+    notes = serializers.SerializerMethodField()
     
     class Meta:
         model = Video
         fields = [
             'uuid', 'video_id', 'title', 'description', 'published_at',
             'duration', 'view_count', 'like_count', 'comment_count',
-            'thumbnail_url', 'video_url', 'is_watched', 'channel_title'
+            'thumbnail_url', 'video_url', 'is_watched', 'watched_at', 'notes', 'channel_title'
         ]
+    
+    def get_is_watched(self, obj):
+        user = self.context['request'].user
+        user_video = UserVideo.objects.filter(user=user, video=obj).first()
+        return user_video.is_watched if user_video else False
+    
+    def get_watched_at(self, obj):
+        user = self.context['request'].user
+        user_video = UserVideo.objects.filter(user=user, video=obj).first()
+        return user_video.watched_at if user_video else None
+    
+    def get_notes(self, obj):
+        user = self.context['request'].user
+        user_video = UserVideo.objects.filter(user=user, video=obj).first()
+        return user_video.notes if user_video else None
 

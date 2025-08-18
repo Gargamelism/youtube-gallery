@@ -1,6 +1,6 @@
 # YouTube Gallery
 
-A Next.js and Django application for managing and viewing YouTube videos with watched/unwatched tracking.
+A Next.js and Django application for managing and viewing YouTube videos with user-based channel subscriptions and watch tracking.
 
 ## API Conventions
 
@@ -9,19 +9,94 @@ All API endpoints follow the kebab-case convention:
 - All letters are lowercase
 - Example: `/api/channels/fetch-from-youtube/`
 
+## User Authentication
+
+The application now supports user authentication with token-based authentication. Users must authenticate to access most endpoints and manage their personal video collections.
+
+### Authentication Endpoints
+
+```http
+POST /api/auth/register/
+```
+Register a new user account
+- Request Body:
+  ```json
+  {
+    "email": "user@example.com",
+    "username": "username",
+    "password": "securepassword",
+    "password_confirm": "securepassword",
+    "first_name": "First",
+    "last_name": "Last"
+  }
+  ```
+
+```http
+POST /api/auth/login/
+```
+Login with email and password
+- Request Body:
+  ```json
+  {
+    "email": "user@example.com",
+    "password": "securepassword"
+  }
+  ```
+- Returns: User data and authentication token
+
+```http
+POST /api/auth/logout/
+```
+Logout and invalidate token (requires authentication)
+
+```http
+GET /api/auth/profile/
+```
+Get current user profile (requires authentication)
+
+### User Channel Management
+
+```http
+GET /api/auth/channels/
+POST /api/auth/channels/
+```
+List and create user channel subscriptions (requires authentication)
+
+```http
+GET /api/auth/channels/{uuid}/
+PUT /api/auth/channels/{uuid}/
+DELETE /api/auth/channels/{uuid}/
+```
+Retrieve, update, or delete user channel subscriptions (requires authentication)
+
+### User Video Management
+
+```http
+GET /api/auth/videos/
+POST /api/auth/videos/
+```
+List and create user video interactions (requires authentication)
+
+```http
+GET /api/auth/videos/{uuid}/
+PUT /api/auth/videos/{uuid}/
+DELETE /api/auth/videos/{uuid}/
+```
+Retrieve, update, or delete user video interactions (requires authentication)
+
 ## API Endpoints
 
-### Videos
+### Videos (User-Filtered)
 
 ```http
 GET /api/videos/
 ```
-List all videos with pagination and filtering options.
+List videos from user's subscribed channels with pagination and filtering options (authentication optional).
 - Query Parameters:
   - `search`: Search in title and description
   - `ordering`: Sort by title, published_at, view_count, like_count
   - `channel`: Filter by channel UUID
-  - `is_watched`: Filter by watch status
+- Note: Authenticated users only see videos from their subscribed channels
 
 ```http
 GET /api/videos/{uuid}/
@@ -31,22 +106,24 @@ Get details for a specific video
 ```http
 GET /api/videos/watched/
 ```
-List all watched videos
+List all watched videos for authenticated user (requires authentication)
 
 ```http
 GET /api/videos/unwatched/
 ```
-List all unwatched videos
+List all unwatched videos for authenticated user (requires authentication)
 
 ```http
-POST /api/videos/{uuid}/mark_as_watched/
+PUT /api/videos/{uuid}/watch/
 ```
-Mark a video as watched
-
-```http
-POST /api/videos/{uuid}/mark_as_unwatched/
-```
-Mark a video as unwatched
+Update watch status and notes for a video (requires authentication)
+- Request Body:
+  ```json
+  {
+    "is_watched": true,
+    "notes": "Optional notes about the video"
+  }
+  ```
 
 ### Channels
 
@@ -74,8 +151,9 @@ GET /api/channels/{uuid}/stats/
 ```
 Get channel statistics including:
 - Total videos count
-- Watched videos count
-- Unwatched videos count
+- Watched videos count (user-specific if authenticated)
+- Unwatched videos count (user-specific if authenticated)
+- Channel subscription status (if authenticated)
 
 ```http
 POST /api/channels/fetch-from-youtube/
@@ -159,7 +237,62 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
    - Copy the authorization code back to the terminal
    - The token will be saved for future use in the container
 
+## User-Based Architecture
+
+The application now supports multiple users with individual:
+- **Channel Subscriptions**: Users can subscribe to specific YouTube channels
+- **Watch Status**: Each user has their own watch/unwatched status for videos
+- **Notes**: Users can add personal notes to videos
+- **Privacy**: Users only see videos from channels they've subscribed to
+
+### Database Models
+
+- **User**: Custom user model with UUID primary key
+- **UserChannel**: Many-to-many relationship between users and channels
+- **UserVideo**: Tracks user-specific data (watch status, notes, timestamps)
+- **Video/Channel**: Core video and channel data (shared across users)
+
+### Authentication Usage
+
+Most API requests require authentication using token headers:
+
+```bash
+# Include token in requests
+curl -H "Authorization: Token your_token_here" \
+  http://localhost:8000/api/videos/
+```
+
 ### Example API Usage
+
+Register a new user:
+```bash
+curl -X POST http://localhost:8000/api/auth/register/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "username": "myuser",
+    "password": "securepassword123",
+    "password_confirm": "securepassword123"
+  }'
+```
+
+Login and get token:
+```bash
+curl -X POST http://localhost:8000/api/auth/login/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "securepassword123"
+  }'
+```
+
+Subscribe to a channel:
+```bash
+curl -X POST http://localhost:8000/api/auth/channels/ \
+  -H "Authorization: Token your_token_here" \
+  -H "Content-Type: application/json" \
+  -d '{"channel": "channel_uuid_here"}'
+```
 
 Import a YouTube channel:
 ```bash
@@ -168,12 +301,19 @@ curl -X POST http://localhost:8000/api/channels/fetch-from-youtube/ \
   -d '{"channel_id": "UC..."}'
 ```
 
-List unwatched videos from a specific channel:
+Mark a video as watched with notes:
 ```bash
-curl "http://localhost:8000/api/videos/?channel={uuid}&is_watched=false"
+curl -X PUT http://localhost:8000/api/videos/{uuid}/watch/ \
+  -H "Authorization: Token your_token_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "is_watched": true,
+    "notes": "Great tutorial on Django!"
+  }'
 ```
 
-Get channel statistics:
+List user's unwatched videos:
 ```bash
-curl http://localhost:8000/api/channels/{uuid}/stats/
+curl -H "Authorization: Token your_token_here" \
+  http://localhost:8000/api/videos/unwatched/
 ```

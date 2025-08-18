@@ -41,13 +41,12 @@ class Video(TimestampMixin):
     tags = models.TextField(blank=True, null=True)
     thumbnail_url = models.CharField(max_length=500, blank=True, null=True)
     video_url = models.URLField(blank=True, null=True)
-    is_watched = models.BooleanField(default=False)
     
     # relationships
     channel = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name='videos')
-    duration = YouTubeDurationField(blank=True, null=True)
 
     # custom fields
+    duration = YouTubeDurationField(blank=True, null=True)
 
     def __str__(self):
         return self.title or self.video_id
