@@ -1,22 +1,44 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import SkeletonLoader from "./SkeletonLoader";
 import { VideoCard } from "./VideoCard";
 import { Video } from "@/types";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { fetchVideos, updateVideoWatchStatus } from "@/services/api";
 
-interface VideoListProps {
-  videos: Video[];
-  onWatchVideo: (videoId: string) => void;
-  isLoading?: boolean;
-  error?: string | null;
-}
+export function VideoList() {
+  const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
+  const filter = searchParams.get("filter") || "all";
 
-export function VideoList({ videos, onWatchVideo, isLoading, error }: VideoListProps) {
   const handleVideoClick = (url: string) => {
     if (url) {
       window.open(url, "_blank");
     }
   };
+
+  const {
+    data: videosResponse,
+    isLoading,
+    error: error,
+  } = useQuery({
+    queryKey: ["videos", filter],
+    queryFn: () => fetchVideos(filter),
+  });
+
+  const { mutate: toggleWatchStatus } = useMutation({
+    mutationFn: (videoId: string) => {
+      const video = videosResponse?.data?.results?.find((v: Video) => v.uuid === videoId);
+      return updateVideoWatchStatus(videoId, !video?.is_watched);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["videos"] });
+      queryClient.invalidateQueries({ queryKey: ["videoStats"] });
+    },
+  });
+
+  const videos = videosResponse?.data?.results || [];
 
   if (isLoading) {
     return (
@@ -45,7 +67,7 @@ export function VideoList({ videos, onWatchVideo, isLoading, error }: VideoListP
             key={video.uuid}
             video={video}
             onWatch={() => handleVideoClick(video.video_url)}
-            onMarkWatched={() => onWatchVideo(video.uuid)}
+            onToggleWatched={() => toggleWatchStatus(video.uuid)}
           />
         ))}
       </div>

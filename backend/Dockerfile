@@ -1,4 +1,4 @@
-FROM python:3.11-slim as test
+FROM python:3.12-slim AS test
 
 # Set environment variables for test stage
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -30,7 +30,7 @@ RUN mkdir -p /app/media /app/config/credentials
 RUN chmod -R 777 /app/media /app/config/credentials
 
 # Start fresh for the production build if tests pass
-FROM python:3.11-slim as production
+FROM python:3.12-slim AS production
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1

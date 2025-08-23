@@ -16,6 +16,7 @@ This is a full-stack YouTube gallery application with a **Next.js frontend** and
 - **State Management**: TanStack Query for server state, URL search params for filter state
 - **Database**: PostgreSQL with Django ORM, UUID primary keys for all models
 - **CORS**: Configured for development (localhost:3000 ↔ localhost:8000)
+- **Security**: reCAPTCHA v3 integration for authentication with score-based validation
 
 ## Development Commands
 

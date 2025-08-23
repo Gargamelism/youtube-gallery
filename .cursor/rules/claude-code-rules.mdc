@@ -1,0 +1,43 @@
+# Claude Code Project Rules
+
+## Project Context
+This is a YouTube gallery application with Next.js frontend and Django REST API backend.
+
+## Key Conventions
+- Use semantic CSS class naming: `ComponentName__element-description` as first className
+- Never create files unless absolutely necessary - prefer editing existing files
+- No emojis in code unless explicitly requested
+- Remove code comments unless functional names aren't self-explanatory
+- Use Zustand for client state management
+- Use TanStack Query for server state
+- All backend endpoints require authentication except auth endpoints
+- Use UUID primary keys for all Django models
+- Backend expects `captcha_token` field for login/register endpoints
+
+## Authentication Flow
+- Token-based authentication with Django REST Framework
+- User-specific video watch tracking and channel subscriptions
+- All API calls include Authorization header with token
+
+## Database Structure
+- Custom User model with UUID primary key
+- UserChannel model for subscriptions (user can select channels to view)
+- UserVideo model for user-specific watch status and notes
+- No global video watch status - everything is user-specific
+
+## Development Environment
+- Docker Compose for development with hot reload
+- Backend runs on port 8000, frontend on port 3000
+- PostgreSQL database with automatic migrations on container startup
+
+## Commands to Remember
+```bash
+# Frontend
+npm run dev
+npm run lint
+
+# Backend (in Docker)
+docker-compose up --build
+python manage.py makemigrations
+python manage.py migrate
+```

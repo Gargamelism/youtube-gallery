@@ -159,3 +159,5 @@ REST_FRAMEWORK = {
     ],
 }
 
+# recaptcha settings
+CAPTCHA_PRIVATE_KEY = config('RECAPTCHA_PRIVATE_KEY')
