@@ -54,6 +54,13 @@ export interface UserChannel {
     created_at: string;
 }
 
+export interface UserChannelResponse {
+    count: number;
+    next: string | null;
+    previous: string | null;
+    results: UserChannel[];
+}
+
 // Video Types
 export interface Video {
     uuid: string;

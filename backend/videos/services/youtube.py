@@ -12,6 +12,14 @@ from videos.utils.dateutils import timezone_aware_datetime
 
 SCOPES = ['https://www.googleapis.com/auth/youtube.readonly']
 
+class YouTubeAuthenticationError(Exception):
+    """Custom exception for YouTube authentication errors that require user intervention"""
+    def __init__(self, message, auth_url=None, verification_url=None, user_code=None):
+        super().__init__(message)
+        self.auth_url = auth_url
+        self.verification_url = verification_url
+        self.user_code = user_code
+
 class YouTubeService:
     def __init__(self):
         self.credentials = None
@@ -35,11 +43,23 @@ class YouTubeService:
                 self.credentials.refresh(Request())
             else:
                 if not client_secret_path.exists():
-                    raise ValueError("client_secret.json not found in the project root")
-
+                    raise YouTubeAuthenticationError(
+                        "YouTube API credentials not configured", 
+                        auth_url="https://console.cloud.google.com/apis/credentials"
+                    )
+                
                 flow = InstalledAppFlow.from_client_secrets_file(
                     str(client_secret_path), SCOPES)
-                self.credentials = flow.run_local_server(port=0)
+                
+                try:
+                    self.credentials = flow.run_local_server(port=0)
+                except Exception as e:
+                    # Always raise authentication error since we can't do browser auth in Docker
+                    auth_url, _ = flow.authorization_url(prompt='consent')
+                    raise YouTubeAuthenticationError(
+                        "Browser authentication failed. Manual authentication required.",
+                        auth_url=auth_url
+                    )
 
             # Save the credentials for future use
             with open(token_path, 'w') as token:
@@ -128,7 +148,7 @@ class YouTubeService:
             return self._format_channel_response(channel_info)
             
         except Exception as e:
-            print(f"Error fetching channel details for {channel_identifier}: {e}")
+            # Error fetching channel details
             return None
 
     def get_channel_videos(self, uploads_playlist_id: str) -> List[Dict[str, Any]]:
@@ -180,19 +200,17 @@ class YouTubeService:
                     break
 
             except Exception as e:
-                print(f"Error fetching videos: {e}")
+                # Error fetching videos
                 break
 
         return videos
 
     def fetch_channel(self, channel_identifier: str) -> Optional[Channel]:
         """Fetch a channel and all its videos from YouTube"""
-        # Get channel details
         channel_info = self.get_channel_details(channel_identifier)
         if not channel_info:
             return None
 
-        # Create or update channel using the actual channel ID from the response
         channel, _ = Channel.objects.update_or_create(
             channel_id=channel_info['channel_id'],
             defaults={
@@ -202,10 +220,8 @@ class YouTubeService:
             }
         )
 
-        # Fetch all videos
         videos = self.get_channel_videos(channel_info['uploads_playlist_id'])
         
-        # Create or update videos
         for video_data in videos:
             Video.objects.update_or_create(
                 video_id=video_data.pop('video_id'),
@@ -216,3 +232,40 @@ class YouTubeService:
             )
 
         return channel
+
+    def import_or_create_channel(self, channel_identifier: str) -> Channel:
+        """Import channel from YouTube or create basic entry if API fails"""
+        existing_channel = Channel.objects.filter(channel_id=channel_identifier).first()
+        if existing_channel:
+            return existing_channel
+
+        try:
+            channel = self.fetch_channel(channel_identifier)
+            if channel:
+                return channel
+        except YouTubeAuthenticationError:
+            raise
+        except Exception as e:
+            # YouTube API error - fall through to create basic channel
+            pass
+
+        return self._create_basic_channel(channel_identifier)
+
+    def _create_basic_channel(self, channel_identifier: str) -> Channel:
+        """Create basic channel entry without YouTube API"""
+        if channel_identifier.startswith('@'):
+            title = f"Channel {channel_identifier}"
+            url = f"https://youtube.com/{channel_identifier}"
+        elif channel_identifier.startswith('UC') and len(channel_identifier) == 24:
+            title = f"Channel {channel_identifier[:15]}..."
+            url = f"https://youtube.com/channel/{channel_identifier}"
+        else:
+            title = f"Channel {channel_identifier}"
+            url = f"https://youtube.com/channel/{channel_identifier}"
+        
+        return Channel.objects.create(
+            channel_id=channel_identifier,
+            title=title,
+            description=f"Imported channel: {channel_identifier}",
+            url=url
+        )

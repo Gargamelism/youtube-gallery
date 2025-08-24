@@ -84,10 +84,33 @@ The Docker setup automatically handles migrations and static file collection on 
 - Use class-based views for complex logic, function-based for simple operations
 - Apply Django security best practices (CSRF, SQL injection prevention)
 
+### HTTP Status Code Guidelines
+**CRITICAL**: Only return 401 Unauthorized for actual authentication/authorization failures. The frontend automatically triggers re-authentication on 401 responses.
+
+**Correct 401 usage:**
+- Invalid or expired authentication token
+- Missing authentication credentials
+- Failed login attempts
+- Access denied due to insufficient permissions
+
+**Use other status codes for:**
+- 400 Bad Request: Invalid input data, validation errors, malformed requests
+- 404 Not Found: Resource not found (channels, videos, etc.)
+- 409 Conflict: Resource already exists, conflicting state
+- 422 Unprocessable Entity: Valid request format but business logic errors
+- 500 Internal Server Error: Unexpected server errors, external API failures
+
+**Examples:**
+- YouTube API quota exceeded → 429 Too Many Requests or 503 Service Unavailable
+- Channel not found on YouTube → 404 Not Found
+- Invalid video ID format → 400 Bad Request
+- reCAPTCHA validation failure → 400 Bad Request (not 401)
+
 ### Code Style (.cursor/rules/my-style-rules.mdc)
 - Senior-level code quality expected
 - No emojis in code or comments
 - Thoughtful commenting only when function names aren't self-explanatory
+- Never use abbreviations for variables, unless they are globaly known (like "i" in for loops etc.)
 
 ## Environment Configuration
 
@@ -115,3 +138,24 @@ The Docker setup automatically handles migrations and static file collection on 
 - Type definitions in `/types.ts`
 - Backend follows Django app structure with `videos` app
 - Docker configurations separate for development and production
+
+## Chat Instructions
+
+### Library Recommendations
+When suggesting new libraries or dependencies:
+- Include links to project pages (GitHub/documentation)
+- Verify projects are actively maintained and widely adopted
+- Explain why the library is needed and what alternatives exist
+- Consider bundle size impact for frontend dependencies
+
+### Communication Style
+- Be direct and honest in assessments
+- If code or approaches have issues, point them out constructively
+- Provide balanced feedback - acknowledge both strengths and weaknesses
+- Avoid excessive praise; focus on factual, actionable guidance
+- When suggesting improvements, explain the reasoning behind changes
+- When thinking, write a few words about what is meaning of the word you're using (for example: Osmozing (the act of diffusing solvent molecules))
+  1. Uncommon/technical words specifically
+  2. During thinking/processing (not just final responses)
+  3. Brief inline explanations
+  4. The format with the word first, then explanation in parentheses

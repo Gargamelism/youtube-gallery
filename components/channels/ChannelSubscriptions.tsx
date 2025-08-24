@@ -24,7 +24,7 @@ export default function ChannelSubscriptions() {
   const { data: userChannels, isLoading: isLoadingUserChannels } = useQuery({
     queryKey: ["userChannels"],
     queryFn: fetchUserChannels,
-    select: (response) => response.data || [],
+    select: (response) => response.data || { results: [] },
   });
 
   const { data: allChannels, isLoading: isLoadingAllChannels } = useQuery({
@@ -98,7 +98,9 @@ export default function ChannelSubscriptions() {
   );
 
   const subscribedChannelIds = new Set(
-    userChannels?.filter((uc: UserChannel) => uc.is_active).map((uc: UserChannel) => uc.channel) || []
+    userChannels?.results
+      ?.filter((userChannel: UserChannel) => userChannel.is_active)
+      ?.map((userChannel: UserChannel) => userChannel.channel) || []
   );
 
   return (
@@ -121,14 +123,15 @@ export default function ChannelSubscriptions() {
       <div className="ChannelSubscriptions__subscribed-section mb-12">
         <h2 className="ChannelSubscriptions__subscribed-title text-xl font-semibold text-gray-900 mb-6 flex items-center">
           <Users className="ChannelSubscriptions__subscribed-icon h-5 w-5 mr-2" />
-          Your Subscriptions ({userChannels?.filter((uc: UserChannel) => uc.is_active).length || 0})
+          Your Subscriptions (
+          {userChannels?.results?.filter((userChannel: UserChannel) => userChannel.is_active)?.length || 0})
         </h2>
 
         {isLoadingUserChannels ? (
           <div className="ChannelSubscriptions__loading flex items-center justify-center py-12">
             <Loader2 className="ChannelSubscriptions__loading-spinner h-8 w-8 animate-spin text-blue-600" />
           </div>
-        ) : userChannels?.filter((uc: UserChannel) => uc.is_active).length === 0 ? (
+        ) : userChannels?.results?.filter((userChannel: UserChannel) => userChannel.is_active)?.length === 0 ? (
           <div className="ChannelSubscriptions__empty bg-gray-50 rounded-lg p-8 text-center">
             <Users className="ChannelSubscriptions__empty-icon h-12 w-12 mx-auto text-gray-400 mb-4" />
             <h3 className="ChannelSubscriptions__empty-title text-lg font-medium text-gray-900 mb-2">
@@ -140,8 +143,8 @@ export default function ChannelSubscriptions() {
           </div>
         ) : (
           <div className="ChannelSubscriptions__grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {userChannels
-              ?.filter((uc: UserChannel) => uc.is_active)
+            {userChannels?.results
+              ?.filter((userChannel: UserChannel) => userChannel.is_active)
               .map((userChannel: UserChannel) => (
                 <div
                   key={userChannel.id}
@@ -297,7 +300,7 @@ export default function ChannelSubscriptions() {
                   id="channelId"
                   value={newChannelId}
                   onChange={(e) => setNewChannelId(e.target.value)}
-                  placeholder="UC..."
+                  placeholder="UC.../@..."
                   className="ChannelSubscriptions__form-input w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <p className="ChannelSubscriptions__form-help text-xs text-gray-500 mt-1">

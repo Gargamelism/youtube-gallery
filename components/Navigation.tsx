@@ -1,61 +1,59 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { User, LogOut, Settings, Video, Users, Menu, X } from 'lucide-react'
-import { useAuthStore } from '@/stores/authStore'
-import { logout } from '@/services/api'
-import AuthModal from './auth/AuthModal'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { User, LogOut, Settings, Video, Users, Menu, X } from "lucide-react";
+import { useAuthStore } from "@/stores/authStore";
+import { logout } from "@/services/api";
+import AuthModal from "./auth/AuthModal";
 
 export default function Navigation() {
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
-  const [authModalView, setAuthModalView] = useState<'login' | 'register'>('login')
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalView, setAuthModalView] = useState<"login" | "register">("login");
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const { user, isAuthenticated, logout: logoutStore } = useAuthStore()
-  const router = useRouter()
+  const { user, isAuthenticated, logout: logoutStore } = useAuthStore();
+  const router = useRouter();
 
   const handleLogout = async () => {
     try {
-      await logout()
+      await logout();
     } catch (error) {
-      console.error('Logout error:', error)
+      console.error("Logout error:", error);
     } finally {
-      logoutStore()
-      setIsUserMenuOpen(false)
-      router.push('/')
+      logoutStore();
+      setIsUserMenuOpen(false);
+      router.push("/");
     }
-  }
+  };
 
-  const openAuthModal = (view: 'login' | 'register') => {
-    setAuthModalView(view)
-    setIsAuthModalOpen(true)
-  }
+  const openAuthModal = (view: "login" | "register") => {
+    setAuthModalView(view);
+    setIsAuthModalOpen(true);
+  };
 
   return (
     <>
-      <nav className="Navigation bg-white shadow-lg border-b">
+      <nav className="Navigation bg-white shadow-lg border-b mb-4">
         <div className="Navigation__container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="Navigation__flex flex justify-between h-16">
             <div className="Navigation__left flex items-center">
               <div className="Navigation__logo flex-shrink-0">
-                <h1 className="Navigation__title text-xl font-bold text-gray-900">
-                  YouTube Gallery
-                </h1>
+                <h1 className="Navigation__title text-xl font-bold text-gray-900">YouTube Gallery</h1>
               </div>
 
               {isAuthenticated && (
                 <div className="Navigation__desktop-nav hidden md:ml-6 md:flex md:space-x-8">
                   <button
-                    onClick={() => router.push('/videos')}
+                    onClick={() => router.push("/")}
                     className="Navigation__nav-link inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 border-b-2 border-transparent hover:border-gray-300"
                   >
                     <Video className="Navigation__nav-icon h-4 w-4 mr-2" />
                     Videos
                   </button>
                   <button
-                    onClick={() => router.push('/channels')}
+                    onClick={() => router.push("/channels")}
                     className="Navigation__nav-link inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-gray-700 hover:border-gray-300"
                   >
                     <Users className="Navigation__nav-icon h-4 w-4 mr-2" />
@@ -75,7 +73,7 @@ export default function Navigation() {
                     <span className="sr-only">Open user menu</span>
                     <div className="Navigation__avatar h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center">
                       <span className="Navigation__avatar-text text-white text-sm font-medium">
-                        {user?.first_name?.[0] || user?.username?.[0] || 'U'}
+                        {user?.first_name?.[0] || user?.username?.[0] || "U"}
                       </span>
                     </div>
                   </button>
@@ -84,32 +82,34 @@ export default function Navigation() {
                     <div className="Navigation__dropdown origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
                       <div className="Navigation__dropdown-content py-1">
                         <div className="Navigation__user-info px-4 py-2 text-sm text-gray-700 border-b">
-                          <div className="Navigation__user-name font-medium">{user?.first_name} {user?.last_name}</div>
+                          <div className="Navigation__user-name font-medium">
+                            {user?.first_name} {user?.last_name}
+                          </div>
                           <div className="Navigation__user-email text-gray-500">{user?.email}</div>
                         </div>
-                        
+
                         <button
                           onClick={() => {
-                            setIsUserMenuOpen(false)
-                            router.push('/profile')
+                            setIsUserMenuOpen(false);
+                            router.push("/profile");
                           }}
                           className="Navigation__dropdown-item flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         >
                           <User className="Navigation__dropdown-icon h-4 w-4 mr-3" />
                           Profile
                         </button>
-                        
+
                         <button
                           onClick={() => {
-                            setIsUserMenuOpen(false)
-                            router.push('/settings')
+                            setIsUserMenuOpen(false);
+                            router.push("/settings");
                           }}
                           className="Navigation__dropdown-item flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         >
                           <Settings className="Navigation__dropdown-icon h-4 w-4 mr-3" />
                           Settings
                         </button>
-                        
+
                         <button
                           onClick={handleLogout}
                           className="Navigation__dropdown-item flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -124,13 +124,13 @@ export default function Navigation() {
               ) : (
                 <div className="Navigation__auth-buttons flex items-center space-x-4">
                   <button
-                    onClick={() => openAuthModal('login')}
+                    onClick={() => openAuthModal("login")}
                     className="Navigation__signin-button text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium"
                   >
                     Sign in
                   </button>
                   <button
-                    onClick={() => openAuthModal('register')}
+                    onClick={() => openAuthModal("register")}
                     className="Navigation__signup-button bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
                   >
                     Sign up
@@ -161,8 +161,8 @@ export default function Navigation() {
                   <>
                     <button
                       onClick={() => {
-                        setIsMobileMenuOpen(false)
-                        router.push('/videos')
+                        setIsMobileMenuOpen(false);
+                        router.push("/videos");
                       }}
                       className="Navigation__mobile-nav-item flex w-full items-center px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                     >
@@ -171,8 +171,8 @@ export default function Navigation() {
                     </button>
                     <button
                       onClick={() => {
-                        setIsMobileMenuOpen(false)
-                        router.push('/channels')
+                        setIsMobileMenuOpen(false);
+                        router.push("/channels");
                       }}
                       className="Navigation__mobile-nav-item flex w-full items-center px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                     >
@@ -184,8 +184,8 @@ export default function Navigation() {
                   <>
                     <button
                       onClick={() => {
-                        setIsMobileMenuOpen(false)
-                        openAuthModal('login')
+                        setIsMobileMenuOpen(false);
+                        openAuthModal("login");
                       }}
                       className="Navigation__mobile-signin block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                     >
@@ -193,8 +193,8 @@ export default function Navigation() {
                     </button>
                     <button
                       onClick={() => {
-                        setIsMobileMenuOpen(false)
-                        openAuthModal('register')
+                        setIsMobileMenuOpen(false);
+                        openAuthModal("register");
                       }}
                       className="Navigation__mobile-signup block w-full text-left px-3 py-2 text-base font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
                     >
@@ -210,7 +210,7 @@ export default function Navigation() {
                     <div className="Navigation__mobile-avatar flex-shrink-0">
                       <div className="Navigation__mobile-avatar-circle h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center">
                         <span className="Navigation__mobile-avatar-text text-white text-sm font-medium">
-                          {user?.first_name?.[0] || user?.username?.[0] || 'U'}
+                          {user?.first_name?.[0] || user?.username?.[0] || "U"}
                         </span>
                       </div>
                     </div>
@@ -218,14 +218,16 @@ export default function Navigation() {
                       <div className="Navigation__mobile-user-name text-base font-medium text-gray-800">
                         {user?.first_name} {user?.last_name}
                       </div>
-                      <div className="Navigation__mobile-user-email text-sm font-medium text-gray-500">{user?.email}</div>
+                      <div className="Navigation__mobile-user-email text-sm font-medium text-gray-500">
+                        {user?.email}
+                      </div>
                     </div>
                   </div>
                   <div className="Navigation__mobile-user-menu mt-3 space-y-1">
                     <button
                       onClick={() => {
-                        setIsMobileMenuOpen(false)
-                        router.push('/profile')
+                        setIsMobileMenuOpen(false);
+                        router.push("/profile");
                       }}
                       className="Navigation__mobile-profile flex w-full items-center px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
                     >
@@ -234,8 +236,8 @@ export default function Navigation() {
                     </button>
                     <button
                       onClick={() => {
-                        setIsMobileMenuOpen(false)
-                        router.push('/settings')
+                        setIsMobileMenuOpen(false);
+                        router.push("/settings");
                       }}
                       className="Navigation__mobile-settings flex w-full items-center px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
                     >
@@ -258,17 +260,10 @@ export default function Navigation() {
       </nav>
 
       {isUserMenuOpen && (
-        <div
-          className="Navigation__overlay fixed inset-0 z-40"
-          onClick={() => setIsUserMenuOpen(false)}
-        />
+        <div className="Navigation__overlay fixed inset-0 z-40" onClick={() => setIsUserMenuOpen(false)} />
       )}
 
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        defaultView={authModalView}
-      />
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} defaultView={authModalView} />
     </>
-  )
+  );
 }

@@ -58,6 +58,7 @@ class UserChannelSerializer(serializers.ModelSerializer):
         model = UserChannel
         fields = ('id', 'channel', 'channel_title', 'channel_id', 'is_active', 'subscribed_at', 'created_at')
         read_only_fields = ('id', 'created_at', 'subscribed_at')
+    
 
 
 class UserVideoSerializer(serializers.ModelSerializer):

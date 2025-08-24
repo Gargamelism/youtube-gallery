@@ -111,7 +111,7 @@ class UserChannelListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        return UserChannel.objects.filter(user=self.request.user)
+        return UserChannel.objects.filter(user=self.request.user).order_by('channel__title')
     
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

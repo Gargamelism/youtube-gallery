@@ -7,7 +7,8 @@ import {
     AuthResponse,
     Channel,
     UserChannel,
-    UserVideo
+    UserVideo,
+    UserChannelResponse
 } from "@/types";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -156,11 +157,11 @@ export async function importChannelFromYoutube(channelId: string): Promise<ApiRe
 }
 
 // User Channel Subscriptions API
-export async function fetchUserChannels(): Promise<ApiResponse<UserChannel[]>> {
+export async function fetchUserChannels(): Promise<ApiResponse<UserChannelResponse>> {
     const response = await fetch(`${API_BASE_URL}/auth/channels`, {
         headers: getAuthHeaders()
     });
-    return handleResponse<UserChannel[]>(response);
+    return handleResponse<UserChannelResponse>(response);
 }
 
 export async function subscribeToChannel(channelId: string): Promise<ApiResponse<UserChannel>> {

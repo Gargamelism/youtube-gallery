@@ -56,4 +56,5 @@ client_secret*
 
 .devcontainer/
 .vscode/
+.vs/
 vendor/
