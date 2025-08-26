@@ -29,8 +29,8 @@ RUN mkdir -p /app/media /app/config/credentials
 # Make test directories writable
 RUN chmod -R 777 /app/media /app/config/credentials
 
-# Start fresh for the production build if tests pass
-FROM python:3.12-slim AS production
+# Base stage with common setup
+FROM python:3.12-slim AS base
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -47,15 +47,32 @@ RUN apt-get update \
         g++ \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
-COPY requirements.txt .
-RUN /usr/local/bin/pip install --no-cache-dir -r requirements.txt
-
 # Copy project
 COPY . .
 
 # Create required directories
 RUN mkdir -p /app/media /app/config/credentials
+
+# Development stage with debugging tools
+FROM base AS development
+
+# Install Python dependencies (includes debugpy)
+COPY requirements.txt .
+COPY requirements-dev.txt .
+RUN /usr/local/bin/pip install --no-cache-dir -r requirements-dev.txt
+
+# Expose ports
+EXPOSE 8000 5678
+
+# Run the application
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+
+# Production stage
+FROM base AS production
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN /usr/local/bin/pip install --no-cache-dir -r requirements.txt
 
 # Expose port
 EXPOSE 8000
