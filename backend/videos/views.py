@@ -11,6 +11,7 @@ from users.models import UserChannel, UserVideo
 
 from rest_framework.exceptions import ValidationError
 from .services.youtube import YouTubeService, YouTubeAuthenticationError
+from .decorators import youtube_auth_required
 
 
 class ChannelViewSet(viewsets.ModelViewSet):
@@ -24,6 +25,7 @@ class ChannelViewSet(viewsets.ModelViewSet):
     ordering = ["title"]
 
     @action(detail=False, methods=["post"])
+    @youtube_auth_required
     def fetch_from_youtube(self, request):
         """Import channel from YouTube or create basic entry"""
         channel_id = request.data.get("channel_id")
@@ -31,33 +33,19 @@ class ChannelViewSet(viewsets.ModelViewSet):
             raise ValidationError({"channel_id": "This field is required."})
 
         try:
-            youtube_service = YouTubeService()
-            channel = youtube_service.import_or_create_channel(channel_id)
-            serializer = self.get_serializer(channel, context={'request': request})
-            return Response(serializer.data)
-            
-        except YouTubeAuthenticationError as e:
-            # Create fallback channel when YouTube API authentication fails
-            if channel_id.startswith('@'):
-                title = f"Channel {channel_id}"
-                url = f"https://youtube.com/{channel_id}"
-            elif channel_id.startswith('UC') and len(channel_id) == 24:
-                title = f"Channel {channel_id[:15]}..."
-                url = f"https://youtube.com/channel/{channel_id}"
-            else:
-                title = f"Channel {channel_id}"
-                url = f"https://youtube.com/channel/{channel_id}"
-            
-            channel = Channel.objects.create(
-                channel_id=channel_id,
-                title=title,
-                description=f"Imported channel: {channel_id}",
-                url=url
+            youtube_service = YouTubeService(
+                credentials=request.youtube_credentials
             )
-            serializer = self.get_serializer(channel, context={'request': request})
+            channel = youtube_service.import_or_create_channel(channel_id)
+            serializer = self.get_serializer(channel, context={"request": request})
             return Response(serializer.data)
-            
+
+        except YouTubeAuthenticationError as e:
+            serializer = self.get_serializer(channel, context={"request": request})
+            return Response(serializer.data)
+
         except Exception as e:
+            print(f"Error importing channel: {e}")
             return Response(
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

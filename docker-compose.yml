@@ -51,6 +51,7 @@ services:
       - YOUTUBE_CREDENTIALS_DIR=/app/config/credentials
       - YOUTUBE_CLIENT_SECRET_FILE=client_secret.json
       - YOUTUBE_TOKEN_FILE=token.json
+      - FRONTEND_URL=http://localhost:3000
     volumes:
       - ./backend:/app
     ports:
@@ -81,7 +82,7 @@ services:
       - /app/node_modules
       - /app/.next
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000/api
+      - BE_PUBLIC_API_URL=http://localhost:8000/api
       - WATCHPACK_POLLING=true
     command: npm run dev
     depends_on:

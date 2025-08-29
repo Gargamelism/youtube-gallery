@@ -12,11 +12,12 @@ import {
 } from "@/types";
 import { useAuthStore } from "@/stores/authStore";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.BE_PUBLIC_API_URL || 'http://localhost:8000/api';
 
 export interface ApiResponse<T> {
     data: T;
     error?: string;
+    youtubeAuthRequired?: boolean;
 }
 
 async function handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
@@ -36,19 +37,28 @@ async function handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
 
         const errorText = await response.text();
         let errorMessage: string;
+        let youtubeAuthRequired = false;
 
         try {
             const errorData = JSON.parse(errorText);
+            youtubeAuthRequired = errorData.youtube_auth_required === true;
             errorMessage = typeof errorData === 'object'
-                ? JSON.stringify(errorData)
+                ? (errorData.message || errorData.error || JSON.stringify(errorData))
                 : errorData;
         } catch {
             errorMessage = errorText || 'An error occurred while fetching the data.';
         }
 
+        if (youtubeAuthRequired) {
+            window.dispatchEvent(new CustomEvent('youtube-auth-required', {
+                detail: { message: errorMessage }
+            }));
+        }
+
         return {
             data: [] as unknown as T,
-            error: errorMessage
+            error: errorMessage,
+            youtubeAuthRequired
         };
     }
 
@@ -151,7 +161,8 @@ export async function importChannelFromYoutube(channelId: string): Promise<ApiRe
     const response = await fetch(`${API_BASE_URL}/channels/fetch-from-youtube`, {
         method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ channel_id: channelId })
+        body: JSON.stringify({ channel_id: channelId }),
+        credentials: "include",
     });
     return handleResponse<Channel>(response);
 }
@@ -187,4 +198,15 @@ export async function fetchUserVideos(): Promise<ApiResponse<UserVideo[]>> {
         headers: getAuthHeaders()
     });
     return handleResponse<UserVideo[]>(response);
+}
+
+export async function getYouTubeAuthUrl(redirectUri: string, returnUrl: string): Promise<ApiResponse<{ auth_url: string }>> {
+    const response = await fetch(
+        `${API_BASE_URL}/auth/youtube-url?redirect_uri=${encodeURIComponent(redirectUri)}&return_url=${encodeURIComponent(returnUrl)}`,
+        {
+            headers: getAuthHeaders(),
+            credentials: "include",
+        }
+    );
+    return handleResponse<{ auth_url: string }>(response);
 }

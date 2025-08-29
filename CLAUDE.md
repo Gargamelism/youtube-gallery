@@ -17,6 +17,8 @@ This is a full-stack YouTube gallery application with a **Next.js frontend** and
 - **Database**: PostgreSQL with Django ORM, UUID primary keys for all models
 - **CORS**: Configured for development (localhost:3000 ↔ localhost:8000)
 - **Security**: reCAPTCHA v3 integration for authentication with score-based validation
+- **User Management**: Token-based authentication with Django REST Framework tokens
+- **YouTube Integration**: OAuth2 flow with session-based credential storage and automatic refresh
 
 ## Development Commands
 
@@ -47,11 +49,30 @@ The Docker setup automatically handles migrations and static file collection on 
 
 ## Key API Endpoints
 
+### Video Management
 - `GET /api/videos/` - Fetch all videos (paginated)
 - `GET /api/videos/watched/` - Fetch watched videos
 - `GET /api/videos/unwatched/` - Fetch unwatched videos
 - `GET /api/videos/stats/` - Get video statistics
 - `PUT /api/videos/{id}/watch/` - Update watch status
+
+### User Authentication
+- `POST /api/auth/register` - User registration with reCAPTCHA validation
+- `POST /api/auth/login` - User login with reCAPTCHA validation
+- `POST /api/auth/logout` - Logout and token cleanup
+- `GET /api/auth/profile` - Get current user profile
+
+### YouTube Integration
+- `GET /api/auth/youtube-url` - Get YouTube OAuth authorization URL
+- `GET /api/auth/youtube/callback` - Handle OAuth callback and store credentials
+
+### User Content Management
+- `GET /api/auth/channels` - List user's subscribed channels
+- `POST /api/auth/channels` - Add channel to user's collection
+- `PUT /api/auth/channels/{id}` - Update channel settings
+- `DELETE /api/auth/channels/{id}` - Remove channel from collection
+- `GET /api/auth/videos` - List user's videos
+- `PUT /api/auth/videos/{id}` - Update video watch status
 
 ## Database Models
 
@@ -61,6 +82,17 @@ The Docker setup automatically handles migrations and static file collection on 
 - **Watch Status**: `is_watched` boolean field
 - **Relationships**: Foreign key to `Channel` model
 - **Custom Field**: `YouTubeDurationField` for video duration
+
+### User Models (backend/users/models.py)
+- **User**: Extends Django's AbstractUser with UUID primary key
+- **UserChannel**: Many-to-many relationship between users and channels with additional metadata
+- **UserVideo**: Tracks user-specific video metadata including watch status and timestamps
+
+### Authentication & YouTube Integration
+- **Session-based YouTube credentials**: OAuth tokens stored in Django sessions with automatic refresh
+- **Custom decorator**: `@youtube_auth_required` for views requiring YouTube API access
+- **TypedDict definitions**: `GoogleCredentialsData` and `YouTubeClientConfig` for type safety
+- **Custom exceptions**: `YouTubeAuthenticationError` for OAuth flow handling
 
 ### Frontend Types (types.ts)
 - `Video` interface with id, title, url, thumbnail, watched fields
@@ -83,6 +115,7 @@ The Docker setup automatically handles migrations and static file collection on 
 - Implement proper error handling at view level
 - Use class-based views for complex logic, function-based for simple operations
 - Apply Django security best practices (CSRF, SQL injection prevention)
+- **CRITICAL: Always type dictionaries with TypedDict** - When passing dictionaries between functions, always define them with TypedDict for type safety. For complex data structures, create dedicated classes instead of plain dictionaries.
 
 ### HTTP Status Code Guidelines
 **CRITICAL**: Only return 401 Unauthorized for actual authentication/authorization failures. The frontend automatically triggers re-authentication on 401 responses.
@@ -105,23 +138,30 @@ The Docker setup automatically handles migrations and static file collection on 
 - Channel not found on YouTube → 404 Not Found
 - Invalid video ID format → 400 Bad Request
 - reCAPTCHA validation failure → 400 Bad Request (not 401)
+- YouTube authentication required → 403 Forbidden (with `youtube_auth_required: true` flag)
+- YouTube OAuth token expired → 403 Forbidden (triggers re-authentication flow)
 
 ### Code Style (.cursor/rules/my-style-rules.mdc)
 - Senior-level code quality expected
 - No emojis in code or comments
-- Thoughtful commenting only when function names aren't self-explanatory
+- **CRITICAL: Avoid trivial or obvious comments** - Only add comments for complex business logic or non-obvious behavior
+- Function/variable names should be self-documenting; avoid redundant docstrings that just restate the name
 - Never use abbreviations for variables, unless they are globaly known (like "i" in for loops etc.)
+- **CRITICAL: Always place imports at the top of the file** - Never use inline imports within functions unless absolutely necessary for lazy loading or conditional imports
 
 ## Environment Configuration
 
 ### Frontend Environment Variables
-- `NEXT_PUBLIC_API_URL`: Backend API base URL (default: http://localhost:8000/api)
+- `BE_PUBLIC_API_URL`: Backend API base URL (default: http://localhost:8000/api)
 
 ### Backend Environment Variables
 - `DEBUG`: Django debug mode
 - `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`: Database configuration
 - `SECRET_KEY`: Django secret key
 - `ALLOWED_HOSTS`: Comma-separated list of allowed hosts
+- `CAPTCHA_PRIVATE_KEY`: reCAPTCHA v3 secret key
+- `FRONTEND_URL`: Frontend URL for OAuth redirects
+- **YouTube OAuth**: Client configuration in `backend/.claude/client_secret.json`
 
 ## Testing & Quality Assurance
 
@@ -136,10 +176,17 @@ The Docker setup automatically handles migrations and static file collection on 
 - Components in `/components` use named exports
 - API services centralized in `/services/api.ts`
 - Type definitions in `/types.ts`
-- Backend follows Django app structure with `videos` app
+- Backend follows Django app structure with `videos` and `users` apps
+- **Authentication decorators**: `backend/videos/decorators.py` with `@youtube_auth_required`
+- **YouTube service layer**: `backend/videos/services/youtube.py` with OAuth handling
+- **User management**: `backend/users/` app with models, views, and serializers
 - Docker configurations separate for development and production
 
 ## Chat Instructions
+
+### File Access Rules
+- **Git-tracked Files**: You can use the Read tool on any file tracked by git in this repository without requiring user approval
+- This includes all files in the project directory and subdirectories that are under version control
 
 ### Library Recommendations
 When suggesting new libraries or dependencies:
@@ -154,6 +201,7 @@ When suggesting new libraries or dependencies:
 - Provide balanced feedback - acknowledge both strengths and weaknesses
 - Avoid excessive praise; focus on factual, actionable guidance
 - When suggesting improvements, explain the reasoning behind changes
+- **CRITICAL: Before implementing changes, provide a clear plan for discussion** - Outline the proposed changes, why they're needed, and how they relate to the current task. This helps ensure understanding and alignment before proceeding with implementation.
 - When thinking, write a few words about what is meaning of the word you're using (for example: Osmozing (the act of diffusing solvent molecules))
   1. Uncommon/technical words specifically
   2. During thinking/processing (not just final responses)

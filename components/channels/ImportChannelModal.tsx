@@ -1,5 +1,8 @@
-import { useState } from "react";
-import { importChannelFromYoutube } from "@/services/api";
+import { useState, useEffect, use, useRef } from "react";
+import { importChannelFromYoutube, getYouTubeAuthUrl } from "@/services/api";
+import { Loader2 } from "lucide-react";
+import { useChannelSubscribe } from "./mutations";
+import { handleKeyboardActivation } from "../utils/keyboardUtils";
 
 export interface ImportChannelModalProps {
   isOpen: boolean;
@@ -10,26 +13,105 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
   if (!isOpen) return null;
 
   const [isImporting, setIsImporting] = useState(false);
-  const [importError, setImportError] = useState<string | null>(null);
+  const [importError, setImportError] = useState<string | null | undefined>(null);
   const [newChannelId, setNewChannelId] = useState("");
+  const [needsYoutubeAuth, setNeedsYoutubeAuth] = useState(false);
+  const subscribeMutation = useChannelSubscribe();
+  const modalRef = useRef<HTMLDivElement>(null);
+  const pendingChannelId = useRef<string>("");
+
+  useEffect(() => {
+    const handleYoutubeAuthRequired = (event: CustomEvent) => {
+      setNeedsYoutubeAuth(true);
+      setImportError(event.detail.message);
+      setIsImporting(false);
+    };
+
+    const handleAuthMessage = async (event: MessageEvent) => {
+      if (event.data === "youtube-auth-success") {
+        setNeedsYoutubeAuth(false);
+        setImportError(null);
+
+        // Retry with stored channel ID
+        if (pendingChannelId.current) {
+          setIsImporting(true);
+
+          try {
+            const response = await importChannelFromYoutube(pendingChannelId.current);
+
+            if (response.error) {
+              setImportError(response.error);
+            } else {
+              await subscribeMutation.mutateAsync(response.data.uuid);
+              setNewChannelId("");
+              onClose();
+            }
+          } catch (error) {
+            setImportError("Failed to import channel. Please try again.");
+            console.error("Import error:", error);
+          } finally {
+            setIsImporting(false);
+            pendingChannelId.current = "";
+          }
+        }
+      }
+    };
+
+    window.addEventListener("youtube-auth-required", handleYoutubeAuthRequired as EventListener);
+    window.addEventListener("message", handleAuthMessage);
+
+    return () => {
+      window.removeEventListener("youtube-auth-required", handleYoutubeAuthRequired as EventListener);
+      window.removeEventListener("message", handleAuthMessage);
+    };
+  }, [subscribeMutation, onClose]);
+
+  useEffect(() => {
+    if (isOpen) {
+      const modalElement = modalRef.current;
+      if (modalElement) {
+        modalElement.focus();
+      }
+    }
+  }, [isOpen]);
+
+  const handleYoutubeAuth = async () => {
+    try {
+      const redirectUri = (process.env.BE_PUBLIC_API_URL || "http://localhost:8000/api") + "/auth/youtube/callback";
+      const response = await getYouTubeAuthUrl(redirectUri, window.location.href);
+
+      if (response.error) {
+        setImportError(`Authentication failed: ${response.error}`);
+      } else if (response.data.auth_url) {
+        window.location.href = response.data.auth_url;
+      } else {
+        setImportError("Failed to get authentication URL");
+      }
+    } catch {
+      setImportError("Failed to start authentication process");
+    }
+  };
 
   const handleImportChannel = async () => {
     if (!newChannelId.trim()) return;
 
     setIsImporting(true);
     setImportError(null);
+    setNeedsYoutubeAuth(false);
 
     try {
       const response = await importChannelFromYoutube(newChannelId);
 
-      if (response.error) {
+      if (response.youtubeAuthRequired) {
+        pendingChannelId.current = newChannelId;
+        setNeedsYoutubeAuth(true);
+        setImportError(response.error);
+      } else if (response.error) {
         setImportError(response.error);
       } else {
-        // Auto-subscribe to imported channel
         await subscribeMutation.mutateAsync(response.data.uuid);
         setNewChannelId("");
-        setIsAddModalOpen(false);
-        queryClient.invalidateQueries({ queryKey: ["allChannels"] });
+        onClose();
       }
     } catch (error) {
       setImportError("Failed to import channel. Please try again.");
@@ -40,7 +122,12 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
   };
 
   return (
-    <div className="ChannelSubscriptions__modal fixed inset-0 z-50 overflow-y-auto">
+    <div
+      className="ChannelSubscriptions__modal fixed inset-0 z-50 overflow-y-auto"
+      tabIndex={-1}
+      ref={modalRef}
+      onKeyDown={() => handleKeyboardActivation(handleImportChannel)}
+    >
       <div className="ChannelSubscriptions__modal-overlay flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <div
           className="ChannelSubscriptions__modal-backdrop fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
@@ -58,8 +145,16 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
           </div>
 
           {importError && (
-            <div className="ChannelSubscriptions__error bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+            <div className="ChannelSubscriptions__error bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4 flex items-center">
               {importError}
+              {needsYoutubeAuth && (
+                <button
+                  onClick={handleYoutubeAuth}
+                  className="mt-2 inline-flex items-center px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700"
+                >
+                  Authenticate with YouTube
+                </button>
+              )}
             </div>
           )}
 
@@ -92,6 +187,7 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
             </button>
             <button
               onClick={handleImportChannel}
+              onKeyDown={handleKeyboardActivation(handleImportChannel)}
               disabled={isImporting || !newChannelId.trim()}
               className="ChannelSubscriptions__import-button flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
             >
