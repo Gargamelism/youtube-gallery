@@ -1,4 +1,4 @@
-import { useState, useEffect, use, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { importChannelFromYoutube, getYouTubeAuthUrl } from "@/services/api";
 import { Loader2 } from "lucide-react";
 import { useChannelSubscribe } from "./mutations";
@@ -66,7 +66,7 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
     };
   }, [subscribeMutation, onClose]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (isOpen) {
       const modalElement = modalRef.current;
       if (modalElement) {
@@ -170,6 +170,7 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
               id="channelId"
               value={newChannelId}
               onChange={(e) => setNewChannelId(e.target.value)}
+              onKeyDown={handleKeyboardActivation(handleImportChannel)}
               placeholder="UC.../@..."
               className="ChannelSubscriptions__form-input w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
