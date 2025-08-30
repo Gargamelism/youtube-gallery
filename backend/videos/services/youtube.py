@@ -4,12 +4,13 @@ import json
 import requests
 from pathlib import Path
 from datetime import datetime
-from googleapiclient.discovery import build
+from googleapiclient.discovery import build, Resource
 from google_auth_oauthlib.flow import Flow
 from google.oauth2.credentials import Credentials
 from django.conf import settings
 from videos.models import Channel, Video
 from videos.utils.dateutils import timezone_aware_datetime
+
 YOUTUBE_SCOPES = ["https://www.googleapis.com/auth/youtube.readonly"]
 
 
@@ -47,7 +48,7 @@ class YouTubeService:
             )
 
         self.credentials = credentials
-        self.youtube = build("youtube", "v3", credentials=credentials)
+        self.youtube: Resource = build("youtube", "v3", credentials=credentials)
 
     @staticmethod
     def get_client_config() -> YouTubeClientConfig:
@@ -122,7 +123,7 @@ class YouTubeService:
     def create_credentials(cls, credentials_data) -> Credentials:
         """Factory method to create Google OAuth2 Credentials object from session data"""
         client_config = cls.get_client_config()
-        
+
         if isinstance(credentials_data, str):
             credentials_info = json.loads(credentials_data)
         else:
@@ -131,7 +132,7 @@ class YouTubeService:
         expiry = None
         if credentials_info.get("expiry"):
             expiry = datetime.fromisoformat(credentials_info["expiry"])
-            
+
         return Credentials(
             token=credentials_info.get("token"),
             refresh_token=credentials_info.get("refresh_token"),
@@ -154,10 +155,10 @@ class YouTubeService:
 
         return response["items"][0]
 
-    def _get_channel_by_username(self, username: str) -> Optional[Dict[str, Any]]:
+    def _get_channel_by_handle(self, handle: str) -> Optional[Dict[str, Any]]:
         """Get channel details using username (without @ symbol)"""
         request = self.youtube.channels().list(
-            part="snippet,statistics,contentDetails", forUsername=username
+            part="snippet,statistics,contentDetails", forUsername=handle
         )
         response = request.execute()
 
@@ -195,11 +196,7 @@ class YouTubeService:
         """Get channel details by ID or handle (@username)"""
         try:
             if channel_identifier.startswith("@"):
-                # Handle channel username/handle
-                username = channel_identifier[1:]  # Remove @ symbol
-
-                # Try direct username lookup first
-                channel_info = self._get_channel_by_username(username)
+                channel_info = self._get_channel_by_handle(channel_identifier)
 
                 if not channel_info:
                     # Fall back to search API

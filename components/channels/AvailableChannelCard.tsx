@@ -41,7 +41,7 @@ export default function AvailableChannelCard({
 
           <div className="ChannelSubscriptions__available-actions flex items-center justify-between">
             <a
-              href={`https://youtube.com/${channel.channel_id}`}
+              href={`https://youtube.com/channel/${channel.channel_id}`}
               target="_blank"
               rel="noopener noreferrer"
               className="ChannelSubscriptions__external-link inline-flex items-center text-blue-600 hover:text-blue-800 text-sm"
