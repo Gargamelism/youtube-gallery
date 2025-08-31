@@ -1,19 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Search, Users, Trash2, Loader2, ExternalLink } from "lucide-react";
 import { fetchUserChannels, fetchChannels } from "@/services/api";
 import { UserChannel, Channel } from "@/types";
 import AvailableChannelCard from "./AvailableChannelCard";
 import ImportChannelModal from "./ImportChannelModal";
-import { useChannelSubscribe, useChannelUnsubscribe } from "./mutations";
+import { useChannelUnsubscribe, useChannelSubscribe } from "./mutations";
 
 export default function ChannelSubscriptions() {
   const [isAddChannelModalOpen, setIsAddChannelModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const unsubscribeMutation = useChannelUnsubscribe();
-  const subscribeMutation = useChannelSubscribe();
+  const queryClient = useQueryClient();
+  const unsubscribeMutation = useChannelUnsubscribe(queryClient);
+  const subscribeMutation = useChannelSubscribe(queryClient);
 
   const { data: userChannels, isLoading: isLoadingUserChannels } = useQuery({
     queryKey: ["userChannels"],

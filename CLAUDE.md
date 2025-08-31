@@ -103,6 +103,7 @@ The Docker setup automatically handles migrations and static file collection on 
 
 ### Frontend (.cursor/rules/frontend-rules.mdc)
 - Use TypeScript with strict mode
+- **CRITICAL: Never use `any` type unless the data structure is truly unknown or dynamically changing** - Always create proper TypeScript interfaces and types. Use `unknown` for truly unknown data that needs runtime checking.
 - Prefer `const` arrow functions over `function` declarations
 - Event handlers prefixed with "handle" (e.g., `handleClick`)
 - Use TailwindCSS classes exclusively for styling
@@ -207,3 +208,36 @@ When suggesting new libraries or dependencies:
   2. During thinking/processing (not just final responses)
   3. Brief inline explanations
   4. The format with the word first, then explanation in parentheses
+
+### Assumption Documentation & Code Notes
+**CRITICAL: Before making any code changes, provide context and assumptions in chat:**
+
+**Standard Pattern:**
+```markdown
+**Planning [Component/Feature] changes:**
+
+**Context:** Current state understanding
+**Assumptions:** What I'm inferring from codebase/requirements  
+**Approach:** Implementation plan and methods
+**Risks/Verification:** What needs testing or might break
+```
+
+**Code Comment Guidelines:**
+- Only comment complex business logic or non-obvious behavior
+- Never add trivial/obvious comments (follows project standards)
+- Use meaningful comments for assumptions and edge cases
+- Examples of appropriate comments:
+  ```typescript
+  // Business rule: Only channels with >1000 subscribers
+  // Assumption: API returns null for private subscriber counts  
+  // Edge case: Handle YouTube API quota limits
+  ```
+
+**Examples of Communication:**
+```markdown
+**Updating video watch status logic:**
+- **Context**: Current toggle doesn't persist to backend
+- **Assumption**: Backend expects PUT /api/videos/{id}/watch/
+- **Approach**: Add optimistic update with rollback on error
+- **Verification**: Test offline behavior and error handling
+```

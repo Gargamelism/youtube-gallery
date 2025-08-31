@@ -12,7 +12,8 @@
     "lint:strict": "eslint . --max-warnings 0"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.84.2",
+    "@tanstack/react-query": "^5.85.6",
+    "@tanstack/react-query-devtools": "^5.85.6",
     "i18next": "^25.3.2",
     "lucide-react": "^0.539.0",
     "next": "^15.4.6",

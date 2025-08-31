@@ -59,3 +59,4 @@ client_secret*
 .vs/
 vendor/
 .claude/
+settings.local.json

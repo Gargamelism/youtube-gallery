@@ -5,7 +5,7 @@ import tsParser from '@typescript-eslint/parser';
 
 export default [
   {
-    ignores: ['tailwind.config.js', 'next-env.d.ts', 'backend/', '.next/']
+    ignores: ['tailwind.config.js', 'next-env.d.ts', 'backend/', '.next/', '.venv/']
   },
   {
     ...eslint.configs.recommended,

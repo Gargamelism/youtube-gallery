@@ -3,6 +3,7 @@ import { importChannelFromYoutube, getYouTubeAuthUrl } from "@/services/api";
 import { Loader2 } from "lucide-react";
 import { useChannelSubscribe } from "./mutations";
 import { handleKeyboardActivation } from "../utils/keyboardUtils";
+import { useQueryClient } from "@tanstack/react-query";
 
 export interface ImportChannelModalProps {
   isOpen: boolean;
@@ -16,7 +17,8 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
   const [importError, setImportError] = useState<string | null | undefined>(null);
   const [newChannelId, setNewChannelId] = useState("");
   const [needsYoutubeAuth, setNeedsYoutubeAuth] = useState(false);
-  const subscribeMutation = useChannelSubscribe();
+  const queryClient = useQueryClient();
+  const subscribeMutation = useChannelSubscribe(queryClient);
   const modalRef = useRef<HTMLDivElement>(null);
   const pendingChannelId = useRef<string>("");
 
@@ -170,7 +172,6 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
               id="channelId"
               value={newChannelId}
               onChange={(e) => setNewChannelId(e.target.value)}
-              onKeyDown={handleKeyboardActivation(handleImportChannel)}
               placeholder="UC.../@..."
               className="ChannelSubscriptions__form-input w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
