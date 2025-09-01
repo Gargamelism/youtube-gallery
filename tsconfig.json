@@ -16,6 +16,9 @@
         "moduleResolution": "bundler",
         "resolveJsonModule": true,
         "isolatedModules": true,
+        "exactOptionalPropertyTypes": true,
+        "noUncheckedIndexedAccess": true,
+        "noImplicitOverride": true,
         "jsx": "preserve",
         "incremental": true,
         "plugins": [
@@ -23,9 +26,31 @@
                 "name": "next"
             }
         ],
+        "baseUrl": ".",
         "paths": {
             "@/*": [
                 "./*"
+            ],
+            "@app/*": [
+                "app/*"
+            ],
+            "@components/*": [
+                "components/*"
+            ],
+            "@lib/*": [
+                "lib/*"
+            ],
+            "@hooks/*": [
+                "hooks/*"
+            ],
+            "@styles/*": [
+                "styles/*"
+            ],
+            "@types/*": [
+                "types/*"
+            ],
+            "@icons/*": [
+                "icons/*"
             ]
         }
     },
