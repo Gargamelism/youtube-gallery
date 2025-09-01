@@ -1,0 +1,1 @@
+export type AuthView = "login" | "register";

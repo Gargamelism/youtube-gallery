@@ -109,6 +109,7 @@ The Docker setup automatically handles migrations and static file collection on 
 - Use TailwindCSS classes exclusively for styling
 - Implement accessibility features (tabindex, aria-labels, keyboard handlers)
 - Follow DRY principles and early returns for readability
+- **CRITICAL: Use responsive design with Tailwind classes instead of separate components** - When creating components that need different layouts for desktop/mobile, use a single component with Tailwind responsive classes (`hidden md:flex`, `md:hidden`) rather than creating separate desktop and mobile components. Only separate components when the content or functionality is truly different, not just the styling.
 
 ### Backend (.cursor/rules/backend-rules.mdc)
 - Follow Django MVT pattern strictly
