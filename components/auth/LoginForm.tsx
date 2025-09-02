@@ -7,6 +7,7 @@ import { LoginRequest } from "@/types";
 import { login } from "@/services/api";
 import { useAuthStore } from "@/stores/authStore";
 import { useRecaptchaV3 } from "@/hooks/useRecaptchaV3";
+import { AuthViews } from "../navigation/types";
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -32,7 +33,7 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
     setError(null);
 
     try {
-      const captchaToken = await executeRecaptcha("login");
+      const captchaToken = await executeRecaptcha(AuthViews.LOGIN);
       if (!captchaToken) {
         setError("Failed to verify reCAPTCHA. Please try again.");
         return;

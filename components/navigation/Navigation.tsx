@@ -1,23 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/authStore";
 import { logout } from "@/services/api";
-import AuthModal from "../auth/AuthModal";
+import AuthModal from "@components/auth/AuthModal";
 import NavigationLogo from "./NavigationLogo";
 import NavigationLinks from "./NavigationLinks";
 import UserDropdownMenu from "./UserDropdownMenu";
 import AuthButtons from "./AuthButtons";
-import { AuthView } from "./types";
+import { AuthView, AuthViews } from "./types";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function Navigation() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authModalView, setAuthModalView] = useState<AuthView>("login");
+  const [authModalView, setAuthModalView] = useState<AuthView>(AuthViews.LOGIN);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   const { user, isAuthenticated, logout: logoutStore } = useAuthStore();
-  const router = useRouter();
 
   const handleLogout = async () => {
     try {
@@ -27,7 +27,7 @@ export default function Navigation() {
     } finally {
       logoutStore();
       setIsUserMenuOpen(false);
-      router.push("/");
+      queryClient.invalidateQueries();
     }
   };
 

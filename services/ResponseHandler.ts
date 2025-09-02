@@ -8,8 +8,6 @@ export interface ApiResponse<T> {
 
 export class ResponseHandler {
     static async handle<T>(response: Response, shouldThrowOnError = false): Promise<ApiResponse<T>> {
-        console.log('API Response Status:', response);
-
         if (!response.ok) {
             return this.handleErrorResponse<T>(response, shouldThrowOnError);
         }

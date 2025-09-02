@@ -4,19 +4,23 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
+import { useQueryClient } from "@tanstack/react-query";
+import { AuthView, AuthViews } from "@components/navigation/types";
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  defaultView?: "login" | "register";
+  defaultView?: AuthView;
 }
 
-export default function AuthModal({ isOpen, onClose, defaultView = "login" }: AuthModalProps) {
-  const [currentView, setCurrentView] = useState<"login" | "register">(defaultView);
+export default function AuthModal({ isOpen, onClose, defaultView = AuthViews.LOGIN }: AuthModalProps) {
+  const [currentView, setCurrentView] = useState<AuthView>(defaultView);
+  const queryClient = useQueryClient();
 
   if (!isOpen) return null;
 
   const handleSuccess = () => {
+    queryClient.invalidateQueries();
     onClose();
   };
 
@@ -45,10 +49,10 @@ export default function AuthModal({ isOpen, onClose, defaultView = "login" }: Au
           </div>
 
           <div className="AuthModal__content p-6">
-            {currentView === "login" ? (
-              <LoginForm onSuccess={handleSuccess} onSwitchToRegister={() => setCurrentView("register")} />
+            {currentView === AuthViews.LOGIN ? (
+              <LoginForm onSuccess={handleSuccess} onSwitchToRegister={() => setCurrentView(AuthViews.REGISTER)} />
             ) : (
-              <RegisterForm onSuccess={handleSuccess} onSwitchToLogin={() => setCurrentView("login")} />
+              <RegisterForm onSuccess={handleSuccess} onSwitchToLogin={() => setCurrentView(AuthViews.LOGIN)} />
             )}
           </div>
         </div>

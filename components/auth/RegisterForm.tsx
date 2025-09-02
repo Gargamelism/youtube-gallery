@@ -7,6 +7,7 @@ import { RegisterRequest } from "@/types";
 import { register as registerUser } from "@/services/api";
 import { useAuthStore } from "@/stores/authStore";
 import { useRecaptchaV3 } from "@/hooks/useRecaptchaV3";
+import { AuthViews } from "@components/navigation/types";
 
 interface RegisterFormProps {
   onSuccess?: () => void;
@@ -36,7 +37,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
     setError(null);
 
     try {
-      const captchaToken = await executeRecaptcha("register");
+      const captchaToken = await executeRecaptcha(AuthViews.REGISTER);
       if (!captchaToken) {
         setError("Failed to verify reCAPTCHA. Please try again.");
         return;

@@ -3,28 +3,32 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchVideos } from "@/services/api";
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import SkeletonLoader from "@/components/ui/SkeletonLoader";
 
 export default function Home() {
   const router = useRouter();
+  const pathname = usePathname();
 
-  const { data: videosResponse, isLoading } = useQuery({
-    queryKey: ["videos", ""],
+  const {
+    isSuccess,
+    isError,
+    data: videosResponse,
+  } = useQuery({
     queryFn: () => fetchVideos(""),
+    queryKey: ["videos", ""],
   });
 
   useEffect(() => {
-    if (!isLoading) {
-      const totalVideos = videosResponse?.data?.count ?? 0;
-
-      if (totalVideos > 0) {
-        router.push("/videos");
-      } else {
-        router.push("/channels");
-      }
+    if (videosResponse?.error === "Authentication required" || pathname !== "/") {
+      return;
     }
-  }, [isLoading, videosResponse, router]);
+    if (isSuccess && !videosResponse?.data?.results?.length) {
+      router.push("/channels");
+    } else {
+      router.push("/videos");
+    }
+  }, [isSuccess, isError, videosResponse, router]);
 
   return (
     <main className="min-h-screen p-8">
