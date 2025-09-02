@@ -1,0 +1,14 @@
+{
+  "allVideos": "All Videos",
+  "watched": "Watched",
+  "unwatched": "Unwatched",
+  "markAsWatched": "Mark as watched",
+  "showDescription": "Show description",
+  "hideDescription": "Hide description",
+  "addNotes": "Add notes",
+  "yourNotes": "Your notes:",
+  "notesPlaceholder": "Add your notes about this video...",
+  "saveMarkWatched": "Save & Mark Watched",
+  "watchedOn": "Watched on",
+  "views": "views"
+}

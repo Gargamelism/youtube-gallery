@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useTranslation } from "react-i18next";
 
 interface FilterButtonsProps {
   totalCount: number;
@@ -9,6 +10,7 @@ interface FilterButtonsProps {
 }
 
 export function FilterButtons({ totalCount, watchedCount, unwatchedCount }: FilterButtonsProps) {
+  const { t } = useTranslation('videos');
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -32,7 +34,7 @@ export function FilterButtons({ totalCount, watchedCount, unwatchedCount }: Filt
           filter === "all" ? "bg-blue-600 text-white" : "bg-gray-100 hover:bg-gray-200 text-gray-800"
         }`}
       >
-        <span>All Videos</span>
+        <span>{t('allVideos')}</span>
         <span className="bg-opacity-20 bg-black px-2 rounded-full text-sm">{totalCount}</span>
       </button>
       <button
@@ -41,7 +43,7 @@ export function FilterButtons({ totalCount, watchedCount, unwatchedCount }: Filt
           filter === "unwatched" ? "bg-blue-600 text-white" : "bg-gray-100 hover:bg-gray-200 text-gray-800"
         }`}
       >
-        <span>Unwatched</span>
+        <span>{t('unwatched')}</span>
         <span className="bg-opacity-20 bg-black px-2 rounded-full text-sm">{unwatchedCount}</span>
       </button>
       <button
@@ -50,7 +52,7 @@ export function FilterButtons({ totalCount, watchedCount, unwatchedCount }: Filt
           filter === "watched" ? "bg-blue-600 text-white" : "bg-gray-100 hover:bg-gray-200 text-gray-800"
         }`}
       >
-        <span>Watched</span>
+        <span>{t('watched')}</span>
         <span className="bg-opacity-20 bg-black px-2 rounded-full text-sm">{watchedCount}</span>
       </button>
     </div>

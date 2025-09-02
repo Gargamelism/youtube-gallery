@@ -5,6 +5,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## File System Operations
 **CRITICAL**: Never run Bash commands for file system operations (mkdir, cp, mv, rm, etc.). Always ask the user to create directories or move files instead of attempting to do it yourself.
 
+## Command Execution
+**CRITICAL**: Never run commands directly using the Bash tool. Always ask the user to run commands instead. Instead of executing commands, provide the exact command for the user to run and explain what it does.
+
 ## Architecture Overview
 
 This is a full-stack YouTube gallery application with a **Next.js frontend** and **Django REST API backend**, orchestrated with Docker Compose. The application allows users to view and manage video collections with watch status tracking.

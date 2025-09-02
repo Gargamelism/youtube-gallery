@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { RegisterRequest } from "@/types";
 import { register as registerUser } from "@/services/api";
@@ -15,6 +16,7 @@ interface RegisterFormProps {
 }
 
 export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) {
+  const { t } = useTranslation('auth');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -39,7 +41,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
     try {
       const captchaToken = await executeRecaptcha(AuthViews.REGISTER);
       if (!captchaToken) {
-        setError("Failed to verify reCAPTCHA. Please try again.");
+        setError(t('recaptchaError'));
         return;
       }
 
@@ -55,7 +57,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
         onSuccess?.();
       }
     } catch (err) {
-      setError("An unexpected error occurred. Please try again.");
+      setError(t('common:error'));
       console.error("Registration error:", err);
     } finally {
       setIsLoading(false);
@@ -65,45 +67,45 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="bg-white shadow-lg rounded-lg p-8">
-        <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">Create Account</h2>
+        <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">{t('createAccount')}</h2>
 
         {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">{error}</div>}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              Email Address
+              {t('emailAddress')}
             </label>
             <input
               {...register("email", {
-                required: "Email is required",
+                required: t('validation.emailRequired'),
                 pattern: {
                   value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: "Invalid email address",
+                  message: t('validation.invalidEmail'),
                 },
               })}
               type="email"
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter your email"
+              placeholder={t('enterEmail')}
             />
             {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
           </div>
 
           <div>
             <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-              Username
+              {t('username')}
             </label>
             <input
               {...register("username", {
-                required: "Username is required",
+                required: t('validation.usernameRequired'),
                 minLength: {
                   value: 3,
-                  message: "Username must be at least 3 characters",
+                  message: t('validation.usernameMinLength'),
                 },
               })}
               type="text"
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Choose a username"
+              placeholder={t('chooseUsername')}
             />
             {errors.username && <p className="mt-1 text-sm text-red-600">{errors.username.message}</p>}
           </div>
@@ -111,44 +113,44 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mb-2">
-                First Name
+                {t('firstName')}
               </label>
               <input
                 {...register("first_name")}
                 type="text"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="First name"
+                placeholder={t('firstNamePlaceholder')}
               />
             </div>
             <div>
               <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mb-2">
-                Last Name
+                {t('lastName')}
               </label>
               <input
                 {...register("last_name")}
                 type="text"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Last name"
+                placeholder={t('lastNamePlaceholder')}
               />
             </div>
           </div>
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Password
+              {t('password')}
             </label>
             <div className="relative">
               <input
                 {...register("password", {
-                  required: "Password is required",
+                  required: t('validation.passwordRequired'),
                   minLength: {
                     value: 8,
-                    message: "Password must be at least 8 characters",
+                    message: t('validation.passwordMinLength'),
                   },
                 })}
                 type={showPassword ? "text" : "password"}
                 className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Create a password"
+                placeholder={t('createPassword')}
               />
               <button
                 type="button"
@@ -167,17 +169,17 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
 
           <div>
             <label htmlFor="password_confirm" className="block text-sm font-medium text-gray-700 mb-2">
-              Confirm Password
+              {t('confirmPassword')}
             </label>
             <div className="relative">
               <input
                 {...register("password_confirm", {
-                  required: "Please confirm your password",
-                  validate: (value) => value === password || "Passwords do not match",
+                  required: t('validation.confirmPasswordRequired'),
+                  validate: (value) => value === password || t('validation.passwordsDoNotMatch'),
                 })}
                 type={showConfirmPassword ? "text" : "password"}
                 className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Confirm your password"
+                placeholder={t('confirmYourPassword')}
               />
               <button
                 type="button"
@@ -202,19 +204,19 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
             {isLoading ? (
               <>
                 <Loader2 className="animate-spin -ml-1 mr-3 h-4 w-4" />
-                Creating account...
+                {t('creatingAccount')}
               </>
             ) : (
-              "Create Account"
+              t('createAccount')
             )}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            Already have an account?{" "}
+            {t('alreadyHaveAccount')}{" "}
             <button type="button" onClick={onSwitchToLogin} className="font-medium text-blue-600 hover:text-blue-500">
-              Sign in
+              {t('signIn')}
             </button>
           </p>
         </div>

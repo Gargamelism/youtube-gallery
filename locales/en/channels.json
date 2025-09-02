@@ -1,0 +1,23 @@
+{
+  "channelSubscriptions": "Channel Subscriptions",
+  "manageSubscriptions": "Manage your YouTube channel subscriptions",
+  "addChannel": "Add Channel",
+  "yourSubscriptions": "Your Subscriptions",
+  "noSubscriptionsYet": "No subscriptions yet",
+  "noSubscriptionsDescription": "Start by importing a YouTube channel or subscribing to existing ones.",
+  "availableChannels": "Available Channels",
+  "searchChannels": "Search channels...",
+  "subscribedOn": "Subscribed",
+  "viewOnYoutube": "View on YouTube",
+  "unsubscribe": "Unsubscribe",
+  "importYoutubeChannel": "Import YouTube Channel",
+  "importChannelDescription": "Enter a YouTube channel ID to import and subscribe to it.",
+  "youtubeChannelId": "YouTube Channel ID",
+  "channelIdPlaceholder": "UC.../@...",
+  "channelIdHelp": "You can find the channel ID in the YouTube URL or channel about page.",
+  "importSubscribe": "Import & Subscribe",
+  "importing": "Importing...",
+  "authenticateWithYoutube": "Authenticate with YouTube",
+  "importError": "Failed to import channel. Please try again.",
+  "authenticationFailed": "Authentication failed:"
+}

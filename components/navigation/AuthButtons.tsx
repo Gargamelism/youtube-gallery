@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { AuthView, AuthViews } from "./types";
 
 interface AuthButtonsProps {
@@ -5,6 +6,8 @@ interface AuthButtonsProps {
 }
 
 export default function AuthButtons({ onOpenAuthModal }: AuthButtonsProps) {
+  const { t } = useTranslation('auth');
+  
   return (
     <>
       <div className="Navigation__auth-buttons hidden md:flex items-center space-x-4">
@@ -12,13 +15,13 @@ export default function AuthButtons({ onOpenAuthModal }: AuthButtonsProps) {
           onClick={() => onOpenAuthModal(AuthViews.LOGIN)}
           className="Navigation__signin-button text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium"
         >
-          Sign in
+          {t('signIn')}
         </button>
         <button
           onClick={() => onOpenAuthModal(AuthViews.REGISTER)}
           className="Navigation__signup-button bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
         >
-          Sign up
+          {t('signUp')}
         </button>
       </div>
     </>

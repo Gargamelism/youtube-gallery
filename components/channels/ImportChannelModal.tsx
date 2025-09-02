@@ -1,4 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { importChannelFromYoutube, getYouTubeAuthUrl } from "@/services/api";
 import { Loader2 } from "lucide-react";
 import { useChannelSubscribe } from "./mutations";
@@ -11,6 +12,7 @@ export interface ImportChannelModalProps {
 }
 
 export default function ImportChannelModal({ isOpen, onClose }: ImportChannelModalProps) {
+  const { t } = useTranslation('channels');
   if (!isOpen) return null;
 
   const [isImporting, setIsImporting] = useState(false);
@@ -49,7 +51,7 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
               onClose();
             }
           } catch (error) {
-            setImportError("Failed to import channel. Please try again.");
+            setImportError(t('importError'));
             console.error("Import error:", error);
           } finally {
             setIsImporting(false);
@@ -83,7 +85,7 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
       const response = await getYouTubeAuthUrl(redirectUri, window.location.href);
 
       if (response.error) {
-        setImportError(`Authentication failed: ${response.error}`);
+        setImportError(`${t('authenticationFailed')} ${response.error}`);
       } else if (response.data.auth_url) {
         window.location.href = response.data.auth_url;
       } else {
@@ -116,7 +118,7 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
         onClose();
       }
     } catch (error) {
-      setImportError("Failed to import channel. Please try again.");
+      setImportError(t('importError'));
       console.error("Import error:", error);
     } finally {
       setIsImporting(false);
@@ -139,10 +141,10 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
         <div className="ChannelSubscriptions__modal-content inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
           <div className="ChannelSubscriptions__modal-header mb-4">
             <h3 className="ChannelSubscriptions__modal-title text-lg font-medium text-gray-900">
-              Import YouTube Channel
+              {t('importYoutubeChannel')}
             </h3>
             <p className="ChannelSubscriptions__modal-description text-sm text-gray-500 mt-1">
-              Enter a YouTube channel ID to import and subscribe to it.
+              {t('importChannelDescription')}
             </p>
           </div>
 
@@ -154,7 +156,7 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
                   onClick={handleYoutubeAuth}
                   className="mt-2 inline-flex items-center px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700"
                 >
-                  Authenticate with YouTube
+                  {t('authenticateWithYoutube')}
                 </button>
               )}
             </div>
@@ -165,18 +167,18 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
               htmlFor="channelId"
               className="ChannelSubscriptions__form-label block text-sm font-medium text-gray-700 mb-2"
             >
-              YouTube Channel ID
+              {t('youtubeChannelId')}
             </label>
             <input
               type="text"
               id="channelId"
               value={newChannelId}
               onChange={(e) => setNewChannelId(e.target.value)}
-              placeholder="UC.../@..."
+              placeholder={t('channelIdPlaceholder')}
               className="ChannelSubscriptions__form-input w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <p className="ChannelSubscriptions__form-help text-xs text-gray-500 mt-1">
-              You can find the channel ID in the YouTube URL or channel about page.
+              {t('channelIdHelp')}
             </p>
           </div>
 
@@ -185,7 +187,7 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
               onClick={onClose}
               className="ChannelSubscriptions__cancel-button px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
             >
-              Cancel
+              {t('common:cancel')}
             </button>
             <button
               onClick={handleImportChannel}
@@ -196,10 +198,10 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
               {isImporting ? (
                 <>
                   <Loader2 className="ChannelSubscriptions__import-spinner h-4 w-4 mr-2 animate-spin" />
-                  Importing...
+                  {t('importing')}
                 </>
               ) : (
-                "Import & Subscribe"
+                t('importSubscribe')
               )}
             </button>
           </div>

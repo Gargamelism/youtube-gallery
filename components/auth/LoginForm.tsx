@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { LoginRequest } from "@/types";
 import { login } from "@/services/api";
@@ -15,6 +16,7 @@ interface LoginFormProps {
 }
 
 export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
+  const { t } = useTranslation('auth');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +37,7 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
     try {
       const captchaToken = await executeRecaptcha(AuthViews.LOGIN);
       if (!captchaToken) {
-        setError("Failed to verify reCAPTCHA. Please try again.");
+        setError(t('recaptchaError'));
         return;
       }
 
@@ -51,7 +53,7 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
         onSuccess?.();
       }
     } catch (err) {
-      setError("An unexpected error occurred. Please try again.");
+      setError(t('common:error'));
       console.error("Login error:", err);
     } finally {
       setIsLoading(false);
@@ -61,42 +63,42 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="bg-white shadow-lg rounded-lg p-8">
-        <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">Sign In</h2>
+        <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">{t('signIn')}</h2>
 
         {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">{error}</div>}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              Email Address
+              {t('emailAddress')}
             </label>
             <input
               {...register("email", {
-                required: "Email is required",
+                required: t('validation.emailRequired'),
                 pattern: {
                   value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: "Invalid email address",
+                  message: t('validation.invalidEmail'),
                 },
               })}
               type="email"
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter your email"
+              placeholder={t('enterEmail')}
             />
             {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
           </div>
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Password
+              {t('password')}
             </label>
             <div className="relative">
               <input
                 {...register("password", {
-                  required: "Password is required",
+                  required: t('validation.passwordRequired'),
                 })}
                 type={showPassword ? "text" : "password"}
                 className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter your password"
+                placeholder={t('enterPassword')}
               />
               <button
                 type="button"
@@ -121,23 +123,23 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
             {isLoading ? (
               <>
                 <Loader2 className="animate-spin -ml-1 mr-3 h-4 w-4" />
-                Signing in...
+                {t('signingIn')}
               </>
             ) : (
-              "Sign In"
+              t('signIn')
             )}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            Don't have an account?{" "}
+            {t('dontHaveAccount')}{" "}
             <button
               type="button"
               onClick={onSwitchToRegister}
               className="font-medium text-blue-600 hover:text-blue-500"
             >
-              Sign up
+              {t('signUp')}
             </button>
           </p>
         </div>
