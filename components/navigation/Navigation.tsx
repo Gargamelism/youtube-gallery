@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useAuthStore } from "@/stores/authStore";
-import { logout } from "@/services/api";
-import AuthModal from "@components/auth/AuthModal";
-import NavigationLogo from "./NavigationLogo";
-import NavigationLinks from "./NavigationLinks";
-import UserDropdownMenu from "./UserDropdownMenu";
-import AuthButtons from "./AuthButtons";
-import { AuthView, AuthViews } from "./types";
-import { useQueryClient } from "@tanstack/react-query";
+import { useState } from 'react';
+import { useAuthStore } from '@/stores/authStore';
+import { logout } from '@/services/api';
+import AuthModal from '@components/auth/AuthModal';
+import NavigationLogo from './NavigationLogo';
+import NavigationLinks from './NavigationLinks';
+import UserDropdownMenu from './UserDropdownMenu';
+import AuthButtons from './AuthButtons';
+import { AuthView, AuthViews } from './types';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function Navigation() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -23,7 +23,7 @@ export default function Navigation() {
     try {
       await logout();
     } catch (error) {
-      console.error("Logout error:", error);
+      console.error('Logout error:', error);
     } finally {
       logoutStore();
       setIsUserMenuOpen(false);

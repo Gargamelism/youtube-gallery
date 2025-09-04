@@ -1,12 +1,12 @@
-from django.urls import path, include
+from django.urls import include, path
+
 from .utils.router import KebabCaseRouter
 from .views import ChannelViewSet, VideoViewSet
 
 router = KebabCaseRouter(trailing_slash=False)
-router.register(r'channels', ChannelViewSet)
-router.register(r'videos', VideoViewSet, basename='video')
+router.register(r"channels", ChannelViewSet)
+router.register(r"videos", VideoViewSet, basename="video")
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path("", include(router.urls)),
 ]
-

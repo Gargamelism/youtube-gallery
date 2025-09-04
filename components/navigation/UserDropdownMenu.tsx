@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { User, LogOut, Settings } from "lucide-react";
+import { useRouter } from 'next/navigation';
+import { User, LogOut, Settings } from 'lucide-react';
 
 interface UserDropdownMenuProps {
   user: {
@@ -33,7 +33,7 @@ export default function UserDropdownMenu({ user, isUserMenuOpen, onToggle, onClo
         <span className="sr-only">Open user menu</span>
         <div className="Navigation__avatar h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center">
           <span className="Navigation__avatar-text text-white text-sm font-medium">
-            {user?.first_name?.[0] || user?.username?.[0] || "U"}
+            {user?.first_name?.[0] || user?.username?.[0] || 'U'}
           </span>
         </div>
       </button>
@@ -49,7 +49,7 @@ export default function UserDropdownMenu({ user, isUserMenuOpen, onToggle, onClo
             </div>
 
             <button
-              onClick={() => handleNavigation("/profile")}
+              onClick={() => handleNavigation('/profile')}
               className="Navigation__dropdown-item flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
             >
               <User className="Navigation__dropdown-icon h-4 w-4 mr-3" />
@@ -57,7 +57,7 @@ export default function UserDropdownMenu({ user, isUserMenuOpen, onToggle, onClo
             </button>
 
             <button
-              onClick={() => handleNavigation("/settings")}
+              onClick={() => handleNavigation('/settings')}
               className="Navigation__dropdown-item flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
             >
               <Settings className="Navigation__dropdown-icon h-4 w-4 mr-3" />

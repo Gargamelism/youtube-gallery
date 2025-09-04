@@ -1,33 +1,33 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useTranslation } from "react-i18next";
-import { Plus, Search, Users, Trash2, Loader2, ExternalLink } from "lucide-react";
-import { fetchUserChannels, fetchChannels } from "@/services/api";
-import { UserChannel, Channel } from "@/types";
-import AvailableChannelCard from "./AvailableChannelCard";
-import ImportChannelModal from "./ImportChannelModal";
-import { useChannelUnsubscribe, useChannelSubscribe } from "./mutations";
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
+import { Plus, Search, Users, Trash2, Loader2, ExternalLink } from 'lucide-react';
+import { fetchUserChannels, fetchChannels } from '@/services/api';
+import { UserChannel, Channel } from '@/types';
+import AvailableChannelCard from './AvailableChannelCard';
+import ImportChannelModal from './ImportChannelModal';
+import { useChannelUnsubscribe, useChannelSubscribe } from './mutations';
 
 export default function ChannelSubscriptions() {
   const { t } = useTranslation('channels');
   const [isAddChannelModalOpen, setIsAddChannelModalOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const queryClient = useQueryClient();
   const unsubscribeMutation = useChannelUnsubscribe(queryClient);
   const subscribeMutation = useChannelSubscribe(queryClient);
 
   const { data: userChannels, isLoading: isLoadingUserChannels } = useQuery({
-    queryKey: ["userChannels"],
+    queryKey: ['userChannels'],
     queryFn: fetchUserChannels,
-    select: (response) => response.data || { results: [] },
+    select: response => response.data || { results: [] },
   });
 
   const { data: allChannels, isLoading: isLoadingAllChannels } = useQuery({
-    queryKey: ["allChannels"],
+    queryKey: ['allChannels'],
     queryFn: fetchChannels,
-    select: (response) => response.data?.results || [],
+    select: response => response.data?.results || [],
   });
 
   const handleChannelUnsubscribe = async (channelId: string) => {
@@ -83,9 +83,7 @@ export default function ChannelSubscriptions() {
             <h3 className="ChannelSubscriptions__empty-title text-lg font-medium text-gray-900 mb-2">
               {t('noSubscriptionsYet')}
             </h3>
-            <p className="ChannelSubscriptions__empty-description text-gray-600">
-              {t('noSubscriptionsDescription')}
-            </p>
+            <p className="ChannelSubscriptions__empty-description text-gray-600">{t('noSubscriptionsDescription')}</p>
           </div>
         ) : (
           <div className="ChannelSubscriptions__grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -143,7 +141,7 @@ export default function ChannelSubscriptions() {
             type="text"
             placeholder={t('searchChannels')}
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={e => setSearchQuery(e.target.value)}
             className="ChannelSubscriptions__search-input pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>

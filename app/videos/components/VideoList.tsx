@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import { useSearchParams } from "next/navigation";
-import SkeletonLoader from "@/components/ui/SkeletonLoader";
-import { VideoCard } from "./VideoCard";
-import { Video } from "@/types";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchVideos, updateVideoWatchStatus } from "@/services/api";
+import { useSearchParams } from 'next/navigation';
+import SkeletonLoader from '@/components/ui/SkeletonLoader';
+import { VideoCard } from './VideoCard';
+import { Video } from '@/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { fetchVideos, updateVideoWatchStatus } from '@/services/api';
 
 export function VideoList() {
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
-  const filter = searchParams.get("filter") || "all";
+  const filter = searchParams.get('filter') || 'all';
 
   const handleVideoClick = (url: string) => {
     if (url) {
-      window.open(url, "_blank");
+      window.open(url, '_blank');
     }
   };
 
@@ -23,7 +23,7 @@ export function VideoList() {
     isLoading,
     error: error,
   } = useQuery({
-    queryKey: ["videos", filter],
+    queryKey: ['videos', filter],
     queryFn: () => fetchVideos(filter),
   });
 
@@ -33,8 +33,8 @@ export function VideoList() {
       return updateVideoWatchStatus(videoId, !video?.is_watched);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["videos"] });
-      queryClient.invalidateQueries({ queryKey: ["videoStats"] });
+      queryClient.invalidateQueries({ queryKey: ['videos'] });
+      queryClient.invalidateQueries({ queryKey: ['videoStats'] });
     },
   });
 
@@ -62,7 +62,7 @@ export function VideoList() {
   return (
     <div className="py-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {videos.map((video) => (
+        {videos.map(video => (
           <VideoCard
             key={video.uuid}
             video={video}

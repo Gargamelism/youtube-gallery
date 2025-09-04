@@ -17,20 +17,18 @@ const resources = {
   },
 };
 
-i18n
-  .use(initReactI18next)
-  .init({
-    resources,
-    lng: 'en',
-    fallbackLng: 'en',
-    debug: process.env.NODE_ENV === 'development',
-    
-    ns: ['common', 'auth', 'navigation', 'videos', 'channels'],
-    defaultNS: 'common',
-    
-    interpolation: {
-      escapeValue: false,
-    },
-  });
+i18n.use(initReactI18next).init({
+  resources,
+  lng: 'en',
+  fallbackLng: 'en',
+  debug: process.env.NODE_ENV === 'development',
+
+  ns: ['common', 'auth', 'navigation', 'videos', 'channels'],
+  defaultNS: 'common',
+
+  interpolation: {
+    escapeValue: false,
+  },
+});
 
 export default i18n;

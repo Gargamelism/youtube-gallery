@@ -5,6 +5,7 @@ A Next.js and Django application for managing and viewing YouTube videos with us
 ## API Conventions
 
 All API endpoints follow the kebab-case convention:
+
 - Words are separated by hyphens
 - All letters are lowercase
 - Example: `/api/channels/fetch-from-youtube/`
@@ -18,7 +19,9 @@ The application now supports user authentication with token-based authentication
 ```http
 POST /api/auth/register/
 ```
+
 Register a new user account
+
 - Request Body:
   ```json
   {
@@ -34,7 +37,9 @@ Register a new user account
 ```http
 POST /api/auth/login/
 ```
+
 Login with email and password
+
 - Request Body:
   ```json
   {
@@ -47,11 +52,13 @@ Login with email and password
 ```http
 POST /api/auth/logout/
 ```
+
 Logout and invalidate token (requires authentication)
 
 ```http
 GET /api/auth/profile/
 ```
+
 Get current user profile (requires authentication)
 
 ### User Channel Management
@@ -60,6 +67,7 @@ Get current user profile (requires authentication)
 GET /api/auth/channels/
 POST /api/auth/channels/
 ```
+
 List and create user channel subscriptions (requires authentication)
 
 ```http
@@ -67,6 +75,7 @@ GET /api/auth/channels/{uuid}/
 PUT /api/auth/channels/{uuid}/
 DELETE /api/auth/channels/{uuid}/
 ```
+
 Retrieve, update, or delete user channel subscriptions (requires authentication)
 
 ### User Video Management
@@ -75,6 +84,7 @@ Retrieve, update, or delete user channel subscriptions (requires authentication)
 GET /api/auth/videos/
 POST /api/auth/videos/
 ```
+
 List and create user video interactions (requires authentication)
 
 ```http
@@ -82,6 +92,7 @@ GET /api/auth/videos/{uuid}/
 PUT /api/auth/videos/{uuid}/
 DELETE /api/auth/videos/{uuid}/
 ```
+
 Retrieve, update, or delete user video interactions (requires authentication)
 
 ## API Endpoints
@@ -91,7 +102,9 @@ Retrieve, update, or delete user video interactions (requires authentication)
 ```http
 GET /api/videos/
 ```
+
 List videos from user's subscribed channels with pagination and filtering options (authentication optional).
+
 - Query Parameters:
   - `search`: Search in title and description
   - `ordering`: Sort by title, published_at, view_count, like_count
@@ -101,22 +114,27 @@ List videos from user's subscribed channels with pagination and filtering option
 ```http
 GET /api/videos/{uuid}/
 ```
+
 Get details for a specific video
 
 ```http
 GET /api/videos/watched/
 ```
+
 List all watched videos for authenticated user (requires authentication)
 
 ```http
 GET /api/videos/unwatched/
 ```
+
 List all unwatched videos for authenticated user (requires authentication)
 
 ```http
 PUT /api/videos/{uuid}/watch/
 ```
+
 Update watch status and notes for a video (requires authentication)
+
 - Request Body:
   ```json
   {
@@ -130,7 +148,9 @@ Update watch status and notes for a video (requires authentication)
 ```http
 GET /api/channels/
 ```
+
 List all channels with pagination and filtering options.
+
 - Query Parameters:
   - `search`: Search in title and description
   - `ordering`: Sort by title, created_at
@@ -139,17 +159,21 @@ List all channels with pagination and filtering options.
 ```http
 GET /api/channels/{uuid}/
 ```
+
 Get channel details including video statistics
 
 ```http
 GET /api/channels/{uuid}/videos/
 ```
+
 List all videos from a specific channel
 
 ```http
 GET /api/channels/{uuid}/stats/
 ```
+
 Get channel statistics including:
+
 - Total videos count
 - Watched videos count (user-specific if authenticated)
 - Unwatched videos count (user-specific if authenticated)
@@ -158,7 +182,9 @@ Get channel statistics including:
 ```http
 POST /api/channels/fetch-from-youtube/
 ```
+
 Import a channel and all its videos from YouTube
+
 - Request Body:
   ```json
   {
@@ -216,11 +242,13 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 ### YouTube API Setup
 
 1. Place your OAuth2 credentials in:
+
    ```
    backend/config/credentials/client_secret.json
    ```
 
 2. Set environment variables in `backend/.env`:
+
    ```env
    YOUTUBE_CREDENTIALS_DIR=/app/config/credentials
    YOUTUBE_CLIENT_SECRET_FILE=client_secret.json
@@ -228,9 +256,11 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
    ```
 
 3. First-time authentication for development:
+
    ```bash
    docker-compose exec -it backend python scripts/docker-youtube-auth.py
    ```
+
    - Follow the interactive prompts
    - Copy the OAuth URL to your browser
    - Complete the Google authentication
@@ -240,6 +270,7 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 ## User-Based Architecture
 
 The application now supports multiple users with individual:
+
 - **Channel Subscriptions**: Users can subscribe to specific YouTube channels
 - **Watch Status**: Each user has their own watch/unwatched status for videos
 - **Notes**: Users can add personal notes to videos
@@ -265,6 +296,7 @@ curl -H "Authorization: Token your_token_here" \
 ### Example API Usage
 
 Register a new user:
+
 ```bash
 curl -X POST http://localhost:8000/api/auth/register/ \
   -H "Content-Type: application/json" \
@@ -277,6 +309,7 @@ curl -X POST http://localhost:8000/api/auth/register/ \
 ```
 
 Login and get token:
+
 ```bash
 curl -X POST http://localhost:8000/api/auth/login/ \
   -H "Content-Type: application/json" \
@@ -287,6 +320,7 @@ curl -X POST http://localhost:8000/api/auth/login/ \
 ```
 
 Subscribe to a channel:
+
 ```bash
 curl -X POST http://localhost:8000/api/auth/channels/ \
   -H "Authorization: Token your_token_here" \
@@ -295,6 +329,7 @@ curl -X POST http://localhost:8000/api/auth/channels/ \
 ```
 
 Import a YouTube channel:
+
 ```bash
 curl -X POST http://localhost:8000/api/channels/fetch-from-youtube/ \
   -H "Content-Type: application/json" \
@@ -302,6 +337,7 @@ curl -X POST http://localhost:8000/api/channels/fetch-from-youtube/ \
 ```
 
 Mark a video as watched with notes:
+
 ```bash
 curl -X PUT http://localhost:8000/api/videos/{uuid}/watch/ \
   -H "Authorization: Token your_token_here" \
@@ -313,6 +349,7 @@ curl -X PUT http://localhost:8000/api/videos/{uuid}/watch/ \
 ```
 
 List user's unwatched videos:
+
 ```bash
 curl -H "Authorization: Token your_token_here" \
   http://localhost:8000/api/videos/unwatched/

@@ -1,6 +1,8 @@
 import uuid
+
 from django.db import models
 from django.utils import timezone
+
 from .fields import YouTubeDurationField
 
 
@@ -23,7 +25,7 @@ class Channel(TimestampMixin):
         return self.title or self.channel_id
 
     class Meta:
-        db_table = 'channels'
+        db_table = "channels"
 
 
 class Video(TimestampMixin):
@@ -41,9 +43,9 @@ class Video(TimestampMixin):
     tags = models.TextField(blank=True, null=True)
     thumbnail_url = models.CharField(max_length=500, blank=True, null=True)
     video_url = models.URLField(blank=True, null=True)
-    
+
     # relationships
-    channel = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name='videos')
+    channel = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name="videos")
 
     # custom fields
     duration = YouTubeDurationField(blank=True, null=True)
@@ -52,6 +54,5 @@ class Video(TimestampMixin):
         return self.title or self.video_id
 
     class Meta:
-        db_table = 'videos'
-        ordering = ['-published_at']
-
+        db_table = "videos"
+        ordering = ["-published_at"]

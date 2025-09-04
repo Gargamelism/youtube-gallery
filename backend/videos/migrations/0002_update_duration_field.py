@@ -1,17 +1,17 @@
-from django.db import migrations, models
 import videos.fields
+from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('videos', '0001_initial'),
+        ("videos", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='video',
-            name='duration',
+            model_name="video",
+            name="duration",
             field=videos.fields.YouTubeDurationField(blank=True, null=True),
         ),
     ]

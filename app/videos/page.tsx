@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { VideoList } from "./components/VideoList";
-import { FilterButtons } from "./components/FilterButtons";
-import { useQuery } from "@tanstack/react-query";
-import { fetchVideoStats } from "@/services/api";
-import { Suspense } from "react";
+import { VideoList } from './components/VideoList';
+import { FilterButtons } from './components/FilterButtons';
+import { useQuery } from '@tanstack/react-query';
+import { fetchVideoStats } from '@/services/api';
+import { Suspense } from 'react';
 
 export default function VideosPage() {
   const { data: statsResponse } = useQuery({
-    queryKey: ["videoStats"],
+    queryKey: ['videoStats'],
     queryFn: fetchVideoStats,
   });
 

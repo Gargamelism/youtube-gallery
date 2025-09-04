@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { X } from "lucide-react";
-import LoginForm from "./LoginForm";
-import RegisterForm from "./RegisterForm";
-import { useQueryClient } from "@tanstack/react-query";
-import { AuthView, AuthViews } from "@components/navigation/types";
+import { useState } from 'react';
+import { X } from 'lucide-react';
+import LoginForm from './LoginForm';
+import RegisterForm from './RegisterForm';
+import { useQueryClient } from '@tanstack/react-query';
+import { AuthView, AuthViews } from '@components/navigation/types';
 
 interface AuthModalProps {
   isOpen: boolean;

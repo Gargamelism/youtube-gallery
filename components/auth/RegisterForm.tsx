@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { useTranslation } from "react-i18next";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { RegisterRequest } from "@/types";
-import { register as registerUser } from "@/services/api";
-import { useAuthStore } from "@/stores/authStore";
-import { useRecaptchaV3 } from "@/hooks/useRecaptchaV3";
-import { AuthViews } from "@components/navigation/types";
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { RegisterRequest } from '@/types';
+import { register as registerUser } from '@/services/api';
+import { useAuthStore } from '@/stores/authStore';
+import { useRecaptchaV3 } from '@/hooks/useRecaptchaV3';
+import { AuthViews } from '@components/navigation/types';
 
 interface RegisterFormProps {
   onSuccess?: () => void;
@@ -32,7 +32,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
     formState: { errors },
   } = useForm<RegisterRequest>();
 
-  const password = watch("password");
+  const password = watch('password');
 
   const onSubmit = async (data: RegisterRequest) => {
     setIsLoading(true);
@@ -58,7 +58,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
       }
     } catch (err) {
       setError(t('common:error'));
-      console.error("Registration error:", err);
+      console.error('Registration error:', err);
     } finally {
       setIsLoading(false);
     }
@@ -77,7 +77,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
               {t('emailAddress')}
             </label>
             <input
-              {...register("email", {
+              {...register('email', {
                 required: t('validation.emailRequired'),
                 pattern: {
                   value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
@@ -96,7 +96,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
               {t('username')}
             </label>
             <input
-              {...register("username", {
+              {...register('username', {
                 required: t('validation.usernameRequired'),
                 minLength: {
                   value: 3,
@@ -116,7 +116,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
                 {t('firstName')}
               </label>
               <input
-                {...register("first_name")}
+                {...register('first_name')}
                 type="text"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder={t('firstNamePlaceholder')}
@@ -127,7 +127,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
                 {t('lastName')}
               </label>
               <input
-                {...register("last_name")}
+                {...register('last_name')}
                 type="text"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder={t('lastNamePlaceholder')}
@@ -141,14 +141,14 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
             </label>
             <div className="relative">
               <input
-                {...register("password", {
+                {...register('password', {
                   required: t('validation.passwordRequired'),
                   minLength: {
                     value: 8,
                     message: t('validation.passwordMinLength'),
                   },
                 })}
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? 'text' : 'password'}
                 className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder={t('createPassword')}
               />
@@ -173,11 +173,11 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
             </label>
             <div className="relative">
               <input
-                {...register("password_confirm", {
+                {...register('password_confirm', {
                   required: t('validation.confirmPasswordRequired'),
-                  validate: (value) => value === password || t('validation.passwordsDoNotMatch'),
+                  validate: value => value === password || t('validation.passwordsDoNotMatch'),
                 })}
-                type={showConfirmPassword ? "text" : "password"}
+                type={showConfirmPassword ? 'text' : 'password'}
                 className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder={t('confirmYourPassword')}
               />
@@ -214,7 +214,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            {t('alreadyHaveAccount')}{" "}
+            {t('alreadyHaveAccount')}{' '}
             <button type="button" onClick={onSwitchToLogin} className="font-medium text-blue-600 hover:text-blue-500">
               {t('signIn')}
             </button>

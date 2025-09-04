@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useRouter, usePathname } from "next/navigation";
-import { type LucideIcon, Video, TvMinimalPlay } from "lucide-react";
+import { useRouter, usePathname } from 'next/navigation';
+import { type LucideIcon, Video, TvMinimalPlay } from 'lucide-react';
 
 interface NavigationLinksProps {
   isAuthenticated: boolean;
@@ -20,14 +20,14 @@ export default function NavigationLinks({ isAuthenticated }: NavigationLinksProp
   const pathname = usePathname();
 
   const links: Link[] = [
-    { name: "Videos", path: "/videos", icon: Video },
-    { name: "Channels", path: "/channels", icon: TvMinimalPlay },
+    { name: 'Videos', path: '/videos', icon: Video },
+    { name: 'Channels', path: '/channels', icon: TvMinimalPlay },
   ];
 
   return (
     <>
       <div className="Navigation__links-nav flex flex-col lg:flex-row lg:ml-6 lg:space-x-8">
-        {links.map((link) => {
+        {links.map(link => {
           const isActive = pathname === link.path;
           const Icon = link.icon;
           return (

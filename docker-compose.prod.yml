@@ -11,7 +11,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - '5432:5432'
     networks:
       - youtube_gallery_network
 
@@ -30,7 +30,7 @@ services:
     volumes:
       - media_files:/app/media
     ports:
-      - "8000:8000"
+      - '8000:8000'
     depends_on:
       - db
     networks:
@@ -46,7 +46,7 @@ services:
       context: .
       dockerfile: frontend.Dockerfile.prod
     ports:
-      - "3000:80"
+      - '3000:80'
     depends_on:
       - backend
     networks:

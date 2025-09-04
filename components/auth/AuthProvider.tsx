@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import AuthModal from "./AuthModal";
-import { AuthViews } from "../navigation/types";
+import { useEffect, useState } from 'react';
+import AuthModal from './AuthModal';
+import { AuthViews } from '../navigation/types';
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -12,10 +12,10 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
       setShowAuthModal(true);
     };
 
-    window.addEventListener("auth-required", handleAuthRequired);
+    window.addEventListener('auth-required', handleAuthRequired);
 
     return () => {
-      window.removeEventListener("auth-required", handleAuthRequired);
+      window.removeEventListener('auth-required', handleAuthRequired);
     };
   }, []);
 

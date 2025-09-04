@@ -1,11 +1,12 @@
-from functools import wraps
-from rest_framework import status
-from rest_framework.response import Response
-from google.oauth2.credentials import Credentials
-from google.auth.transport.requests import Request
 import json
 from datetime import datetime, timedelta
-from videos.services.youtube import YouTubeService, YOUTUBE_SCOPES, GoogleCredentialsData
+from functools import wraps
+
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from rest_framework import status
+from rest_framework.response import Response
+from videos.services.youtube import YOUTUBE_SCOPES, GoogleCredentialsData, YouTubeService
 
 
 def youtube_auth_required(view_func):
@@ -92,11 +93,11 @@ def store_google_credentials(session, credentials):
             expires_in = credentials_data.pop("expires_in")
             expiry = datetime.now() + timedelta(seconds=expires_in)
             credentials_data["expiry"] = expiry.isoformat()
-        
+
         # Map Google OAuth field names to our expected field names
         if "access_token" in credentials_data:
             credentials_data["token"] = credentials_data.pop("access_token")
-    
+
     session["google_credentials"] = json.dumps(credentials_data)
     session.save()
 

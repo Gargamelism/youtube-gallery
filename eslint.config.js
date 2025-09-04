@@ -5,7 +5,7 @@ import tsParser from '@typescript-eslint/parser';
 
 export default [
   {
-    ignores: ['tailwind.config.js', 'next-env.d.ts', 'backend/', '.next/', '.venv/']
+    ignores: ['tailwind.config.js', 'next-env.d.ts', 'backend/', '.next/', '.venv/'],
   },
   {
     ...eslint.configs.recommended,
@@ -13,16 +13,16 @@ export default [
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
-      globals: {}
+      globals: {},
     },
     rules: {
-      'no-console': 'warn'
-    }
+      'no-console': 'warn',
+    },
   },
   {
     files: ['**/*.ts', '**/*.tsx'],
     plugins: {
-      '@typescript-eslint': typescriptPlugin
+      '@typescript-eslint': typescriptPlugin,
     },
     languageOptions: {
       parser: tsParser,
@@ -30,25 +30,25 @@ export default [
         ecmaVersion: 2022,
         sourceType: 'module',
         ecmaFeatures: {
-          jsx: true
+          jsx: true,
         },
-        project: './tsconfig.json'
-      }
+        project: './tsconfig.json',
+      },
     },
 
     rules: {
       ...typescriptPlugin.configs['recommended'].rules,
-      '@typescript-eslint/no-unused-vars': 'warn'
-    }
+      '@typescript-eslint/no-unused-vars': 'warn',
+    },
   },
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
     plugins: {
-      '@next/next': nextPlugin
+      '@next/next': nextPlugin,
     },
     rules: {
       ...nextPlugin.configs.recommended.rules,
-      ...nextPlugin.configs['core-web-vitals'].rules
-    }
-  }
+      ...nextPlugin.configs['core-web-vitals'].rules,
+    },
+  },
 ];

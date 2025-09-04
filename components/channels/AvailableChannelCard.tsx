@@ -1,5 +1,5 @@
-import { ExternalLink } from "lucide-react";
-import { Channel } from "@/types";
+import { ExternalLink } from 'lucide-react';
+import { Channel } from '@/types';
 
 export interface AvailableChannelCardProps {
   subscribedChannelIds: Set<string>;

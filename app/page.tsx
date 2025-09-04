@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useQuery } from "@tanstack/react-query";
-import { fetchVideos } from "@/services/api";
-import { useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import SkeletonLoader from "@/components/ui/SkeletonLoader";
+import { useQuery } from '@tanstack/react-query';
+import { fetchVideos } from '@/services/api';
+import { useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import SkeletonLoader from '@/components/ui/SkeletonLoader';
 
 export default function Home() {
   const router = useRouter();
@@ -15,18 +15,18 @@ export default function Home() {
     isError,
     data: videosResponse,
   } = useQuery({
-    queryFn: () => fetchVideos(""),
-    queryKey: ["videos", ""],
+    queryFn: () => fetchVideos(''),
+    queryKey: ['videos', ''],
   });
 
   useEffect(() => {
-    if (videosResponse?.error === "Authentication required" || pathname !== "/") {
+    if (videosResponse?.error === 'Authentication required' || pathname !== '/') {
       return;
     }
     if (isSuccess && !videosResponse?.data?.results?.length) {
-      router.push("/channels");
+      router.push('/channels');
     } else {
-      router.push("/videos");
+      router.push('/videos');
     }
   }, [isSuccess, isError, videosResponse, router]);
 

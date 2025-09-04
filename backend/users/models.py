@@ -1,7 +1,8 @@
 import uuid
+
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.conf import settings
 
 
 class TimestampMixin(models.Model):
@@ -15,37 +16,39 @@ class TimestampMixin(models.Model):
 class User(AbstractUser, TimestampMixin):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(unique=True)
-    
+
     # Use email as the username field
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
-    
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["username"]
+
     class Meta:
-        db_table = 'users'
+        db_table = "users"
 
 
 class UserChannel(TimestampMixin):
     """Many-to-many relationship between users and channels they follow"""
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user_channels')
-    channel = models.ForeignKey('videos.Channel', on_delete=models.CASCADE, related_name='user_subscriptions')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="user_channels")
+    channel = models.ForeignKey("videos.Channel", on_delete=models.CASCADE, related_name="user_subscriptions")
     subscribed_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
-    
+
     class Meta:
-        db_table = 'user_channels'
-        unique_together = ('user', 'channel')
+        db_table = "user_channels"
+        unique_together = ("user", "channel")
 
 
 class UserVideo(TimestampMixin):
     """Track user-specific data for videos (watch status, notes, etc.)"""
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user_videos')
-    video = models.ForeignKey('videos.Video', on_delete=models.CASCADE, related_name='user_videos')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="user_videos")
+    video = models.ForeignKey("videos.Video", on_delete=models.CASCADE, related_name="user_videos")
     is_watched = models.BooleanField(default=False)
     watched_at = models.DateTimeField(null=True, blank=True)
     notes = models.TextField(blank=True, null=True)
-    
+
     class Meta:
-        db_table = 'user_videos'
-        unique_together = ('user', 'video')
+        db_table = "user_videos"
+        unique_together = ("user", "video")

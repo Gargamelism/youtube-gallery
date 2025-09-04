@@ -1,5 +1,5 @@
-import { useTranslation } from "react-i18next";
-import { AuthView, AuthViews } from "./types";
+import { useTranslation } from 'react-i18next';
+import { AuthView, AuthViews } from './types';
 
 interface AuthButtonsProps {
   onOpenAuthModal: (view: AuthView) => void;
@@ -7,7 +7,7 @@ interface AuthButtonsProps {
 
 export default function AuthButtons({ onOpenAuthModal }: AuthButtonsProps) {
   const { t } = useTranslation('auth');
-  
+
   return (
     <>
       <div className="Navigation__auth-buttons hidden md:flex items-center space-x-4">

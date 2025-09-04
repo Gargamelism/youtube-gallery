@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { Play, Check, ChevronDown, ChevronUp, Calendar, Eye, MessageCircle, StickyNote } from "lucide-react";
-import Image from "next/image";
-import { Video } from "@/types";
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Play, Check, ChevronDown, ChevronUp, Calendar, Eye, MessageCircle, StickyNote } from 'lucide-react';
+import Image from 'next/image';
+import { Video } from '@/types';
 
 interface VideoCardProps {
   video: Video;
@@ -13,10 +13,10 @@ interface VideoCardProps {
 }
 
 export function VideoCard({ video, onWatch, onToggleWatched }: VideoCardProps) {
-  const { t } = useTranslation("videos");
+  const { t } = useTranslation('videos');
   const [showDescription, setShowDescription] = useState(false);
   const [showNotesForm, setShowNotesForm] = useState(false);
-  const [notes, setNotes] = useState(video.notes || "");
+  const [notes, setNotes] = useState(video.notes || '');
 
   const isHebrew = (text: string | null) => {
     if (!text) return false;
@@ -25,11 +25,11 @@ export function VideoCard({ video, onWatch, onToggleWatched }: VideoCardProps) {
   };
 
   const getTextDirection = (text: string | null) => {
-    return isHebrew(text) ? "rtl" : "ltr";
+    return isHebrew(text) ? 'rtl' : 'ltr';
   };
 
   const getTextAlign = (text: string | null) => {
-    return isHebrew(text) ? "text-right" : "text-left";
+    return isHebrew(text) ? 'text-right' : 'text-left';
   };
 
   const handleWatchedToggle = () => {
@@ -59,7 +59,7 @@ export function VideoCard({ video, onWatch, onToggleWatched }: VideoCardProps) {
     if (minutes) parts.push(`${minutes}m`);
     if (seconds && !hours && !minutes) parts.push(`${seconds}s`);
 
-    return parts.join(" ") || duration;
+    return parts.join(' ') || duration;
   };
 
   const formatDate = (dateString: string) => {
@@ -67,7 +67,7 @@ export function VideoCard({ video, onWatch, onToggleWatched }: VideoCardProps) {
   };
 
   const formatNumber = (num: number | null) => {
-    if (!num) return "0";
+    if (!num) return '0';
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
     return num.toString();
@@ -114,7 +114,7 @@ export function VideoCard({ video, onWatch, onToggleWatched }: VideoCardProps) {
             {video.view_count && (
               <div className="VideoCard__stat flex items-center gap-1">
                 <Eye className="VideoCard__stat-icon w-3 h-3" />
-                {formatNumber(video.view_count)} {t("views")}
+                {formatNumber(video.view_count)} {t('views')}
               </div>
             )}
 
@@ -137,7 +137,7 @@ export function VideoCard({ video, onWatch, onToggleWatched }: VideoCardProps) {
                 ) : (
                   <ChevronDown className="VideoCard__chevron w-4 h-4" />
                 )}
-                {showDescription ? t("hideDescription") : t("showDescription")}
+                {showDescription ? t('hideDescription') : t('showDescription')}
               </button>
 
               {showDescription && (
@@ -158,7 +158,7 @@ export function VideoCard({ video, onWatch, onToggleWatched }: VideoCardProps) {
             <div className="VideoCard__notes mb-3 p-3 bg-yellow-50 rounded-lg">
               <div className="VideoCard__notes-header flex items-center gap-2 mb-2">
                 <StickyNote className="VideoCard__notes-icon w-4 h-4 text-yellow-600" />
-                <span className="VideoCard__notes-label text-sm font-medium text-yellow-800">{t("yourNotes")}</span>
+                <span className="VideoCard__notes-label text-sm font-medium text-yellow-800">{t('yourNotes')}</span>
               </div>
               <p className="VideoCard__notes-text text-sm text-gray-700">{video.notes}</p>
             </div>
@@ -166,7 +166,7 @@ export function VideoCard({ video, onWatch, onToggleWatched }: VideoCardProps) {
 
           {video.is_watched && video.watched_at && (
             <div className="VideoCard__watched-date text-xs text-gray-500 mb-3">
-              {t("watchedOn")} {formatDate(video.watched_at)}
+              {t('watchedOn')} {formatDate(video.watched_at)}
             </div>
           )}
 
@@ -175,12 +175,12 @@ export function VideoCard({ video, onWatch, onToggleWatched }: VideoCardProps) {
               onClick={handleWatchedToggle}
               className={`VideoCard__watch-button flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 video.is_watched
-                  ? "bg-green-100 text-green-700 hover:bg-green-200"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
               <Check className="VideoCard__check-icon w-4 h-4" />
-              {video.is_watched ? t("watched") : t("markAsWatched")}
+              {video.is_watched ? t('watched') : t('markAsWatched')}
             </button>
 
             {!video.is_watched && (
@@ -189,7 +189,7 @@ export function VideoCard({ video, onWatch, onToggleWatched }: VideoCardProps) {
                 className="VideoCard__notes-button flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100"
               >
                 <StickyNote className="VideoCard__notes-button-icon w-4 h-4" />
-                {t("addNotes")}
+                {t('addNotes')}
               </button>
             )}
           </div>
@@ -198,8 +198,8 @@ export function VideoCard({ video, onWatch, onToggleWatched }: VideoCardProps) {
             <div className="VideoCard__notes-form mt-3 p-3 bg-gray-50 rounded-lg">
               <textarea
                 value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder={t("notesPlaceholder")}
+                onChange={e => setNotes(e.target.value)}
+                placeholder={t('notesPlaceholder')}
                 className="VideoCard__notes-textarea w-full p-2 text-sm border border-gray-300 rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
                 rows={3}
               />
@@ -208,13 +208,13 @@ export function VideoCard({ video, onWatch, onToggleWatched }: VideoCardProps) {
                   onClick={() => setShowNotesForm(false)}
                   className="VideoCard__notes-cancel px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
                 >
-                  {t("common:cancel")}
+                  {t('common:cancel')}
                 </button>
                 <button
                   onClick={handleNotesSubmit}
                   className="VideoCard__notes-save px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
                 >
-                  {t("saveMarkWatched")}
+                  {t('saveMarkWatched')}
                 </button>
               </div>
             </div>

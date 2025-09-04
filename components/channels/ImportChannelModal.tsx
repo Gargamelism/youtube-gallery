@@ -1,10 +1,10 @@
-import { useState, useEffect, useLayoutEffect, useRef } from "react";
-import { useTranslation } from "react-i18next";
-import { importChannelFromYoutube, getYouTubeAuthUrl } from "@/services/api";
-import { Loader2 } from "lucide-react";
-import { useChannelSubscribe } from "./mutations";
-import { handleKeyboardActivation } from "../utils/keyboardUtils";
-import { useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import { importChannelFromYoutube, getYouTubeAuthUrl } from '@/services/api';
+import { Loader2 } from 'lucide-react';
+import { useChannelSubscribe } from './mutations';
+import { handleKeyboardActivation } from '../utils/keyboardUtils';
+import { useQueryClient } from '@tanstack/react-query';
 
 export interface ImportChannelModalProps {
   isOpen: boolean;
@@ -17,12 +17,12 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
 
   const [isImporting, setIsImporting] = useState(false);
   const [importError, setImportError] = useState<string | null | undefined>(null);
-  const [newChannelId, setNewChannelId] = useState("");
+  const [newChannelId, setNewChannelId] = useState('');
   const [needsYoutubeAuth, setNeedsYoutubeAuth] = useState(false);
   const queryClient = useQueryClient();
   const subscribeMutation = useChannelSubscribe(queryClient);
   const modalRef = useRef<HTMLDivElement>(null);
-  const pendingChannelId = useRef<string>("");
+  const pendingChannelId = useRef<string>('');
 
   useEffect(() => {
     const handleYoutubeAuthRequired = (event: CustomEvent) => {
@@ -32,7 +32,7 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
     };
 
     const handleAuthMessage = async (event: MessageEvent) => {
-      if (event.data === "youtube-auth-success") {
+      if (event.data === 'youtube-auth-success') {
         setNeedsYoutubeAuth(false);
         setImportError(null);
 
@@ -47,26 +47,26 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
               setImportError(response.error);
             } else {
               await subscribeMutation.mutateAsync(response.data.uuid);
-              setNewChannelId("");
+              setNewChannelId('');
               onClose();
             }
           } catch (error) {
             setImportError(t('importError'));
-            console.error("Import error:", error);
+            console.error('Import error:', error);
           } finally {
             setIsImporting(false);
-            pendingChannelId.current = "";
+            pendingChannelId.current = '';
           }
         }
       }
     };
 
-    window.addEventListener("youtube-auth-required", handleYoutubeAuthRequired as EventListener);
-    window.addEventListener("message", handleAuthMessage);
+    window.addEventListener('youtube-auth-required', handleYoutubeAuthRequired as EventListener);
+    window.addEventListener('message', handleAuthMessage);
 
     return () => {
-      window.removeEventListener("youtube-auth-required", handleYoutubeAuthRequired as EventListener);
-      window.removeEventListener("message", handleAuthMessage);
+      window.removeEventListener('youtube-auth-required', handleYoutubeAuthRequired as EventListener);
+      window.removeEventListener('message', handleAuthMessage);
     };
   }, [subscribeMutation, onClose]);
 
@@ -81,7 +81,7 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
 
   const handleYoutubeAuth = async () => {
     try {
-      const redirectUri = (process.env.BE_PUBLIC_API_URL || "http://localhost:8000/api") + "/auth/youtube/callback";
+      const redirectUri = (process.env.BE_PUBLIC_API_URL || 'http://localhost:8000/api') + '/auth/youtube/callback';
       const response = await getYouTubeAuthUrl(redirectUri, window.location.href);
 
       if (response.error) {
@@ -89,10 +89,10 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
       } else if (response.data.auth_url) {
         window.location.href = response.data.auth_url;
       } else {
-        setImportError("Failed to get authentication URL");
+        setImportError('Failed to get authentication URL');
       }
     } catch {
-      setImportError("Failed to start authentication process");
+      setImportError('Failed to start authentication process');
     }
   };
 
@@ -114,12 +114,12 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
         setImportError(response.error);
       } else {
         await subscribeMutation.mutateAsync(response.data.uuid);
-        setNewChannelId("");
+        setNewChannelId('');
         onClose();
       }
     } catch (error) {
       setImportError(t('importError'));
-      console.error("Import error:", error);
+      console.error('Import error:', error);
     } finally {
       setIsImporting(false);
     }
@@ -173,13 +173,11 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
               type="text"
               id="channelId"
               value={newChannelId}
-              onChange={(e) => setNewChannelId(e.target.value)}
+              onChange={e => setNewChannelId(e.target.value)}
               placeholder={t('channelIdPlaceholder')}
               className="ChannelSubscriptions__form-input w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <p className="ChannelSubscriptions__form-help text-xs text-gray-500 mt-1">
-              {t('channelIdHelp')}
-            </p>
+            <p className="ChannelSubscriptions__form-help text-xs text-gray-500 mt-1">{t('channelIdHelp')}</p>
           </div>
 
           <div className="ChannelSubscriptions__modal-actions flex justify-end space-x-3 mt-6">

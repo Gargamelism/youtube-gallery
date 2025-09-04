@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
-import { useTranslation } from "react-i18next";
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface FilterButtonsProps {
   totalCount: number;
@@ -17,11 +17,11 @@ interface Filter {
 }
 
 export function FilterButtons({ totalCount, watchedCount, unwatchedCount }: FilterButtonsProps) {
-  const { t } = useTranslation("videos");
+  const { t } = useTranslation('videos');
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const filter = searchParams.get("filter") || "unwatched";
+  const filter = searchParams.get('filter') || 'unwatched';
 
   const createQueryString = (name: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -30,13 +30,13 @@ export function FilterButtons({ totalCount, watchedCount, unwatchedCount }: Filt
   };
 
   const handleFilterChange = (newFilter: string) => {
-    router.push(pathname + "?" + createQueryString("filter", newFilter));
+    router.push(pathname + '?' + createQueryString('filter', newFilter));
   };
 
   const filters: Filter[] = [
-    { name: "unwatched", label: t("unwatched"), count: unwatchedCount },
-    { name: "watched", label: t("watched"), count: watchedCount },
-    { name: "all", label: t("allVideos"), count: totalCount },
+    { name: 'unwatched', label: t('unwatched'), count: unwatchedCount },
+    { name: 'watched', label: t('watched'), count: watchedCount },
+    { name: 'all', label: t('allVideos'), count: totalCount },
   ];
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export function FilterButtons({ totalCount, watchedCount, unwatchedCount }: Filt
 
   return (
     <div className="FilterButton__wrapper flex flex-wrap gap-4 mb-6">
-      {filters.map((filterConf) => {
+      {filters.map(filterConf => {
         const isActive = filterConf.name === filter;
         return (
           <button

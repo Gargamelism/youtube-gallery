@@ -1,20 +1,20 @@
-import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
-import { User } from '@/types'
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { User } from '@/types';
 
 interface AuthStore {
-  user: User | null
-  token: string | null
-  isAuthenticated: boolean
-  isLoading: boolean
+  user: User | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
 
   // Actions
-  login: (user: User, token: string) => void
-  logout: () => void
-  updateUser: (user: User) => void
-  setLoading: (loading: boolean) => void
+  login: (user: User, token: string) => void;
+  logout: () => void;
+  updateUser: (user: User) => void;
+  setLoading: (loading: boolean) => void;
 
-  getAuthHeaders: () => Record<string, string>
+  getAuthHeaders: () => Record<string, string>;
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -30,8 +30,8 @@ export const useAuthStore = create<AuthStore>()(
           user,
           token,
           isAuthenticated: true,
-          isLoading: false
-        })
+          isLoading: false,
+        });
       },
 
       logout: () => {
@@ -39,40 +39,40 @@ export const useAuthStore = create<AuthStore>()(
           user: null,
           token: null,
           isAuthenticated: false,
-          isLoading: false
-        })
+          isLoading: false,
+        });
       },
 
       updateUser: (user: User) => {
-        set({ user })
+        set({ user });
       },
 
       setLoading: (isLoading: boolean) => {
-        set({ isLoading })
+        set({ isLoading });
       },
 
       getAuthHeaders: () => {
-        const { token } = get()
+        const { token } = get();
         return {
           'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Token ${token}` } : {}),
-        }
-      }
+          ...(token ? { Authorization: `Token ${token}` } : {}),
+        };
+      },
     }),
     {
       name: 'youtube-gallery-auth',
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({
+      partialize: state => ({
         user: state.user,
         token: state.token,
-        isAuthenticated: state.isAuthenticated
+        isAuthenticated: state.isAuthenticated,
       }),
-      onRehydrateStorage: () => (state) => {
+      onRehydrateStorage: () => state => {
         // Set loading to false after rehydration
         if (state) {
-          state.setLoading(false)
+          state.setLoading(false);
         }
-      }
+      },
     }
   )
-)
+);

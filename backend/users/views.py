@@ -1,21 +1,23 @@
-from django.shortcuts import redirect
-import requests
 from urllib.parse import unquote, urlparse
-from rest_framework import status, generics, permissions
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
-from rest_framework.authtoken.models import Token
-from django.utils import timezone
+
+import requests
 from django.conf import settings
 from django.http import HttpResponse
-from videos.services.youtube import YouTubeService, YouTubeAuthenticationError
+from django.shortcuts import redirect
+from django.utils import timezone
+from rest_framework import generics, permissions, status
+from rest_framework.authtoken.models import Token
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
 from videos.decorators import store_google_credentials
+from videos.services.youtube import YouTubeAuthenticationError, YouTubeService
+
 from .models import User, UserChannel, UserVideo
 from .serializers import (
-    UserRegistrationSerializer,
-    UserLoginSerializer,
-    UserSerializer,
     UserChannelSerializer,
+    UserLoginSerializer,
+    UserRegistrationSerializer,
+    UserSerializer,
     UserVideoSerializer,
 )
 
@@ -51,9 +53,7 @@ def validate_recaptcha_v3(token, action, threshold=0.5):
     data = {"secret": settings.CAPTCHA_PRIVATE_KEY, "response": token}
 
     try:
-        response = requests.post(
-            "https://www.google.com/recaptcha/api/siteverify", data=data, timeout=10
-        )
+        response = requests.post("https://www.google.com/recaptcha/api/siteverify", data=data, timeout=10)
         result = response.json()
 
         # Check if request was successful
@@ -79,9 +79,7 @@ def validate_recaptcha_v3(token, action, threshold=0.5):
 def register_view(request):
     captcha_token = request.data.get("captcha_token")
     if not validate_recaptcha_v3(captcha_token, "register"):
-        return Response(
-            {"error": "Invalid captcha"}, status=status.HTTP_400_BAD_REQUEST
-        )
+        return Response({"error": "Invalid captcha"}, status=status.HTTP_400_BAD_REQUEST)
 
     serializer = UserRegistrationSerializer(data=request.data)
     if serializer.is_valid():
@@ -99,9 +97,7 @@ def register_view(request):
 def login_view(request):
     captcha_token = request.data.get("captcha_token")
     if not validate_recaptcha_v3(captcha_token, "login"):
-        return Response(
-            {"error": "Invalid captcha"}, status=status.HTTP_400_BAD_REQUEST
-        )
+        return Response({"error": "Invalid captcha"}, status=status.HTTP_400_BAD_REQUEST)
 
     serializer = UserLoginSerializer(data=request.data)
     if serializer.is_valid():
@@ -132,9 +128,7 @@ class UserChannelListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return UserChannel.objects.filter(user=self.request.user).order_by(
-            "channel__title"
-        )
+        return UserChannel.objects.filter(user=self.request.user).order_by("channel__title")
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -167,10 +161,7 @@ class UserVideoDetailView(generics.RetrieveUpdateDestroyAPIView):
         return UserVideo.objects.filter(user=self.request.user)
 
     def perform_update(self, serializer):
-        if (
-            serializer.validated_data.get("is_watched")
-            and not serializer.instance.watched_at
-        ):
+        if serializer.validated_data.get("is_watched") and not serializer.instance.watched_at:
             serializer.save(watched_at=timezone.now())
         else:
             serializer.save()
@@ -184,13 +175,11 @@ def youtube_auth_url(request):
     return_url = request.GET.get("return_url")
     if return_url and _is_safe_url(return_url, request):
         request.session["auth_return_url"] = return_url
-    
+
     redirect_uri = request.GET.get("redirect_uri")
     if not redirect_uri:
         # Construct consistent redirect URI
-        redirect_uri = (
-            f"{request.scheme}://{request.get_host()}/api/auth/youtube/callback"
-        )
+        redirect_uri = f"{request.scheme}://{request.get_host()}/api/auth/youtube/callback"
     else:
         # Frontend sends URL-encoded redirect URI, so decode it
         redirect_uri = unquote(redirect_uri)
@@ -212,9 +201,7 @@ def youtube_auth_callback(request):
     """Handle OAuth callback and store credentials in session"""
     authorization_code = request.GET.get("code")
     if not authorization_code:
-        return HttpResponse(
-            "Authorization failed: No code provided", status=status.HTTP_400_BAD_REQUEST
-        )
+        return HttpResponse("Authorization failed: No code provided", status=status.HTTP_400_BAD_REQUEST)
 
     # Use the exact same redirect URI format as sent to Google originally
     # This ensures consistency and avoids invalid_grant errors

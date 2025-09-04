@@ -1,13 +1,14 @@
-from typing import Optional, List, Dict, Any, TypedDict
-import os
 import json
-import requests
-from pathlib import Path
+import os
 from datetime import datetime
-from googleapiclient.discovery import build, Resource
-from google_auth_oauthlib.flow import Flow
-from google.oauth2.credentials import Credentials
+from pathlib import Path
+from typing import Any, Dict, List, Optional, TypedDict
+
+import requests
 from django.conf import settings
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import Flow
+from googleapiclient.discovery import Resource, build
 from videos.models import Channel, Video
 from videos.utils.dateutils import timezone_aware_datetime
 
@@ -43,9 +44,7 @@ class YouTubeService:
     def __init__(self, credentials=None, redirect_uri=None):
         if not credentials:
             auth_url = self._generate_oauth_url(redirect_uri)
-            raise YouTubeAuthenticationError(
-                "YouTube credentials are required", auth_url=auth_url
-            )
+            raise YouTubeAuthenticationError("YouTube credentials are required", auth_url=auth_url)
 
         self.credentials = credentials
         self.youtube: Resource = build("youtube", "v3", credentials=credentials)
@@ -54,9 +53,7 @@ class YouTubeService:
     def get_client_config() -> YouTubeClientConfig:
         """Get YouTube OAuth client configuration from the client secret file"""
         base_dir = Path(os.getenv("YOUTUBE_CREDENTIALS_DIR", "/app/config/credentials"))
-        client_secret_path = base_dir / os.getenv(
-            "YOUTUBE_CLIENT_SECRET_FILE", "client_secret.json"
-        )
+        client_secret_path = base_dir / os.getenv("YOUTUBE_CLIENT_SECRET_FILE", "client_secret.json")
 
         if not client_secret_path.exists():
             raise Exception("Configuration error: Client secret file not found")
@@ -70,19 +67,13 @@ class YouTubeService:
     def _generate_oauth_url(self, redirect_uri=None):
         """Generate OAuth 2.0 authorization URL"""
         try:
-            base_dir = Path(
-                os.getenv("YOUTUBE_CREDENTIALS_DIR", "/app/config/credentials")
-            )
-            client_secret_path = base_dir / os.getenv(
-                "YOUTUBE_CLIENT_SECRET_FILE", "client_secret.json"
-            )
+            base_dir = Path(os.getenv("YOUTUBE_CREDENTIALS_DIR", "/app/config/credentials"))
+            client_secret_path = base_dir / os.getenv("YOUTUBE_CLIENT_SECRET_FILE", "client_secret.json")
 
             if not client_secret_path.exists():
                 return None
 
-            flow = Flow.from_client_secrets_file(
-                str(client_secret_path), scopes=YOUTUBE_SCOPES
-            )
+            flow = Flow.from_client_secrets_file(str(client_secret_path), scopes=YOUTUBE_SCOPES)
             # Ensure redirect_uri is always provided to maintain consistency
             if not redirect_uri:
                 raise Exception("redirect_uri is required for OAuth flow")
@@ -145,9 +136,7 @@ class YouTubeService:
 
     def _get_channel_by_id(self, channel_id: str) -> Optional[Dict[str, Any]]:
         """Get channel details using channel ID"""
-        request = self.youtube.channels().list(
-            part="snippet,statistics,contentDetails", id=channel_id
-        )
+        request = self.youtube.channels().list(part="snippet,statistics,contentDetails", id=channel_id)
         response = request.execute()
 
         if not response["items"]:
@@ -157,9 +146,7 @@ class YouTubeService:
 
     def _get_channel_by_handle(self, handle: str) -> Optional[Dict[str, Any]]:
         """Get channel details using username (without @ symbol)"""
-        request = self.youtube.channels().list(
-            part="snippet,statistics,contentDetails", forUsername=handle
-        )
+        request = self.youtube.channels().list(part="snippet,statistics,contentDetails", forUsername=handle)
         response = request.execute()
 
         if response["pageInfo"]["totalResults"] == 0:
@@ -169,9 +156,7 @@ class YouTubeService:
 
     def _search_channel_by_handle(self, handle: str) -> Optional[str]:
         """Search for channel ID using handle via search API"""
-        request = self.youtube.search().list(
-            part="snippet", q=handle, type="channel", maxResults=1
-        )
+        request = self.youtube.search().list(part="snippet", q=handle, type="channel", maxResults=1)
         response = request.execute()
 
         if not response["items"]:
@@ -187,9 +172,7 @@ class YouTubeService:
             "title": channel_info["snippet"]["title"],
             "description": channel_info["snippet"]["description"],
             "url": f"https://www.youtube.com/channel/{channel_id}",
-            "uploads_playlist_id": channel_info["contentDetails"]["relatedPlaylists"][
-                "uploads"
-            ],
+            "uploads_playlist_id": channel_info["contentDetails"]["relatedPlaylists"]["uploads"],
         }
 
     def get_channel_details(self, channel_identifier: str) -> Optional[Dict[str, Any]]:
@@ -234,10 +217,7 @@ class YouTubeService:
                 )
                 playlist_response = playlist_request.execute()
 
-                video_ids = [
-                    item["contentDetails"]["videoId"]
-                    for item in playlist_response["items"]
-                ]
+                video_ids = [item["contentDetails"]["videoId"] for item in playlist_response["items"]]
 
                 # Get detailed video information
                 if video_ids:
@@ -251,25 +231,17 @@ class YouTubeService:
                             "video_id": video["id"],
                             "title": video["snippet"].get("title"),
                             "description": video["snippet"].get("description"),
-                            "published_at": timezone_aware_datetime(
-                                video["snippet"]["publishedAt"]
-                            ),
+                            "published_at": timezone_aware_datetime(video["snippet"]["publishedAt"]),
                             "view_count": int(video["statistics"].get("viewCount", 0)),
                             "like_count": int(video["statistics"].get("likeCount", 0)),
-                            "comment_count": int(
-                                video["statistics"].get("commentCount", 0)
-                            ),
+                            "comment_count": int(video["statistics"].get("commentCount", 0)),
                             "duration": video["contentDetails"]["duration"],
-                            "thumbnail_url": video["snippet"]["thumbnails"]["high"][
-                                "url"
-                            ],
+                            "thumbnail_url": video["snippet"]["thumbnails"]["high"]["url"],
                             "video_url": f'https://www.youtube.com/watch?v={video["id"]}',
                             "category_id": video["snippet"].get("categoryId"),
                             "default_language": video["snippet"].get("defaultLanguage"),
                             "tags": (
-                                ",".join(video["snippet"].get("tags", []))
-                                if video["snippet"].get("tags")
-                                else None
+                                ",".join(video["snippet"].get("tags", [])) if video["snippet"].get("tags") else None
                             ),
                         }
                         videos.append(video_data)

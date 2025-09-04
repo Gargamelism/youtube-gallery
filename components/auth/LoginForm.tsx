@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { useTranslation } from "react-i18next";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { LoginRequest } from "@/types";
-import { login } from "@/services/api";
-import { useAuthStore } from "@/stores/authStore";
-import { useRecaptchaV3 } from "@/hooks/useRecaptchaV3";
-import { AuthViews } from "../navigation/types";
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { LoginRequest } from '@/types';
+import { login } from '@/services/api';
+import { useAuthStore } from '@/stores/authStore';
+import { useRecaptchaV3 } from '@/hooks/useRecaptchaV3';
+import { AuthViews } from '../navigation/types';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -54,7 +54,7 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
       }
     } catch (err) {
       setError(t('common:error'));
-      console.error("Login error:", err);
+      console.error('Login error:', err);
     } finally {
       setIsLoading(false);
     }
@@ -73,7 +73,7 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
               {t('emailAddress')}
             </label>
             <input
-              {...register("email", {
+              {...register('email', {
                 required: t('validation.emailRequired'),
                 pattern: {
                   value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
@@ -93,10 +93,10 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
             </label>
             <div className="relative">
               <input
-                {...register("password", {
+                {...register('password', {
                   required: t('validation.passwordRequired'),
                 })}
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? 'text' : 'password'}
                 className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder={t('enterPassword')}
               />
@@ -133,7 +133,7 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            {t('dontHaveAccount')}{" "}
+            {t('dontHaveAccount')}{' '}
             <button
               type="button"
               onClick={onSwitchToRegister}

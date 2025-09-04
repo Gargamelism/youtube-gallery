@@ -1,18 +1,17 @@
-from rest_framework import viewsets, status, permissions
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import SearchFilter, OrderingFilter
-from django.utils import timezone
 from django.db.models import Count, Q
-from .models import Channel, Video
-from .serializers import ChannelSerializer, VideoSerializer, VideoListSerializer
+from django.utils import timezone
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import permissions, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
+from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.response import Response
 from users.models import UserChannel, UserVideo
 
-
-from rest_framework.exceptions import ValidationError
-from .services.youtube import YouTubeService, YouTubeAuthenticationError
 from .decorators import youtube_auth_required
+from .models import Channel, Video
+from .serializers import ChannelSerializer, VideoListSerializer, VideoSerializer
+from .services.youtube import YouTubeAuthenticationError, YouTubeService
 
 
 class ChannelViewSet(viewsets.ModelViewSet):
@@ -45,9 +44,7 @@ class ChannelViewSet(viewsets.ModelViewSet):
 
         except Exception as e:
             print(f"Error importing channel: {e}")
-            return Response(
-                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=True, methods=["get"])
     def videos(self, request, pk=None):
@@ -77,12 +74,8 @@ class VideoViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         # Only show videos from channels the user has subscribed to
-        subscribed_channels = UserChannel.objects.filter(
-            user=user, is_active=True
-        ).values_list("channel", flat=True)
-        return Video.objects.filter(channel__in=subscribed_channels).select_related(
-            "channel"
-        )
+        subscribed_channels = UserChannel.objects.filter(user=user, is_active=True).values_list("channel", flat=True)
+        return Video.objects.filter(channel__in=subscribed_channels).select_related("channel")
 
     def get_serializer_class(self):
         if self.action in ["list", "watched", "unwatched"]:
@@ -125,13 +118,9 @@ class VideoViewSet(viewsets.ModelViewSet):
         user = request.user
 
         # Get videos from subscribed channels that are not watched
-        subscribed_channels = UserChannel.objects.filter(
-            user=user, is_active=True
-        ).values_list("channel", flat=True)
+        subscribed_channels = UserChannel.objects.filter(user=user, is_active=True).values_list("channel", flat=True)
 
-        watched_video_ids = UserVideo.objects.filter(
-            user=user, is_watched=True
-        ).values_list("video", flat=True)
+        watched_video_ids = UserVideo.objects.filter(user=user, is_watched=True).values_list("video", flat=True)
 
         videos = (
             Video.objects.filter(channel__in=subscribed_channels)
@@ -150,13 +139,9 @@ class VideoViewSet(viewsets.ModelViewSet):
     def watched(self, request):
         user = request.user
 
-        watched_video_ids = UserVideo.objects.filter(
-            user=user, is_watched=True
-        ).values_list("video", flat=True)
+        watched_video_ids = UserVideo.objects.filter(user=user, is_watched=True).values_list("video", flat=True)
 
-        videos = Video.objects.filter(uuid__in=watched_video_ids).select_related(
-            "channel"
-        )
+        videos = Video.objects.filter(uuid__in=watched_video_ids).select_related("channel")
 
         page = self.paginate_queryset(videos)
         if page is not None:
@@ -175,9 +160,7 @@ class VideoViewSet(viewsets.ModelViewSet):
         ).aggregate(
             total_videos=Count("uuid"),
             # Q object allows conditional filtering within Count aggregation
-            watched_videos=Count(
-                "uuid", filter=Q(user_videos__user=user, user_videos__is_watched=True)
-            ),
+            watched_videos=Count("uuid", filter=Q(user_videos__user=user, user_videos__is_watched=True)),
         )
 
         total = stats["total_videos"]
