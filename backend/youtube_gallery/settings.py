@@ -12,6 +12,7 @@ SECRET_KEY = config("SECRET_KEY", default="django-insecure-change-this-in-produc
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config("DEBUG", default=True, cast=bool)
+LOG_DB = config("LOG_DB", default=False, cast=bool)
 
 ALLOWED_HOSTS = config(
     "ALLOWED_HOSTS",
@@ -167,3 +168,21 @@ REST_FRAMEWORK = {
 CAPTCHA_PRIVATE_KEY = config("RECAPTCHA_PRIVATE_KEY")
 
 FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:3000")
+
+# SQL Query logging for development
+if DEBUG and LOG_DB:
+    LOGGING = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+            },
+        },
+        "loggers": {
+            "django.db.backends": {
+                "handlers": ["console"],
+                "level": "DEBUG",
+            },
+        },
+    }

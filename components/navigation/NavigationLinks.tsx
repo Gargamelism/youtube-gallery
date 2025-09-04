@@ -35,6 +35,7 @@ export default function NavigationLinks({ isAuthenticated }: NavigationLinksProp
               onClick={() => router.push(link.path)}
               className="Navigation__link inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 aria-selected:text-gray-900 border-b-2 border-transparent hover:text-gray-700 hover:border-gray-300"
               aria-selected={isActive}
+              key={link.name}
             >
               <Icon className="Navigation__nav-icon h-4 w-4 mr-2" />
               {link.name}

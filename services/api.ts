@@ -69,6 +69,7 @@ export async function fetchVideoStats(): Promise<ApiResponse<VideoStats>> {
     const response = await fetch(`${API_BASE_URL}/videos/stats`, {
         headers: getAuthHeaders()
     });
+
     return ResponseHandler.handle<VideoStats>(response);
 }
 

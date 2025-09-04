@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django.utils import timezone
+from django.db.models import Count, Q
 from .models import Channel, Video
 from .serializers import ChannelSerializer, VideoSerializer, VideoListSerializer
 from users.models import UserChannel, UserVideo
@@ -33,9 +34,7 @@ class ChannelViewSet(viewsets.ModelViewSet):
             raise ValidationError({"channel_id": "This field is required."})
 
         try:
-            youtube_service = YouTubeService(
-                credentials=request.youtube_credentials
-            )
+            youtube_service = YouTubeService(credentials=request.youtube_credentials)
             channel = youtube_service.import_or_create_channel(channel_id)
             serializer = self.get_serializer(channel, context={"request": request})
             return Response(serializer.data)
@@ -66,32 +65,8 @@ class ChannelViewSet(viewsets.ModelViewSet):
         serializer = serializer_class(videos, many=True)
         return Response(serializer.data)
 
-    @action(detail=True, methods=["get"])
-    def stats(self, request, pk=None):
-        channel = self.get_object()
-        user = request.user
-        total_videos = channel.videos.count()
-
-        watched_videos = UserVideo.objects.filter(
-            user=user, video__channel=channel, is_watched=True
-        ).count()
-
-        unwatched_videos = total_videos - watched_videos
-
-        return Response(
-            {
-                "total_videos": total_videos,
-                "watched_videos": watched_videos,
-                "unwatched_videos": unwatched_videos,
-                "title": channel.title,
-                "channel_id": channel.channel_id,
-                "description": channel.description,
-            }
-        )
-
 
 class VideoViewSet(viewsets.ModelViewSet):
-    serializer_class = VideoSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ["channel"]
@@ -110,7 +85,7 @@ class VideoViewSet(viewsets.ModelViewSet):
         )
 
     def get_serializer_class(self):
-        if self.action == "list":
+        if self.action in ["list", "watched", "unwatched"]:
             return VideoListSerializer
         return VideoSerializer
 
@@ -189,3 +164,30 @@ class VideoViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(videos, many=True)
         return Response(serializer.data)
+
+    @action(detail=False, methods=["get"])
+    def stats(self, request):
+        user = request.user
+
+        stats = Video.objects.filter(
+            channel__user_subscriptions__user=user,
+            channel__user_subscriptions__is_active=True,
+        ).aggregate(
+            total_videos=Count("uuid"),
+            # Q object allows conditional filtering within Count aggregation
+            watched_videos=Count(
+                "uuid", filter=Q(user_videos__user=user, user_videos__is_watched=True)
+            ),
+        )
+
+        total = stats["total_videos"]
+        watched = stats["watched_videos"]
+        unwatched = total - watched
+
+        return Response(
+            {
+                "total": total,
+                "watched": watched,
+                "unwatched": unwatched,
+            }
+        )

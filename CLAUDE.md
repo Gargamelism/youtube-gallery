@@ -116,6 +116,7 @@ The Docker setup automatically handles migrations and static file collection on 
 - Implement accessibility features (tabindex, aria-labels, keyboard handlers)
 - Follow DRY principles and early returns for readability
 - **CRITICAL: Use responsive design with Tailwind classes instead of separate components** - When creating components that need different layouts for desktop/mobile, use a single component with Tailwind responsive classes (`hidden md:flex`, `md:hidden`) rather than creating separate desktop and mobile components. Only separate components when the content or functionality is truly different, not just the styling.
+- **CRITICAL: Use i18n for all user-facing strings** - Never hardcode strings in components. All user-facing text must be stored in JSON files in `/locales/en/` directory and accessed through the i18n system. Organize strings by feature/namespace (auth.json, videos.json, channels.json, navigation.json, common.json).
 
 ### Backend (.cursor/rules/backend-rules.mdc)
 - Follow Django MVT pattern strictly
