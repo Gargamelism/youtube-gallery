@@ -124,7 +124,7 @@ def profile_view(request):
     return Response(UserSerializer(request.user).data)
 
 
-class UserChannelListCreateView(generics.ListCreateAPIView):
+class UserChannelViewSet(viewsets.ModelViewSet):
     serializer_class = UserChannelSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -135,15 +135,7 @@ class UserChannelListCreateView(generics.ListCreateAPIView):
         serializer.save(user=self.request.user)
 
 
-class UserChannelDetailView(generics.RetrieveUpdateDestroyAPIView):
-    serializer_class = UserChannelSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        return UserChannel.objects.filter(user=self.request.user)
-
-
-class UserVideoListCreateView(generics.ListCreateAPIView):
+class UserVideoViewSet(viewsets.ModelViewSet):
     serializer_class = UserVideoSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -152,14 +144,6 @@ class UserVideoListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
-
-
-class UserVideoDetailView(generics.RetrieveUpdateDestroyAPIView):
-    serializer_class = UserVideoSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        return UserVideo.objects.filter(user=self.request.user)
 
     def perform_update(self, serializer):
         if serializer.validated_data.get("is_watched") and not serializer.instance.watched_at:
