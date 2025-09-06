@@ -5,15 +5,16 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.utils import timezone
-from rest_framework import generics, permissions, status
+from rest_framework import generics, permissions, status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from videos.decorators import store_google_credentials
 from videos.services.youtube import YouTubeAuthenticationError, YouTubeService
 
-from .models import User, UserChannel, UserVideo
+from .models import User, UserChannel, UserVideo, ChannelTag
 from .serializers import (
+    ChannelTagSerializer,
     UserChannelSerializer,
     UserLoginSerializer,
     UserRegistrationSerializer,
@@ -213,3 +214,14 @@ def youtube_auth_callback(request):
 
     redirect_url = request.session.pop("auth_return_url", settings.FRONTEND_URL)
     return redirect(redirect_url)
+
+
+class ChannelTagViewSet(viewsets.ModelViewSet):
+    serializer_class = ChannelTagSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return ChannelTag.objects.filter(user=self.request.user).prefetch_related("channel_assignments")
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)

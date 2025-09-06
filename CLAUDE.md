@@ -223,6 +223,7 @@ The Docker setup automatically handles migrations and static file collection on 
 - Use class-based views for complex logic, function-based for simple operations
 - Apply Django security best practices (CSRF, SQL injection prevention)
 - **CRITICAL: Always type dictionaries with TypedDict** - When passing dictionaries between functions, always define them with TypedDict for type safety. For complex data structures, create dedicated classes instead of plain dictionaries.
+- **CRITICAL: Use KebabCaseRouter for all DRF ViewSets** - Always use `videos.utils.router.KebabCaseRouter` instead of Django's DefaultRouter to maintain consistent kebab-case URL patterns. Import with `trailing_slash=False` parameter to match project conventions.
 
 ### HTTP Status Code Guidelines
 

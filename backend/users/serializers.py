@@ -2,7 +2,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
-from .models import User, UserChannel, UserVideo
+from .models import User, UserChannel, UserVideo, ChannelTag
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -51,13 +51,26 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ("id", "created_at")
 
 
+class ChannelTagSerializer(serializers.ModelSerializer):
+    channel_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ChannelTag
+        fields = ("id", "name", "color", "description", "channel_count", "created_at")
+        read_only_fields = ("id", "created_at")
+
+    def get_channel_count(self, obj):
+        return obj.channel_assignments.count()
+
+
 class UserChannelSerializer(serializers.ModelSerializer):
     channel_title = serializers.CharField(source="channel.title", read_only=True)
     channel_id = serializers.CharField(source="channel.channel_id", read_only=True)
+    tags = ChannelTagSerializer(source="channel_tags.tag", many=True, read_only=True)
 
     class Meta:
         model = UserChannel
-        fields = ("id", "channel", "channel_title", "channel_id", "is_active", "subscribed_at", "created_at")
+        fields = ("id", "channel", "channel_title", "channel_id", "is_active", "tags", "subscribed_at", "created_at")
         read_only_fields = ("id", "created_at", "subscribed_at")
 
 

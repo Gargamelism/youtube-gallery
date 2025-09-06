@@ -21,4 +21,10 @@ urlpatterns = [
         views.UserVideoDetailView.as_view(),
         name="user-video-detail",
     ),
+    path("tags", views.ChannelTagViewSet.as_view({"get": "list", "post": "create"}), name="channel-tags"),
+    path(
+        "tags/<uuid:pk>",
+        views.ChannelTagViewSet.as_view({"get": "retrieve", "put": "update", "delete": "destroy"}),
+        name="channel-tag-detail",
+    ),
 ]
