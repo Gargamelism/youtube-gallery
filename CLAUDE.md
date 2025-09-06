@@ -34,6 +34,63 @@ When editing Python files, always follow these rules:
 
 **CRITICAL**: Always match the existing formatting style of each file type. Never mix formatting styles within the same project.
 
+## Implementation Tracking
+
+When implementing features in stages, use the following status indicators to track progress:
+
+- **Current** (yellow background): Feature or component currently being implemented
+- **Implemented** (green background): Feature or component that has been completed
+
+This allows step-by-step implementation tracking and clear visibility of what has been completed vs what is in progress.
+
+## Feature Design Guidelines
+
+All feature designs should follow a consistent structure and be documented in the `/feature_designs/` directory. Use the channel tagging and filtering design as a reference template.
+
+### Required Design Document Structure
+
+1. **Overview** - Brief summary of the feature and its purpose
+2. **Problem Statement** - Clear description of user pain points being addressed
+3. **Solution Overview** - High-level approach and key capabilities
+4. **Current System Analysis** - Understanding of existing architecture and implementation
+5. **Technical Design** - Detailed implementation approach including:
+   - Database schema changes (if applicable)
+   - Backend API design with endpoints and serializers
+   - Frontend architecture with TypeScript types and components
+   - URL state management (if applicable)
+   - Internationalization considerations
+6. **Implementation Phases** - Broken down into logical, testable stages
+7. **Performance Considerations** - Database, frontend, and API efficiency concerns
+8. **Testing Strategy** - Backend, frontend, and integration testing approaches
+9. **Success Metrics** - Measurable outcomes for feature adoption and performance
+10. **Risks and Mitigation** - Technical, UX, and business risks with mitigation strategies
+11. **Future Enhancements** - Short, medium, and long-term evolution possibilities
+12. **Conclusion** - Summary of value and implementation approach
+
+### Mermaid Flow Diagrams
+
+Include Mermaid diagrams when workflows are non-trivial and would benefit from visual representation:
+
+- **User Authentication Flows** - Multi-step login/registration processes
+- **Data Processing Pipelines** - Complex backend data transformations
+- **State Management Flows** - Multi-component frontend state changes
+- **API Integration Workflows** - External service interactions with multiple steps
+- **Error Handling Cascades** - Complex error recovery scenarios
+
+**Skip diagrams for:**
+- Simple CRUD operations
+- Basic component rendering
+- Straightforward API calls
+- Linear, single-step processes
+
+### Design Consistency
+
+- Use existing project patterns and conventions
+- Update existing interfaces rather than creating "Enhanced" versions
+- Follow established naming conventions (e.g., `watch_status` not `filter`)
+- Use TypeScript enums and types for better type safety
+- Include comprehensive i18n planning for user-facing features
+
 ## Architecture Overview
 
 This is a full-stack YouTube gallery application with a **Next.js frontend** and **Django REST API backend**, orchestrated with Docker Compose. The application allows users to view and manage video collections with watch status tracking.
