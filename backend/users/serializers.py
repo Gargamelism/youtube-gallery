@@ -1,5 +1,7 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
+from django.db.utils import IntegrityError
+from django.db import transaction
 from rest_framework import serializers
 
 from .models import User, UserChannel, UserVideo, ChannelTag
@@ -61,6 +63,13 @@ class ChannelTagSerializer(serializers.ModelSerializer):
 
     def get_channel_count(self, obj):
         return obj.channel_assignments.count()
+
+    def create(self, validated_data):
+        try:
+            with transaction.atomic():
+                return super().create(validated_data)
+        except IntegrityError:
+            raise serializers.ValidationError({"name": ["Tag with this name already exists."]})
 
 
 class UserChannelSerializer(serializers.ModelSerializer):

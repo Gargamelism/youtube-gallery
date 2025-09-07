@@ -56,13 +56,16 @@ class UserVideo(TimestampMixin):
 
 class ChannelTag(TimestampMixin):
     """User-defined tags for organizing channels"""
-    
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="channel_tags")
     name = models.CharField(max_length=50)
     color = models.CharField(max_length=7, default="#3B82F6")  # Hex color code
     description = models.TextField(blank=True, null=True)
-    
+
+    def __str__(self):
+        return self.name
+
     class Meta:
         db_table = "channel_tags"
         unique_together = ("user", "name")
@@ -71,11 +74,14 @@ class ChannelTag(TimestampMixin):
 
 class UserChannelTag(TimestampMixin):
     """Many-to-many relationship between user channels and tags"""
-    
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user_channel = models.ForeignKey("UserChannel", on_delete=models.CASCADE, related_name="channel_tags")
     tag = models.ForeignKey("ChannelTag", on_delete=models.CASCADE, related_name="channel_assignments")
-    
+
+    def __str__(self):
+        return f"{self.user_channel} -> {self.tag}"
+
     class Meta:
         db_table = "user_channel_tags"
         unique_together = ("user_channel", "tag")

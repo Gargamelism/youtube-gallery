@@ -6,12 +6,14 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
-from users.models import UserChannel, UserVideo
+from users.models import UserChannel, UserVideo, ChannelTag
 
 from .decorators import youtube_auth_required
 from .models import Channel, Video
 from .serializers import ChannelSerializer, VideoListSerializer, VideoSerializer
 from .services.youtube import YouTubeAuthenticationError, YouTubeService
+from .services.search import VideoSearchService
+from .validators import VideoSearchParams, WatchStatus, TagMode
 
 
 class ChannelViewSet(viewsets.ModelViewSet):
@@ -72,10 +74,14 @@ class VideoViewSet(viewsets.ModelViewSet):
     ordering = ["-published_at"]
 
     def get_queryset(self):
-        user = self.request.user
-        # Only show videos from channels the user has subscribed to
-        subscribed_channels = UserChannel.objects.filter(user=user, is_active=True).values_list("channel", flat=True)
-        return Video.objects.filter(channel__in=subscribed_channels).select_related("channel")
+        # Validate query parameters using Pydantic
+        search_params = VideoSearchParams.from_request(self.request)
+
+        # Use search service for filtering
+        search_service = VideoSearchService(self.request.user)
+        return search_service.search_videos(
+            tag_names=search_params.tags, tag_mode=search_params.tag_mode, watch_status=search_params.watch_status
+        )
 
     def get_serializer_class(self):
         if self.action in ["list", "watched", "unwatched"]:
@@ -115,17 +121,13 @@ class VideoViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def unwatched(self, request):
-        user = request.user
+        # Validate query parameters and add unwatched filter
+        search_params = VideoSearchParams.from_request(self.request)
 
-        # Get videos from subscribed channels that are not watched
-        subscribed_channels = UserChannel.objects.filter(user=user, is_active=True).values_list("channel", flat=True)
-
-        watched_video_ids = UserVideo.objects.filter(user=user, is_watched=True).values_list("video", flat=True)
-
-        videos = (
-            Video.objects.filter(channel__in=subscribed_channels)
-            .exclude(uuid__in=watched_video_ids)
-            .select_related("channel")
+        # Use search service with forced unwatched status
+        search_service = VideoSearchService(self.request.user)
+        videos = search_service.search_videos(
+            tag_names=search_params.tags, tag_mode=search_params.tag_mode, watch_status=WatchStatus.UNWATCHED
         )
 
         page = self.paginate_queryset(videos)
@@ -137,11 +139,14 @@ class VideoViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def watched(self, request):
-        user = request.user
+        # Validate query parameters and add watched filter
+        search_params = VideoSearchParams.from_request(self.request)
 
-        watched_video_ids = UserVideo.objects.filter(user=user, is_watched=True).values_list("video", flat=True)
-
-        videos = Video.objects.filter(uuid__in=watched_video_ids).select_related("channel")
+        # Use search service with forced watched status
+        search_service = VideoSearchService(self.request.user)
+        videos = search_service.search_videos(
+            tag_names=search_params.tags, tag_mode=search_params.tag_mode, watch_status=WatchStatus.WATCHED
+        )
 
         page = self.paginate_queryset(videos)
         if page is not None:
@@ -152,25 +157,8 @@ class VideoViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def stats(self, request):
-        user = request.user
+        # Use search service for stats calculation
+        search_service = VideoSearchService(self.request.user)
+        stats = search_service.get_video_stats()
 
-        stats = Video.objects.filter(
-            channel__user_subscriptions__user=user,
-            channel__user_subscriptions__is_active=True,
-        ).aggregate(
-            total_videos=Count("uuid"),
-            # Q object allows conditional filtering within Count aggregation
-            watched_videos=Count("uuid", filter=Q(user_videos__user=user, user_videos__is_watched=True)),
-        )
-
-        total = stats["total_videos"]
-        watched = stats["watched_videos"]
-        unwatched = total - watched
-
-        return Response(
-            {
-                "total": total,
-                "watched": watched,
-                "unwatched": unwatched,
-            }
-        )
+        return Response(stats)

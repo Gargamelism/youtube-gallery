@@ -49,23 +49,26 @@ All feature designs should follow a consistent structure and be documented in th
 
 ### Required Design Document Structure
 
-1. **Overview** - Brief summary of the feature and its purpose
-2. **Problem Statement** - Clear description of user pain points being addressed
-3. **Solution Overview** - High-level approach and key capabilities
-4. **Current System Analysis** - Understanding of existing architecture and implementation
-5. **Technical Design** - Detailed implementation approach including:
+Each feature design document must include:
+
+1. **Table of Contents** - Linkable navigation to all sections
+2. **Overview** - Brief summary of the feature and its purpose
+3. **Problem Statement** - Clear description of user pain points being addressed
+4. **Solution Overview** - High-level approach and key capabilities
+5. **Current System Analysis** - Understanding of existing architecture and implementation
+6. **Technical Design** - Detailed implementation approach including:
    - Database schema changes (if applicable)
    - Backend API design with endpoints and serializers
    - Frontend architecture with TypeScript types and components
    - URL state management (if applicable)
    - Internationalization considerations
-6. **Implementation Phases** - Broken down into logical, testable stages
-7. **Performance Considerations** - Database, frontend, and API efficiency concerns
-8. **Testing Strategy** - Backend, frontend, and integration testing approaches
-9. **Success Metrics** - Measurable outcomes for feature adoption and performance
-10. **Risks and Mitigation** - Technical, UX, and business risks with mitigation strategies
-11. **Future Enhancements** - Short, medium, and long-term evolution possibilities
-12. **Conclusion** - Summary of value and implementation approach
+7. **Implementation Phases** - Broken down into logical, testable stages
+8. **Performance Considerations** - Database, frontend, and API efficiency concerns
+9. **Testing Strategy** - Backend, frontend, and integration testing approaches
+10. **Success Metrics** - Measurable outcomes for feature adoption and performance
+11. **Risks and Mitigation** - Technical, UX, and business risks with mitigation strategies
+12. **Future Enhancements** - Short, medium, and long-term evolution possibilities
+13. **Conclusion** - Summary of value and implementation approach
 
 ### Mermaid Flow Diagrams
 
@@ -225,6 +228,7 @@ The Docker setup automatically handles migrations and static file collection on 
 - **CRITICAL: Always type dictionaries with TypedDict** - When passing dictionaries between functions, always define them with TypedDict for type safety. For complex data structures, create dedicated classes instead of plain dictionaries.
 - **CRITICAL: Use KebabCaseRouter for all DRF ViewSets** - Always use `videos.utils.router.KebabCaseRouter` instead of Django's DefaultRouter to maintain consistent kebab-case URL patterns. Import with `trailing_slash=False` parameter to match project conventions.
 - **URL Pattern Strategy**: Use hybrid approach - individual paths for function-based views with custom logic, KebabCaseRouter for standard CRUD ViewSets. This maintains clarity while leveraging DRF best practices.
+- **CRITICAL: Use Pydantic for view input validation** - All view input validation should use Pydantic models for type safety, consistent error handling, and separation of concerns. Views should focus on HTTP concerns while Pydantic handles data validation. Create dedicated validator classes in `videos/validators.py` with proper user context validation and descriptive variable names (avoid single letter variables like `v`).
 
 ### HTTP Status Code Guidelines
 

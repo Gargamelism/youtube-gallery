@@ -7,12 +7,12 @@ from django.shortcuts import redirect
 from django.utils import timezone
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.authtoken.models import Token
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from videos.decorators import store_google_credentials
 from videos.services.youtube import YouTubeAuthenticationError, YouTubeService
 
-from .models import User, UserChannel, UserVideo, ChannelTag
+from .models import User, UserChannel, UserVideo, ChannelTag, UserChannelTag
 from .serializers import (
     ChannelTagSerializer,
     UserChannelSerializer,
@@ -21,6 +21,7 @@ from .serializers import (
     UserSerializer,
     UserVideoSerializer,
 )
+from videos.validators import TagAssignmentParams
 
 
 def _is_safe_url(url, request):
@@ -125,6 +126,7 @@ def profile_view(request):
 
 
 class UserChannelViewSet(viewsets.ModelViewSet):
+    http_method_names = ["get", "post", "put", "patch", "delete", "head", "options"]
     serializer_class = UserChannelSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -133,6 +135,33 @@ class UserChannelViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    @action(detail=True, methods=["get", "put"], url_path="tags")
+    def channel_tags(self, request, pk=None):
+        """Get or assign tags for a channel"""
+        user_channel = self.get_object()
+
+        if request.method == "GET":
+            # Get tags assigned to a channel
+            tags = ChannelTag.objects.filter(channel_assignments__user_channel=user_channel)
+            serializer = ChannelTagSerializer(tags, many=True)
+            return Response(serializer.data)
+
+        elif request.method == "PUT":
+            # Assign tags to a channel using Pydantic validation
+            params = TagAssignmentParams.from_request(request)
+
+            # Remove existing tag assignments
+            UserChannelTag.objects.filter(user_channel=user_channel).delete()
+
+            # Create new tag assignments
+            tags = ChannelTag.objects.filter(user=request.user, id__in=params.tag_ids)
+            tag_assignments = [UserChannelTag(user_channel=user_channel, tag=tag) for tag in tags]
+            UserChannelTag.objects.bulk_create(tag_assignments)
+
+            # Return updated channel data
+            serializer = self.get_serializer(user_channel)
+            return Response(serializer.data)
 
 
 class UserVideoViewSet(viewsets.ModelViewSet):

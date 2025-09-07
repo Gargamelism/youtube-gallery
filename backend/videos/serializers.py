@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from users.models import UserChannel, UserVideo
+from users.models import UserChannel, UserVideo, ChannelTag, UserChannelTag
 
 from .models import Channel, Video
 
@@ -56,6 +56,7 @@ class VideoListSerializer(serializers.ModelSerializer):
     is_watched = serializers.SerializerMethodField()
     watched_at = serializers.SerializerMethodField()
     notes = serializers.SerializerMethodField()
+    channel_tags = serializers.SerializerMethodField()
 
     class Meta:
         model = Video
@@ -75,6 +76,7 @@ class VideoListSerializer(serializers.ModelSerializer):
             "watched_at",
             "notes",
             "channel_title",
+            "channel_tags",
         ]
 
     def get_is_watched(self, obj):
@@ -91,3 +93,11 @@ class VideoListSerializer(serializers.ModelSerializer):
         user = self.context["request"].user
         user_video = UserVideo.objects.filter(user=user, video=obj).first()
         return user_video.notes if user_video else None
+
+    def get_channel_tags(self, obj):
+        user = self.context["request"].user
+        # Get tags assigned to this channel by the current user
+        tags = ChannelTag.objects.filter(
+            channel_assignments__user_channel__channel=obj.channel, channel_assignments__user_channel__user=user
+        ).values("id", "name", "color")
+        return list(tags)

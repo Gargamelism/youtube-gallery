@@ -208,6 +208,62 @@ python build.py
 
 The build will only succeed if all tests pass. This ensures code quality and prevents broken builds.
 
+### Running Tests
+
+#### Docker-based Testing
+
+Run all tests:
+```bash
+docker-compose --profile test up --build backend_test
+```
+
+#### Test Debugging
+
+To debug failing tests with step-by-step debugging:
+
+1. **Create VS Code debug configuration** in `.vscode/launch.json`:
+   ```json
+   {
+     "version": "0.2.0",
+     "configurations": [
+       {
+         "name": "Debug Docker Tests",
+         "type": "debugpy",
+         "request": "attach",
+         "connect": {
+           "host": "localhost",
+           "port": 5679
+         },
+         "pathMappings": [
+           {
+             "localRoot": "${workspaceFolder}/backend",
+             "remoteRoot": "/app"
+           }
+         ]
+       }
+     ]
+   }
+   ```
+
+2. **Debug specific pytest test:**
+   ```bash
+   docker-compose --profile test run --rm -p 5679:5679 backend_test python -m debugpy --listen 0.0.0.0:5679 --wait-for-client -m pytest users/test_tag_functionality.py::ChannelTagAPITests::test_create_channel_tag_duplicate_name -v -s
+   ```
+
+3. **Debug Django test:**
+   ```bash
+   docker-compose --profile test run --rm -p 5679:5679 backend_test python -m debugpy --listen 0.0.0.0:5679 --wait-for-client manage.py test users.test_tag_functionality.ChannelTagAPITests.test_create_channel_tag_duplicate_name --verbosity=2
+   ```
+
+4. **Attach debugger in VS Code:**
+   - Set breakpoints in your test or application code
+   - Run the debug command above
+   - In VS Code, go to Run and Debug (Ctrl+Shift+D)
+   - Select "Debug Docker Tests" and click the green play button
+   - The debugger will attach and stop at your breakpoints
+
+The `--wait-for-client` flag pauses execution until you attach the debugger, allowing you to set breakpoints and step through failing tests.
+
 ### Development Server
 
 Once built, run the development server:

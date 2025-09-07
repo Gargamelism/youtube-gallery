@@ -18,7 +18,8 @@ RUN apt-get update \
 
 # Install test dependencies first
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt pytest pytest-django
+COPY requirements-dev.txt .
+RUN pip install --no-cache-dir -r requirements-dev.txt pytest pytest-django
 
 # Copy the entire project for testing
 COPY . .

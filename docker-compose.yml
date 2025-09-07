@@ -27,11 +27,21 @@ services:
       - YOUTUBE_CREDENTIALS_DIR=/app/config/credentials
       - YOUTUBE_CLIENT_SECRET_FILE=client_secret.json
       - YOUTUBE_TOKEN_FILE=token.json
+      - DB_HOST=db
+      - DB_NAME=postgres
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_PORT=5432
     volumes:
       - ./backend:/app
-      - youtube_credentials:/app/config/credentials
-    # Exit after running tests
-    command: python -m pytest -v
+    ports:
+      - '5679:5679' # debugpy port for test debugging
+    depends_on:
+      - db
+    networks:
+      - youtube_gallery_network
+    # Exit after running tests (or debug mode)
+    command: sh -c "python -m pytest -v && python manage.py test --verbosity=2"
     # Don't restart
     restart: 'no'
 
