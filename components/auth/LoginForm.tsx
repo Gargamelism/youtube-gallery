@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { LoginRequest } from '@/types';
-import { login } from '@/services/api';
+import { login } from '@/services';
 import { useAuthStore } from '@/stores/authStore';
 import { useRecaptchaV3 } from '@/hooks/useRecaptchaV3';
 import { AuthViews } from '../navigation/types';

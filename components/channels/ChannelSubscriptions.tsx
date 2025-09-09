@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Plus, Search, Users, Trash2, Loader2, ExternalLink } from 'lucide-react';
-import { fetchUserChannels, fetchChannels } from '@/services/api';
+import { fetchUserChannels, fetchChannels } from '@/services';
 import { UserChannel, Channel } from '@/types';
 import AvailableChannelCard from './AvailableChannelCard';
 import ImportChannelModal from './ImportChannelModal';

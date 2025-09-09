@@ -50,6 +50,7 @@ export interface UserChannel {
   channel_title: string;
   channel_id: string;
   is_active: boolean;
+  tags: ChannelTag[];
   subscribed_at: string;
   created_at: string;
 }
@@ -78,6 +79,7 @@ export interface Video {
   is_watched: boolean;
   watched_at: string | null;
   notes: string | null;
+  channel_tags: ChannelTag[];
 }
 
 export interface UserVideo {
@@ -103,4 +105,37 @@ export interface VideoStats {
   total: number;
   watched: number;
   unwatched: number;
+}
+
+// Tag Types
+export enum TagMode {
+  ALL = 'all',
+  ANY = 'any'
+}
+
+export type TagModeType = TagMode.ALL | TagMode.ANY;
+
+export interface ChannelTag {
+  id: string;
+  name: string;
+  color: string;
+  description?: string;
+  channel_count?: number;
+  created_at?: string;
+}
+
+export interface TagFilterParams {
+  tags?: string[];
+  tag_mode?: TagModeType;
+  watch_status?: string;
+}
+
+export interface TagCreateRequest {
+  name: string;
+  color: string;
+  description?: string;
+}
+
+export interface TagAssignmentRequest {
+  tag_ids: string[];
 }

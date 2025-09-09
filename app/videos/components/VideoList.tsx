@@ -5,7 +5,7 @@ import SkeletonLoader from '@/components/ui/SkeletonLoader';
 import { VideoCard } from './VideoCard';
 import { Video } from '@/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { fetchVideos, updateVideoWatchStatus } from '@/services/api';
+import { fetchVideos, updateVideoWatchStatus } from '@/services';
 
 export function VideoList() {
   const queryClient = useQueryClient();

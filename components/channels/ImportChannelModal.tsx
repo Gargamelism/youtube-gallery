@@ -1,6 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { importChannelFromYoutube, getYouTubeAuthUrl } from '@/services/api';
+import { importChannelFromYoutube, getYouTubeAuthUrl } from '@/services';
 import { Loader2 } from 'lucide-react';
 import { useChannelSubscribe } from './mutations';
 import { handleKeyboardActivation } from '../utils/keyboardUtils';

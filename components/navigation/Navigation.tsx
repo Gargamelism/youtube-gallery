@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useAuthStore } from '@/stores/authStore';
-import { logout } from '@/services/api';
+import { logout } from '@/services';
 import AuthModal from '@components/auth/AuthModal';
 import NavigationLogo from './NavigationLogo';
 import NavigationLinks from './NavigationLinks';

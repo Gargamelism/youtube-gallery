@@ -1,4 +1,4 @@
-import { subscribeToChannel, unsubscribeFromChannel } from '@/services/api';
+import { subscribeToChannel, unsubscribeFromChannel } from '@/services';
 import { QueryClient, useMutation } from '@tanstack/react-query';
 
 export function useChannelSubscribe(queryClient: QueryClient) {

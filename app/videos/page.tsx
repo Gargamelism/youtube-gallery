@@ -3,7 +3,7 @@
 import { VideoList } from './components/VideoList';
 import { FilterButtons } from './components/FilterButtons';
 import { useQuery } from '@tanstack/react-query';
-import { fetchVideoStats } from '@/services/api';
+import { fetchVideoStats } from '@/services';
 import { Suspense } from 'react';
 
 export default function VideosPage() {

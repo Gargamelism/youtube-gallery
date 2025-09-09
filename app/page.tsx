@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { fetchVideos } from '@/services/api';
+import { fetchVideos } from '@/services';
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
