@@ -13,14 +13,20 @@ import { ChannelTag, TagCreateRequest, TagFilterParams } from '@/types';
 export function useChannelTags() {
   return useQuery({
     queryKey: ['channelTags'],
-    queryFn: fetchChannelTags,
+    queryFn: async () => {
+      const response = await fetchChannelTags();
+      return response.data;
+    },
   });
 }
 
 export function useChannelTagsById(channelId: string) {
   return useQuery({
     queryKey: ['channelTags', channelId],
-    queryFn: () => fetchChannelTagsById(channelId),
+    queryFn: async () => {
+      const response = await fetchChannelTagsById(channelId);
+      return response.data;
+    },
     enabled: Boolean(channelId),
   });
 }
@@ -28,14 +34,20 @@ export function useChannelTagsById(channelId: string) {
 export function useVideosWithTags(params: TagFilterParams) {
   return useQuery({
     queryKey: ['videos', 'tagged', params],
-    queryFn: () => fetchVideosWithTags(params),
+    queryFn: async () => {
+      const response = await fetchVideosWithTags(params);
+      return response.data;
+    },
     enabled: Boolean(params.tags?.length || params.watch_status),
   });
 }
 
 export function useCreateChannelTag(queryClient: QueryClient) {
   return useMutation({
-    mutationFn: createChannelTag,
+    mutationFn: async (tagData: TagCreateRequest) => {
+      const response = await createChannelTag(tagData);
+      return response.data;
+    },
     onSuccess: (newTag: ChannelTag) => {
       queryClient.invalidateQueries({ queryKey: ['channelTags'] });
       queryClient.setQueryData(['channelTags'], (oldData: ChannelTag[] | undefined) => {
@@ -48,8 +60,10 @@ export function useCreateChannelTag(queryClient: QueryClient) {
 
 export function useUpdateChannelTag(queryClient: QueryClient) {
   return useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: Partial<TagCreateRequest> }) =>
-      updateChannelTag(id, updates),
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<TagCreateRequest> }) => {
+      const response = await updateChannelTag(id, updates);
+      return response.data;
+    },
     onSuccess: (updatedTag: ChannelTag) => {
       queryClient.invalidateQueries({ queryKey: ['channelTags'] });
       queryClient.setQueryData(['channelTags'], (oldData: ChannelTag[] | undefined) => {
@@ -62,7 +76,10 @@ export function useUpdateChannelTag(queryClient: QueryClient) {
 
 export function useDeleteChannelTag(queryClient: QueryClient) {
   return useMutation({
-    mutationFn: deleteChannelTag,
+    mutationFn: async (tagId: string) => {
+      const response = await deleteChannelTag(tagId);
+      return response.data;
+    },
     onMutate: async (tagId: string) => {
       await queryClient.cancelQueries({ queryKey: ['channelTags'] });
 
@@ -90,8 +107,10 @@ export function useDeleteChannelTag(queryClient: QueryClient) {
 
 export function useAssignChannelTags(queryClient: QueryClient) {
   return useMutation({
-    mutationFn: ({ channelId, tagIds }: { channelId: string; tagIds: string[] }) =>
-      assignChannelTags(channelId, tagIds),
+    mutationFn: async ({ channelId, tagIds }: { channelId: string; tagIds: string[] }) => {
+      const response = await assignChannelTags(channelId, tagIds);
+      return response.data;
+    },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['channelTags', variables.channelId] });
       queryClient.invalidateQueries({ queryKey: ['userChannels'] });

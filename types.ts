@@ -115,25 +115,33 @@ export enum TagMode {
 
 export type TagModeType = TagMode.ALL | TagMode.ANY;
 
-export interface ChannelTag {
+// Single source of truth - with description always optional
+interface ChannelTagBase {
   id: string;
   name: string;
   color: string;
   description?: string;
-  channel_count?: number;
-  created_at?: string;
+  channel_count: number;
+  created_at: string;
 }
+
+// API response type - has all fields, description optional
+export type ChannelTag = ChannelTagBase;
+
+// For creating new tags - no server-generated fields
+export type TagCreateRequest = Omit<ChannelTagBase, 'id' | 'channel_count' | 'created_at'>;
+
+// For preview/display - only name & color required, everything else optional
+export type ChannelTagPreview = Pick<ChannelTagBase, 'name' | 'color'> & 
+  Partial<Omit<ChannelTagBase, 'name' | 'color'>>;
+
+// For partial updates
+export type TagUpdateRequest = Partial<TagCreateRequest>;
 
 export interface TagFilterParams {
   tags?: string[];
   tag_mode?: TagModeType;
   watch_status?: string;
-}
-
-export interface TagCreateRequest {
-  name: string;
-  color: string;
-  description?: string;
 }
 
 export interface TagAssignmentRequest {

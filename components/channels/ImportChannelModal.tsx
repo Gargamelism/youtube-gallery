@@ -12,9 +12,9 @@ export interface ImportChannelModalProps {
 }
 
 export default function ImportChannelModal({ isOpen, onClose }: ImportChannelModalProps) {
-  const { t } = useTranslation('channels');
   if (!isOpen) return null;
 
+  const { t } = useTranslation('channels');
   const [isImporting, setIsImporting] = useState(false);
   const [importError, setImportError] = useState<string | null | undefined>(null);
   const [newChannelId, setNewChannelId] = useState('');
