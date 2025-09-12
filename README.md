@@ -2,6 +2,21 @@
 
 A Next.js and Django application for managing and viewing YouTube videos with user-based channel subscriptions and watch tracking.
 
+## Features
+
+### Channel Tagging and Filtering ✅
+- **Custom Tag Creation**: Users can create custom tags with colors for organizing channels
+- **Tag Assignment**: Assign multiple tags to subscribed channels for better organization  
+- **Advanced Filtering**: Filter videos by tags using AND/ALL or OR/ANY logic combined with watch status
+- **Tag Management**: Full CRUD operations for tags with real-time UI updates
+- **Performance Optimized**: Strategic database indexes and React Query caching for fast filtering
+
+### User Management
+- **Authentication**: Token-based authentication with registration and login
+- **Personal Collections**: Each user has their own channel subscriptions and watch tracking
+- **Watch Status**: Mark videos as watched/unwatched with timestamps and personal notes
+- **Privacy**: Users only see videos from channels they've subscribed to
+
 ## API Conventions
 
 All API endpoints follow the kebab-case convention:
@@ -95,6 +110,46 @@ DELETE /api/auth/videos/{uuid}/
 
 Retrieve, update, or delete user video interactions (requires authentication)
 
+### Channel Tag Management
+
+```http
+GET /api/auth/tags/
+POST /api/auth/tags/
+```
+
+List and create channel tags (requires authentication)
+
+- POST Request Body:
+  ```json
+  {
+    "name": "Tech",
+    "color": "#3B82F6",
+    "description": "Technology videos"
+  }
+  ```
+
+```http
+GET /api/auth/tags/{id}/
+PUT /api/auth/tags/{id}/
+DELETE /api/auth/tags/{id}/
+```
+
+Retrieve, update, or delete channel tags (requires authentication)
+
+```http
+GET /api/auth/channels/{id}/tags/
+PUT /api/auth/channels/{id}/tags/
+```
+
+Get or assign tags to a channel (requires authentication)
+
+- PUT Request Body:
+  ```json
+  {
+    "tag_ids": ["tag-uuid-1", "tag-uuid-2"]
+  }
+  ```
+
 ## API Endpoints
 
 ### Videos (User-Filtered)
@@ -109,7 +164,11 @@ List videos from user's subscribed channels with pagination and filtering option
   - `search`: Search in title and description
   - `ordering`: Sort by title, published_at, view_count, like_count
   - `channel`: Filter by channel UUID
+  - `tags`: Comma-separated tag names for filtering (e.g., `tags=Tech,Tutorial`)
+  - `tag_mode`: Tag filtering mode - `any` (OR logic) or `all` (AND logic)
+  - `watch_status`: Filter by watch status - `watched`, `unwatched`, or `all`
 - Note: Authenticated users only see videos from their subscribed channels
+- Example: `/api/videos?tags=Tech,Tutorial&tag_mode=any&watch_status=unwatched`
 
 ```http
 GET /api/videos/{uuid}/
@@ -209,6 +268,40 @@ python build.py
 The build will only succeed if all tests pass. This ensures code quality and prevents broken builds.
 
 ### Running Tests
+
+#### Frontend Testing
+
+The project includes comprehensive frontend testing with Jest and React Testing Library:
+
+```bash
+# Run tests once
+npm run test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Generate coverage report
+npm run test:coverage
+```
+
+Test files are located in `__tests__` directories alongside components and include:
+- Component unit tests for all tag-related components
+- Integration tests for video filtering workflows  
+- API interaction testing with comprehensive mocking
+
+#### Backend Testing
+
+The backend includes extensive test coverage with Django's testing framework:
+
+```bash
+cd backend
+python manage.py test
+```
+
+Key test suites:
+- `users/test_tag_functionality.py` - 653+ lines covering tag models, API endpoints, and filtering logic
+- `videos/tests/test_serializer_optimization.py` - Performance tests with query counting
+- Model validation, API endpoints, integration testing, and performance regression detection
 
 #### Docker-based Testing
 

@@ -26,7 +26,7 @@ export function getRandomTagColor(): string {
     '#374151', // gray-700
   ];
 
-  return colors[Math.floor(Math.random() * colors.length)];
+  return colors[Math.floor(Math.random() * colors.length)]!;
 }
 
 /**

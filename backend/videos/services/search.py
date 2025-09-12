@@ -1,5 +1,5 @@
 from typing import List, Optional
-from django.db.models import QuerySet, Count, Q, Exists, OuterRef
+from django.db.models import QuerySet, Count, Q, Exists, OuterRef, Prefetch
 
 from ..models import Video
 from ..validators import TagMode, WatchStatus
@@ -29,8 +29,13 @@ class VideoSearchService:
         Returns:
             QuerySet of filtered videos (single DB call when evaluated)
         """
-        # Start with base queryset
-        queryset = Video.objects.select_related("channel")
+        queryset = Video.objects.select_related("channel").prefetch_related(
+            Prefetch("user_videos", queryset=UserVideo.objects.filter(user=self.user)),
+            Prefetch(
+                "channel__user_subscriptions", 
+                queryset=UserChannel.objects.filter(user=self.user).prefetch_related("channel_tags__tag")
+            )
+        )
 
         # Apply base subscription filter
         queryset = self._apply_subscription_filter(queryset)

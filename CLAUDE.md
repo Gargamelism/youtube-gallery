@@ -218,6 +218,13 @@ The Docker setup automatically handles migrations and static file collection on 
 - **CRITICAL: Use responsive design with Tailwind classes instead of separate components** - When creating components that need different layouts for desktop/mobile, use a single component with Tailwind responsive classes (`hidden md:flex`, `md:hidden`) rather than creating separate desktop and mobile components. Only separate components when the content or functionality is truly different, not just the styling.
 - **CRITICAL: Use i18n for all user-facing strings** - Never hardcode strings in components. All user-facing text must be stored in JSON files in `/locales/en/` directory and accessed through the i18n system. Organize strings by feature/namespace (auth.json, videos.json, channels.json, navigation.json, common.json).
 
+### React Query Performance Standards
+
+- **CRITICAL: Use centralized query configuration** - Import configurations from `lib/react-query-config.ts` instead of defining inline: `TAG_QUERY_CONFIG`, `VIDEO_QUERY_CONFIG`, `CHANNEL_QUERY_CONFIG`
+- **Consistent Query Keys**: Always use query key factories from `lib/react-query-config.ts` (e.g., `queryKeys.videosWithFilter()`) to prevent cache misses and enable proper invalidation
+- **Optimized Cache Settings**: Different data types have different cache strategies - tags (5min stale), videos (90sec), channels (10min) - follow established patterns
+- **Selective Refetching**: Window focus refetching is disabled by default - only enable for real-time data that requires fresh updates on focus
+
 ### Backend (.cursor/rules/backend-rules.mdc)
 
 - Follow Django MVT pattern strictly
@@ -229,6 +236,13 @@ The Docker setup automatically handles migrations and static file collection on 
 - **CRITICAL: Use KebabCaseRouter for all DRF ViewSets** - Always use `videos.utils.router.KebabCaseRouter` instead of Django's DefaultRouter to maintain consistent kebab-case URL patterns. Import with `trailing_slash=False` parameter to match project conventions.
 - **URL Pattern Strategy**: Use hybrid approach - individual paths for function-based views with custom logic, KebabCaseRouter for standard CRUD ViewSets. This maintains clarity while leveraging DRF best practices.
 - **CRITICAL: Use Pydantic for view input validation** - All view input validation should use Pydantic models for type safety, consistent error handling, and separation of concerns. Views should focus on HTTP concerns while Pydantic handles data validation. Create dedicated validator classes in `videos/validators.py` with proper user context validation and descriptive variable names (avoid single letter variables like `v`).
+
+### Database Performance Standards
+
+- **CRITICAL: Use Prefetch for user-filtered relations** - Always use `Prefetch` objects with user-filtered querysets to avoid N+1 queries: `Prefetch("user_videos", queryset=UserVideo.objects.filter(user=self.user))`
+- **Strategic Indexes**: Database has optimized indexes for core query patterns - reference `backend/users/migrations/0003_add_performance_indexes.py` for existing indexes
+- **Query Optimization**: VideoSearchService uses single optimized queries with EXISTS and COUNT for tag filtering - avoid separate database calls in serializers
+- **Serializer Efficiency**: VideoListSerializer uses prefetched data instead of additional queries per object - maintain this pattern for new serializers
 
 ### HTTP Status Code Guidelines
 
@@ -285,11 +299,30 @@ The Docker setup automatically handles migrations and static file collection on 
 
 ## Testing & Quality Assurance
 
+### Frontend Testing Framework
+- **Setup**: Jest + React Testing Library with Next.js integration
+- **Configuration**: `jest.config.js` and `jest.setup.js` with jsdom environment
+- **Test Files**: Place in `__tests__` directories alongside components
+- **Commands**: 
+  - `npm run test` - Run tests once
+  - `npm run test:watch` - Run tests in watch mode
+  - `npm run test:coverage` - Generate coverage report
+- **Build Integration**: Tests run automatically before build (`npm run build`)
+
+### Backend Testing Framework
+- **Framework**: Django's built-in testing framework with comprehensive test suite
+- **Key Tests**: 
+  - `backend/users/test_tag_functionality.py` - 653+ lines covering tag models, API endpoints, filtering logic
+  - `backend/videos/tests/test_serializer_optimization.py` - Performance and query optimization tests
+- **Performance Testing**: Database query counting to detect N+1 query issues
+- **Commands**: `python manage.py test` in backend directory
+
+### Quality Standards
 - **Frontend**: ESLint configured with Next.js TypeScript rules
-- **Backend**: Django's built-in testing framework available
-- **Type Checking**: TypeScript strict mode enabled
-- Run `npm run lint` before committing frontend changes
-- Ensure Docker Compose services start successfully before deployment
+- **Type Checking**: TypeScript strict mode enabled, run `npm run type-check`
+- **Linting**: Run `npm run lint:strict` for zero-warning builds
+- **Coverage**: Comprehensive test coverage for all tag-related functionality
+- **Performance**: Automated detection of query optimization regressions
 
 ## File Structure Notes
 

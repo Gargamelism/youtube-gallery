@@ -80,24 +80,26 @@ class VideoListSerializer(serializers.ModelSerializer):
         ]
 
     def get_is_watched(self, obj):
-        user = self.context["request"].user
-        user_video = UserVideo.objects.filter(user=user, video=obj).first()
+        user_video = obj.user_videos.first()
         return user_video.is_watched if user_video else False
 
     def get_watched_at(self, obj):
-        user = self.context["request"].user
-        user_video = UserVideo.objects.filter(user=user, video=obj).first()
+        user_video = obj.user_videos.first()
         return user_video.watched_at if user_video else None
 
     def get_notes(self, obj):
-        user = self.context["request"].user
-        user_video = UserVideo.objects.filter(user=user, video=obj).first()
+        user_video = obj.user_videos.first()
         return user_video.notes if user_video else None
 
     def get_channel_tags(self, obj):
-        user = self.context["request"].user
-        # Get tags assigned to this channel by the current user
-        tags = ChannelTag.objects.filter(
-            channel_assignments__user_channel__channel=obj.channel, channel_assignments__user_channel__user=user
-        ).values("id", "name", "color")
-        return list(tags)
+        tags = []
+        user_subscription = obj.channel.user_subscriptions.first()
+        if user_subscription:
+            for channel_tag in user_subscription.channel_tags.all():
+                tag = channel_tag.tag
+                tags.append({
+                    "id": str(tag.id),
+                    "name": tag.name,
+                    "color": tag.color
+                })
+        return tags

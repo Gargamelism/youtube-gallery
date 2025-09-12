@@ -15,7 +15,7 @@ export default function Home() {
     isError,
     data: videosResponse,
   } = useQuery({
-    queryFn: () => fetchVideos(''),
+    queryFn: () => fetchVideos({ watch_status: 'unwatched' }),
     queryKey: ['videos', ''],
   });
 

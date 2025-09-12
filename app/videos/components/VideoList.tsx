@@ -6,6 +6,7 @@ import { Video } from '@/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchVideos, updateVideoWatchStatus } from '@/services';
 import { useVideoFilters } from '@/hooks/useVideoFilters';
+import { VIDEO_QUERY_CONFIG, queryKeys } from '@/lib/react-query-config';
 
 export function VideoList() {
   const queryClient = useQueryClient();
@@ -22,12 +23,13 @@ export function VideoList() {
     isLoading,
     error: error,
   } = useQuery({
-    queryKey: ['videos', filter, selectedTags, tagMode],
+    queryKey: queryKeys.videosWithFilter({ watch_status: filter, tags: selectedTags, tag_mode: tagMode }),
     queryFn: () => fetchVideos({
       watch_status: filter,
       tags: selectedTags,
       tag_mode: tagMode
     }),
+    ...VIDEO_QUERY_CONFIG,
   });
 
   const { mutate: toggleWatchStatus } = useMutation({
@@ -36,8 +38,8 @@ export function VideoList() {
       return updateVideoWatchStatus(videoId, !video?.is_watched);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['videos'] });
-      queryClient.invalidateQueries({ queryKey: ['videoStats'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.videos });
+      queryClient.invalidateQueries({ queryKey: queryKeys.videoStats });
     },
   });
 

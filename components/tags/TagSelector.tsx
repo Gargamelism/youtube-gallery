@@ -118,7 +118,7 @@ export function TagSelector({ channelId, selectedTags, onTagsChange, onCreateTag
       
       if (exactMatch && !selectedTagIds.includes(exactMatch.id)) {
         await handleTagSelect(exactMatch);
-      } else if (filteredTags.length === 1) {
+      } else if (filteredTags.length === 1 && filteredTags[0]) {
         await handleTagSelect(filteredTags[0]);
       } else if (shouldShowCreateOption) {
         await handleCreateAndAssignTag(trimmedSearchTerm);
