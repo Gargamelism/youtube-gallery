@@ -1,12 +1,12 @@
-import { ChannelTag, TagCreateRequest } from '@/types';
+import { ChannelTag, ChannelTagResponse, TagCreateRequest } from '@/types';
 import { ResponseHandler, ApiResponse } from './ResponseHandler';
 import { API_BASE_URL, getAuthHeaders } from './shared';
 
-export async function fetchChannelTags(): Promise<ApiResponse<ChannelTag[]>> {
+export async function fetchChannelTags(): Promise<ApiResponse<ChannelTagResponse>> {
   const response = await fetch(`${API_BASE_URL}/auth/tags`, {
     headers: getAuthHeaders(),
   });
-  return ResponseHandler.handle<ChannelTag[]>(response);
+  return ResponseHandler.handle<ChannelTagResponse>(response);
 }
 
 export async function createChannelTag(tag: TagCreateRequest): Promise<ApiResponse<ChannelTag>> {

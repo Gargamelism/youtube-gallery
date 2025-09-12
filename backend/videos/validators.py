@@ -87,10 +87,9 @@ class TagAssignmentParams(BaseModel):
     @field_validator("tag_ids")
     @classmethod
     def validate_tag_ids_format(cls, tag_ids):
-        if not tag_ids:
-            raise ValueError("At least one tag ID is required")
+        if not isinstance(tag_ids, list):
+            raise ValueError("tag_ids must be an array")
 
-        # Validate UUID format for tag IDs
         for tag_id in tag_ids:
             try:
                 uuid.UUID(tag_id)

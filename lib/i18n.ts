@@ -6,6 +6,7 @@ import enAuth from '@/locales/en/auth.json';
 import enNavigation from '@/locales/en/navigation.json';
 import enVideos from '@/locales/en/videos.json';
 import enChannels from '@/locales/en/channels.json';
+import enTags from '@/locales/en/tags.json';
 
 const resources = {
   en: {
@@ -14,6 +15,7 @@ const resources = {
     navigation: enNavigation,
     videos: enVideos,
     channels: enChannels,
+    tags: enTags,
   },
 };
 
@@ -23,7 +25,7 @@ i18n.use(initReactI18next).init({
   fallbackLng: 'en',
   debug: process.env.NODE_ENV === 'development',
 
-  ns: ['common', 'auth', 'navigation', 'videos', 'channels'],
+  ns: ['common', 'auth', 'navigation', 'videos', 'channels', 'tags'],
   defaultNS: 'common',
 
   interpolation: {

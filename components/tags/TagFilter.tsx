@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Filter, X } from 'lucide-react';
+import { Filter } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { TagMode, TagModeType, ChannelTag } from '@/types';
+import { TagMode, TagModeType } from '@/types';
 import { useChannelTags } from './mutations';
 import { TagBadge } from './TagBadge';
 
@@ -17,10 +17,9 @@ interface TagFilterProps {
 export function TagFilter({ selectedTags, tagMode, onTagsChange, onTagModeChange }: TagFilterProps) {
   const { t } = useTranslation('tags');
   const [isExpanded, setIsExpanded] = useState(false);
-  const { data: allTags = [] } = useChannelTags();
-
-  const selectedTagObjects = allTags.filter(tag => selectedTags.includes(tag.name));
-  const availableTags = allTags.filter(tag => !selectedTags.includes(tag.name));
+  const { data: allTags } = useChannelTags();
+  const selectedTagObjects = allTags?.results.filter(tag => selectedTags.includes(tag.name));
+  const availableTags = allTags?.results.filter(tag => !selectedTags.includes(tag.name));
 
   const handleTagAdd = (tagName: string) => {
     onTagsChange([...selectedTags, tagName]);
@@ -56,10 +55,7 @@ export function TagFilter({ selectedTags, tagMode, onTagsChange, onTagModeChange
         </button>
 
         {selectedTags.length > 0 && (
-          <button
-            onClick={handleClearAll}
-            className="TagFilter__clear text-xs text-gray-500 hover:text-gray-700"
-          >
+          <button onClick={handleClearAll} className="TagFilter__clear text-xs text-gray-500 hover:text-gray-700">
             {t('clearAll')}
           </button>
         )}
@@ -68,14 +64,8 @@ export function TagFilter({ selectedTags, tagMode, onTagsChange, onTagModeChange
       {selectedTags.length > 0 && (
         <div className="TagFilter__selected">
           <div className="flex flex-wrap gap-2 mb-2">
-            {selectedTagObjects.map((tag) => (
-              <TagBadge
-                key={tag.id}
-                tag={tag}
-                size="sm"
-                removable
-                onRemove={() => handleTagRemove(tag.name)}
-              />
+            {selectedTagObjects?.map(tag => (
+              <TagBadge key={tag.id} tag={tag} size="sm" removable onRemove={() => handleTagRemove(tag.name)} />
             ))}
           </div>
 
@@ -86,9 +76,10 @@ export function TagFilter({ selectedTags, tagMode, onTagsChange, onTagModeChange
                 onClick={handleToggleMode}
                 className={`
                   TagFilter__mode-button text-xs px-2 py-1 rounded
-                  ${tagMode === TagMode.ANY 
-                    ? 'bg-blue-100 text-blue-700' 
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ${
+                    tagMode === TagMode.ANY
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }
                 `}
               >
@@ -98,9 +89,10 @@ export function TagFilter({ selectedTags, tagMode, onTagsChange, onTagModeChange
                 onClick={handleToggleMode}
                 className={`
                   TagFilter__mode-button text-xs px-2 py-1 rounded
-                  ${tagMode === TagMode.ALL 
-                    ? 'bg-blue-100 text-blue-700' 
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ${
+                    tagMode === TagMode.ALL
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }
                 `}
               >
@@ -114,22 +106,15 @@ export function TagFilter({ selectedTags, tagMode, onTagsChange, onTagModeChange
       {isExpanded && (
         <div className="TagFilter__available">
           <div className="border-t pt-3">
-            <h5 className="TagFilter__available-title text-xs font-medium text-gray-700 mb-2">
-              {t('availableTags')}:
-            </h5>
-            {availableTags.length === 0 ? (
+            <h5 className="TagFilter__available-title text-xs font-medium text-gray-700 mb-2">{t('availableTags')}:</h5>
+            {(availableTags?.length || 0) === 0 ? (
               <div className="TagFilter__no-tags text-xs text-gray-500">
-                {allTags.length === 0 ? t('noTags') : t('allTagsSelected')}
+                {(allTags?.results?.length || 0) === 0 ? t('noTags') : t('allTagsSelected')}
               </div>
             ) : (
               <div className="TagFilter__available-list flex flex-wrap gap-2">
-                {availableTags.map((tag) => (
-                  <TagBadge
-                    key={tag.id}
-                    tag={tag}
-                    size="sm"
-                    onClick={() => handleTagAdd(tag.name)}
-                  />
+                {availableTags?.map(tag => (
+                  <TagBadge key={tag.id} tag={tag} size="sm" onClick={() => handleTagAdd(tag.name)} />
                 ))}
               </div>
             )}

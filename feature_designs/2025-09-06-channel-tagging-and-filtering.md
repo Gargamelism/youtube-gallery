@@ -563,12 +563,22 @@ export function VideoList() {
 - **Integration**: React Query mutations with cache invalidation and optimistic updates
 - **Export Structure**: Centralized exports via `components/tags/index.ts` for clean imports
 
-### Phase 5: UI Integration
-1. Enhance FilterButtons with tag filtering interface
-2. Add tag display to VideoCard component
-3. Integrate tag management into ChannelSubscriptions
-4. Update video list filtering logic
-5. Implement URL state management for tag filters
+### Phase 5: UI Integration ✅ **Completed**
+1. ✅ Enhance FilterButtons with tag filtering interface
+2. ✅ Add tag display to VideoCard component
+3. ✅ Integrate tag management into ChannelSubscriptions
+4. ✅ Update video list filtering logic
+5. ✅ Implement URL state management for tag filters
+
+**Implementation Notes:**
+- **Data Structure Handling**: Fixed mutation cache updates to handle `PaginatedResponse<T>` structure with `results` property instead of direct arrays
+- **Backend Validation**: Updated `TagAssignmentParams` validator to allow empty `tag_ids` arrays, enabling complete tag removal from channels
+- **URL State Management**: Created shared utilities (`urlHelpers.ts`, `useVideoFilters.ts`) for consistent URL parameter handling across components
+- **Color Randomization**: Extracted color generation to shared utility (`tagHelpers.ts`) with 20 predefined colors to avoid duplication
+- **i18n Integration**: Added tags namespace to i18n configuration for proper translation loading
+- **Enter Key Functionality**: Implemented tag creation via Enter key in TagSelector with proper event ordering
+- **HTTP Method Configuration**: Added explicit `http_method_names` to `ChannelTagViewSet` to ensure DELETE operations are properly supported
+- **Event Handling**: Improved tag removal UX with proper event bubbling prevention and visual feedback
 
 ### Phase 6: Internationalization and Polish
 1. Add tag-related i18n strings

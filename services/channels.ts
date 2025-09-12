@@ -1,12 +1,12 @@
-import { Channel, UserChannel, UserChannelResponse } from '@/types';
+import { Channel, UserChannel, ChannelResponse, UserChannelResponse } from '@/types';
 import { ResponseHandler, ApiResponse } from './ResponseHandler';
 import { API_BASE_URL, getAuthHeaders } from './shared';
 
-export async function fetchChannels(): Promise<ApiResponse<{ results: Channel[] }>> {
+export async function fetchChannels(): Promise<ApiResponse<ChannelResponse>> {
   const response = await fetch(`${API_BASE_URL}/channels`, {
     headers: getAuthHeaders(),
   });
-  return ResponseHandler.handle<{ results: Channel[] }>(response);
+  return ResponseHandler.handle<ChannelResponse>(response);
 }
 
 export async function fetchChannelById(channelId: string): Promise<ApiResponse<Channel>> {

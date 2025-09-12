@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChannelTag, TagCreateRequest } from '@/types';
 import { TagBadge } from './TagBadge';
+import { getRandomTagColor } from '@/utils/tagHelpers';
 
 interface TagFormProps {
   editingTag: ChannelTag | null;
@@ -12,28 +13,12 @@ interface TagFormProps {
   onCancel: () => void;
 }
 
-const TAG_COLORS = [
-  '#3B82F6', // blue
-  '#10B981', // emerald
-  '#F59E0B', // amber
-  '#EF4444', // red
-  '#8B5CF6', // violet
-  '#06B6D4', // cyan
-  '#84CC16', // lime
-  '#F97316', // orange
-  '#EC4899', // pink
-  '#6366F1', // indigo
-] as const;
-
-function getRandomColor(): string {
-  return TAG_COLORS[Math.floor(Math.random() * TAG_COLORS.length)]!;
-}
 
 export function TagForm({ editingTag, isSubmitting, onSubmit, onCancel }: TagFormProps) {
   const { t } = useTranslation('tags');
   const [formData, setFormData] = useState<TagCreateRequest>({
     name: editingTag?.name || '',
-    color: editingTag?.color || getRandomColor(),
+    color: editingTag?.color || getRandomTagColor(),
     description: editingTag?.description || '',
   });
 

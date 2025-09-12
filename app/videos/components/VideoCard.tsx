@@ -5,6 +5,9 @@ import { useTranslation } from 'react-i18next';
 import { Play, Check, ChevronDown, ChevronUp, Calendar, Eye, MessageCircle, StickyNote } from 'lucide-react';
 import Image from 'next/image';
 import { Video } from '@/types';
+import { TagBadge } from '@/components/tags/TagBadge';
+import { useVideoFilters } from '@/hooks/useVideoFilters';
+import { getTextDirection, getTextAlign } from '@/utils/textHelpers';
 
 interface VideoCardProps {
   video: Video;
@@ -14,23 +17,15 @@ interface VideoCardProps {
 
 export function VideoCard({ video, onWatch, onToggleWatched }: VideoCardProps) {
   const { t } = useTranslation('videos');
+  const { addTag } = useVideoFilters();
   const [showDescription, setShowDescription] = useState(false);
   const [showNotesForm, setShowNotesForm] = useState(false);
   const [notes, setNotes] = useState(video.notes || '');
 
-  const isHebrew = (text: string | null) => {
-    if (!text) return false;
-    const hebrewRegex = /[\u0590-\u05FF]/;
-    return hebrewRegex.test(text);
+  const handleTagClick = (tagName: string) => {
+    addTag(tagName);
   };
 
-  const getTextDirection = (text: string | null) => {
-    return isHebrew(text) ? 'rtl' : 'ltr';
-  };
-
-  const getTextAlign = (text: string | null) => {
-    return isHebrew(text) ? 'text-right' : 'text-left';
-  };
 
   const handleWatchedToggle = () => {
     if (video.is_watched && notes !== video.notes) {
@@ -102,6 +97,24 @@ export function VideoCard({ video, onWatch, onToggleWatched }: VideoCardProps) {
           </h3>
 
           <div className="VideoCard__channel text-sm text-blue-600 mb-2">{video.channel_title}</div>
+
+          {video.channel_tags && video.channel_tags.length > 0 && (
+            <div className="VideoCard__tags flex flex-wrap gap-1 mb-2">
+              {video.channel_tags.slice(0, 3).map((tag) => (
+                <TagBadge
+                  key={tag.id}
+                  tag={tag}
+                  size="sm"
+                  onClick={() => handleTagClick(tag.name)}
+                />
+              ))}
+              {video.channel_tags.length > 3 && (
+                <span className="VideoCard__more-tags text-xs text-gray-500 px-2 py-1">
+                  +{video.channel_tags.length - 3}
+                </span>
+              )}
+            </div>
+          )}
 
           <div className="VideoCard__stats flex items-center gap-4 text-xs text-gray-500 mb-3">
             {video.published_at && (

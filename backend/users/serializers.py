@@ -75,12 +75,17 @@ class ChannelTagSerializer(serializers.ModelSerializer):
 class UserChannelSerializer(serializers.ModelSerializer):
     channel_title = serializers.CharField(source="channel.title", read_only=True)
     channel_id = serializers.CharField(source="channel.channel_id", read_only=True)
-    tags = ChannelTagSerializer(source="channel_tags.tag", many=True, read_only=True)
+    tags = serializers.SerializerMethodField()
 
     class Meta:
         model = UserChannel
         fields = ("id", "channel", "channel_title", "channel_id", "is_active", "tags", "subscribed_at", "created_at")
         read_only_fields = ("id", "created_at", "subscribed_at")
+
+    def get_tags(self, user_channel):
+        user_channel_tags = user_channel.channel_tags.select_related('tag').all()
+        tag_objects = [user_channel_tag.tag for user_channel_tag in user_channel_tags]
+        return ChannelTagSerializer(tag_objects, many=True).data
 
 
 class UserVideoSerializer(serializers.ModelSerializer):

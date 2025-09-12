@@ -1,3 +1,11 @@
+// Generic Pagination Response
+export interface PaginatedResponse<T> {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+}
+
 // User Authentication Types
 export interface User {
   id: string;
@@ -55,12 +63,8 @@ export interface UserChannel {
   created_at: string;
 }
 
-export interface UserChannelResponse {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: UserChannel[];
-}
+export type ChannelResponse = PaginatedResponse<Channel>;
+export type UserChannelResponse = PaginatedResponse<UserChannel>;
 
 // Video Types
 export interface Video {
@@ -94,12 +98,7 @@ export interface UserVideo {
   updated_at: string;
 }
 
-export interface VideoResponse {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: Video[];
-}
+export type VideoResponse = PaginatedResponse<Video>;
 
 export interface VideoStats {
   total: number;
@@ -125,6 +124,8 @@ interface ChannelTagBase {
   created_at: string;
 }
 
+export type ChannelTagResponse = PaginatedResponse<ChannelTagBase>;
+
 // API response type - has all fields, description optional
 export type ChannelTag = ChannelTagBase;
 
@@ -132,7 +133,7 @@ export type ChannelTag = ChannelTagBase;
 export type TagCreateRequest = Omit<ChannelTagBase, 'id' | 'channel_count' | 'created_at'>;
 
 // For preview/display - only name & color required, everything else optional
-export type ChannelTagPreview = Pick<ChannelTagBase, 'name' | 'color'> & 
+export type ChannelTagPreview = Pick<ChannelTagBase, 'name' | 'color'> &
   Partial<Omit<ChannelTagBase, 'name' | 'color'>>;
 
 // For partial updates

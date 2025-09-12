@@ -9,11 +9,28 @@ export interface WatchStatusResponse {
   notes: string | null;
 }
 
-export async function fetchVideos(filter?: string): Promise<ApiResponse<VideoResponse>> {
-  let url = `${API_BASE_URL}/videos`;
-  if (filter && filter !== 'all') {
-    url = `${API_BASE_URL}/videos/${filter}`;
+function buildVideoQueryParams(params: TagFilterParams): string {
+  const queryParams = new URLSearchParams();
+
+  if (params.watch_status && params.watch_status !== 'all') {
+    queryParams.set('watch_status', params.watch_status);
   }
+
+  if (params.tags && params.tags.length > 0) {
+    queryParams.set('tags', params.tags.join(','));
+    queryParams.set('tag_mode', params.tag_mode || TagMode.ANY);
+  }
+
+  return queryParams.toString();
+}
+
+export async function fetchVideos(params?: TagFilterParams): Promise<ApiResponse<VideoResponse>> {
+  const queryString = buildVideoQueryParams(params || {});
+  let url = `${API_BASE_URL}/videos`;
+  if (queryString) {
+    url += `?${queryString}`;
+  }
+
   const response = await fetch(url, {
     headers: getAuthHeaders(),
   });
@@ -46,27 +63,4 @@ export async function fetchUserVideos(): Promise<ApiResponse<UserVideo[]>> {
     headers: getAuthHeaders(),
   });
   return ResponseHandler.handle<UserVideo[]>(response);
-}
-
-export async function fetchVideosWithTags(params: TagFilterParams): Promise<ApiResponse<VideoResponse>> {
-  const queryParams = new URLSearchParams();
-
-  if (params.watch_status && params.watch_status !== 'all') {
-    queryParams.set('watch_status', params.watch_status);
-  }
-
-  if (params.tags && params.tags.length > 0) {
-    queryParams.set('tags', params.tags.join(','));
-    queryParams.set('tag_mode', params.tag_mode || TagMode.ANY);
-  }
-
-  let url = `${API_BASE_URL}/videos`;
-  if (queryParams.toString()) {
-    url += `?${queryParams.toString()}`;
-  }
-
-  const response = await fetch(url, {
-    headers: getAuthHeaders(),
-  });
-  return ResponseHandler.handle<VideoResponse>(response);
 }

@@ -1,16 +1,15 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
 import { VideoCard } from './VideoCard';
 import { Video } from '@/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchVideos, updateVideoWatchStatus } from '@/services';
+import { useVideoFilters } from '@/hooks/useVideoFilters';
 
 export function VideoList() {
   const queryClient = useQueryClient();
-  const searchParams = useSearchParams();
-  const filter = searchParams.get('filter') || 'all';
+  const { filter, selectedTags, tagMode } = useVideoFilters();
 
   const handleVideoClick = (url: string) => {
     if (url) {
@@ -23,8 +22,12 @@ export function VideoList() {
     isLoading,
     error: error,
   } = useQuery({
-    queryKey: ['videos', filter],
-    queryFn: () => fetchVideos(filter),
+    queryKey: ['videos', filter, selectedTags, tagMode],
+    queryFn: () => fetchVideos({
+      watch_status: filter,
+      tags: selectedTags,
+      tag_mode: tagMode
+    }),
   });
 
   const { mutate: toggleWatchStatus } = useMutation({

@@ -131,7 +131,7 @@ class UserChannelViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return UserChannel.objects.filter(user=self.request.user).order_by("channel__title")
+        return UserChannel.objects.filter(user=self.request.user).select_related("channel").prefetch_related("channel_tags__tag").order_by("channel__title")
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -230,6 +230,7 @@ def youtube_auth_callback(request):
 
 
 class ChannelTagViewSet(viewsets.ModelViewSet):
+    http_method_names = ["get", "post", "put", "patch", "delete", "head", "options"]
     serializer_class = ChannelTagSerializer
     permission_classes = [permissions.IsAuthenticated]
 

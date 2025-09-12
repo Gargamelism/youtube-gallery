@@ -5,17 +5,17 @@ import {
   deleteChannelTag,
   assignChannelTags,
   fetchChannelTagsById,
-  fetchVideosWithTags,
+  fetchVideos,
 } from '@/services';
 import { QueryClient, useMutation, useQuery } from '@tanstack/react-query';
-import { ChannelTag, TagCreateRequest, TagFilterParams } from '@/types';
+import { ChannelTag, ChannelTagResponse, TagCreateRequest, TagFilterParams } from '@/types';
 
 export function useChannelTags() {
   return useQuery({
     queryKey: ['channelTags'],
     queryFn: async () => {
       const response = await fetchChannelTags();
-      return response.data;
+      return response.data || {};
     },
   });
 }
@@ -35,7 +35,7 @@ export function useVideosWithTags(params: TagFilterParams) {
   return useQuery({
     queryKey: ['videos', 'tagged', params],
     queryFn: async () => {
-      const response = await fetchVideosWithTags(params);
+      const response = await fetchVideos(params);
       return response.data;
     },
     enabled: Boolean(params.tags?.length || params.watch_status),
@@ -50,9 +50,12 @@ export function useCreateChannelTag(queryClient: QueryClient) {
     },
     onSuccess: (newTag: ChannelTag) => {
       queryClient.invalidateQueries({ queryKey: ['channelTags'] });
-      queryClient.setQueryData(['channelTags'], (oldData: ChannelTag[] | undefined) => {
-        if (!oldData) return [newTag];
-        return [...oldData, newTag];
+      queryClient.setQueryData(['channelTags'], (oldData: ChannelTagResponse) => {
+        if (!oldData || !oldData.results) return { results: [newTag] };
+        return {
+          ...oldData,
+          results: [...oldData.results, newTag]
+        };
       });
     },
   });
@@ -66,9 +69,12 @@ export function useUpdateChannelTag(queryClient: QueryClient) {
     },
     onSuccess: (updatedTag: ChannelTag) => {
       queryClient.invalidateQueries({ queryKey: ['channelTags'] });
-      queryClient.setQueryData(['channelTags'], (oldData: ChannelTag[] | undefined) => {
-        if (!oldData) return [updatedTag];
-        return oldData.map((tag) => (tag.id === updatedTag.id ? updatedTag : tag));
+      queryClient.setQueryData(['channelTags'], (oldData: ChannelTagResponse) => {
+        if (!oldData || !oldData.results) return { results: [updatedTag] };
+        return {
+          ...oldData,
+          results: oldData.results.map((tag: ChannelTag) => (tag.id === updatedTag.id ? updatedTag : tag))
+        };
       });
     },
   });
@@ -85,9 +91,12 @@ export function useDeleteChannelTag(queryClient: QueryClient) {
 
       const previousData = queryClient.getQueryData(['channelTags']);
 
-      queryClient.setQueryData(['channelTags'], (oldData: ChannelTag[] | undefined) => {
-        if (!oldData) return [];
-        return oldData.filter((tag) => tag.id !== tagId);
+      queryClient.setQueryData(['channelTags'], (oldData: ChannelTagResponse) => {
+        if (!oldData || !oldData.results) return oldData;
+        return {
+          ...oldData,
+          results: oldData.results.filter((tag: ChannelTag) => tag.id !== tagId)
+        };
       });
 
       return { previousData, tagId };

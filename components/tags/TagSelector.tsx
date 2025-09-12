@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Plus, X } from 'lucide-react';
+import { ChevronDown, Plus } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { ChannelTag } from '@/types';
-import { useChannelTags, useAssignChannelTags } from './mutations';
+import { useChannelTags, useAssignChannelTags, useCreateChannelTag } from './mutations';
 import { TagBadge } from './TagBadge';
+import { getRandomTagColor } from '@/utils/tagHelpers';
 
 interface TagSelectorProps {
   channelId: string;
@@ -23,8 +24,10 @@ export function TagSelector({ channelId, selectedTags, onTagsChange, onCreateTag
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { data: allTags = [] } = useChannelTags();
+  const { data: tagsResponse } = useChannelTags();
+  const allTags = tagsResponse?.results || [];
   const assignMutation = useAssignChannelTags(queryClient);
+  const createMutation = useCreateChannelTag(queryClient);
 
   const selectedTagIds = selectedTags.map(tag => tag.id);
   
@@ -32,6 +35,12 @@ export function TagSelector({ channelId, selectedTags, onTagsChange, onCreateTag
     tag.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
     !selectedTagIds.includes(tag.id)
   );
+
+  const trimmedSearchTerm = searchTerm.trim();
+  const exactMatch = allTags.find(tag => 
+    tag.name.toLowerCase() === trimmedSearchTerm.toLowerCase()
+  );
+  const shouldShowCreateOption = trimmedSearchTerm && !exactMatch;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -78,14 +87,42 @@ export function TagSelector({ channelId, selectedTags, onTagsChange, onCreateTag
     }
   };
 
+  const handleCreateAndAssignTag = async (tagName: string) => {
+    if (!tagName.trim()) return;
+    
+    try {
+      const newTag = await createMutation.mutateAsync({
+        name: tagName.trim(),
+        color: getRandomTagColor(),
+        description: '',
+      });
+      
+      await handleTagSelect(newTag);
+    } catch (error) {
+      console.error('Failed to create tag:', error);
+    }
+  };
+
   const handleInputFocus = () => {
     setIsOpen(true);
   };
 
-  const handleInputKeyDown = (event: React.KeyboardEvent) => {
+  const handleInputKeyDown = async (event: React.KeyboardEvent) => {
     if (event.key === 'Escape') {
       setIsOpen(false);
       setSearchTerm('');
+    } else if (event.key === 'Enter') {
+      event.preventDefault();
+      
+      if (!trimmedSearchTerm) return;
+      
+      if (exactMatch && !selectedTagIds.includes(exactMatch.id)) {
+        await handleTagSelect(exactMatch);
+      } else if (filteredTags.length === 1) {
+        await handleTagSelect(filteredTags[0]);
+      } else if (shouldShowCreateOption) {
+        await handleCreateAndAssignTag(trimmedSearchTerm);
+      }
     }
   };
 
@@ -104,11 +141,11 @@ export function TagSelector({ channelId, selectedTags, onTagsChange, onCreateTag
       </div>
 
       <div className="TagSelector__input-container relative">
-        <div className="flex items-center border border-gray-300 rounded-md focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500">
+        <div className="flex items-center border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 bg-white">
           <input
             ref={inputRef}
             type="text"
-            className="TagSelector__search-input flex-1 px-3 py-2 border-0 focus:ring-0 focus:outline-none"
+            className="TagSelector__search-input flex-1 px-3 py-2 text-sm border-0 focus:ring-0 focus:outline-none bg-transparent"
             placeholder={t('assignTags')}
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
@@ -117,7 +154,7 @@ export function TagSelector({ channelId, selectedTags, onTagsChange, onCreateTag
           />
           <button
             type="button"
-            className="TagSelector__dropdown-button px-3 py-2 text-gray-400 hover:text-gray-600"
+            className="TagSelector__dropdown-button px-3 py-2 text-gray-400 hover:text-gray-600 border-l border-gray-200"
             onClick={() => setIsOpen(!isOpen)}
           >
             <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />

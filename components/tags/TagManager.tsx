@@ -24,7 +24,8 @@ export function TagManager({ isOpen, onClose, onTagsChange }: TagManagerProps) {
   const [editingTag, setEditingTag] = useState<ChannelTag | null>(null);
   const [deletingTagId, setDeletingTagId] = useState<string | null>(null);
 
-  const { data: tags = [], isLoading } = useChannelTags();
+  const { data: tagsResponse, isLoading } = useChannelTags();
+  const tags = tagsResponse?.results || [];
   const createMutation = useCreateChannelTag(queryClient);
   const updateMutation = useUpdateChannelTag(queryClient);
   const deleteMutation = useDeleteChannelTag(queryClient);
