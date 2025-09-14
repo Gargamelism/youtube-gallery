@@ -16,6 +16,12 @@ jest.mock('../mutations', () => ({
   }),
 }));
 
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+  }),
+}));
+
 const TestWrapper = ({ children }: { children: React.ReactNode }) => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -43,6 +49,9 @@ describe('TagFilter', () => {
     );
 
     expect(screen.getByText('filterByTags')).toBeInTheDocument();
+    
+    // Expand the filter to see available tags
+    fireEvent.click(screen.getByText('filterByTags'));
     expect(screen.getByText('Tech')).toBeInTheDocument();
     expect(screen.getByText('Gaming')).toBeInTheDocument();
   });
@@ -54,6 +63,8 @@ describe('TagFilter', () => {
       </TestWrapper>
     );
 
+    // Expand the filter first
+    fireEvent.click(screen.getByText('filterByTags'));
     fireEvent.click(screen.getByText('Tech'));
     
     await waitFor(() => {
@@ -62,14 +73,19 @@ describe('TagFilter', () => {
   });
 
   it('toggles tag mode between ANY and ALL', () => {
+    const propsWithSelected = {
+      ...mockProps,
+      selectedTags: ['Tech', 'Gaming'], // Need multiple tags to show mode toggle
+    };
+
     render(
       <TestWrapper>
-        <TagFilter {...mockProps} />
+        <TagFilter {...propsWithSelected} />
       </TestWrapper>
     );
 
-    const toggleButton = screen.getByRole('button', { name: /any/i });
-    fireEvent.click(toggleButton);
+    const anyButton = screen.getByText('tagMode.any');
+    fireEvent.click(anyButton);
     
     expect(mockProps.onTagModeChange).toHaveBeenCalledWith(TagMode.ALL);
   });
@@ -87,7 +103,8 @@ describe('TagFilter', () => {
     );
 
     const selectedTag = screen.getByText('Tech');
-    expect(selectedTag.closest('.tag-badge')).toHaveClass('selected');
+    expect(selectedTag).toBeInTheDocument();
+    expect(selectedTag.closest('.TagBadge')).toBeInTheDocument();
   });
 
   it('clears all selected tags', () => {

@@ -17,17 +17,21 @@ describe('TagBadge', () => {
     
     const badge = screen.getByText('Tech');
     expect(badge).toBeInTheDocument();
-    expect(badge.closest('.tag-badge')).toHaveStyle({
-      backgroundColor: '#3B82F6',
+    expect(badge.closest('.TagBadge')).toHaveStyle({
+      backgroundColor: '#3b82f633',
+      color: 'rgb(59, 130, 246)',
+      border: '1px solid #3b82f666',
     });
   });
 
   it('handles different sizes', () => {
     const { rerender } = render(<TagBadge tag={mockTag} size="sm" />);
-    expect(screen.getByText('Tech').closest('.tag-badge')).toHaveClass('tag-badge-sm');
+    const badge = screen.getByText('Tech').closest('.TagBadge');
+    expect(badge).toHaveClass('text-xs px-2 py-1');
 
     rerender(<TagBadge tag={mockTag} size="lg" />);
-    expect(screen.getByText('Tech').closest('.tag-badge')).toHaveClass('tag-badge-lg');
+    const largeBadge = screen.getByText('Tech').closest('.TagBadge');
+    expect(largeBadge).toHaveClass('text-base px-4 py-2');
   });
 
   it('shows remove button when removable', () => {
@@ -55,7 +59,8 @@ describe('TagBadge', () => {
     
     render(<TagBadge tag={mockTag} removable onRemove={onRemove} onClick={onClick} />);
     
-    fireEvent.click(screen.getByRole('button'));
+    const removeButton = screen.getByRole('button', { name: /remove tech tag/i });
+    fireEvent.click(removeButton);
     expect(onRemove).toHaveBeenCalledTimes(1);
     expect(onClick).not.toHaveBeenCalled();
   });
