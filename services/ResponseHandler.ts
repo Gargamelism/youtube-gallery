@@ -63,9 +63,10 @@ export class ResponseHandler {
     authStore.logout();
 
     window.dispatchEvent(new CustomEvent('auth-required'));
+    window.dispatchEvent(new CustomEvent('clear-react-query-cache'));
 
     return {
-      data: [] as unknown as T,
+      data: null as unknown as T,
       error: 'Authentication required',
     };
   }

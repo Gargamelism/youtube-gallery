@@ -16,7 +16,7 @@ export function useChannelTags() {
     queryKey: queryKeys.channelTags,
     queryFn: async () => {
       const response = await fetchChannelTags();
-      return response.data || {};
+      return response.data || undefined;
     },
     ...TAG_QUERY_CONFIG,
   });

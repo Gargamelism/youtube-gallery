@@ -1,6 +1,5 @@
 This file is to remind me of little tasks todo without breaking my flow or claude related feature-creep
 
-1. change font to Poppins (google fonts)
 1. sign up opens sign in modal
 1. update channel videos
 1. add video filtering search
