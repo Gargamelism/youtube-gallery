@@ -15,10 +15,7 @@ SECRET_KEY = config("SECRET_KEY", default="django-insecure-change-this-in-produc
 DEBUG = config("DEBUG", default=True, cast=bool)
 LOG_DB = config("LOG_DB", default=False, cast=bool)
 
-ALLOWED_HOSTS = [
-    host.strip() 
-    for host in config("ALLOWED_HOSTS", default="localhost,127.0.0.1").split(",")
-]
+ALLOWED_HOSTS = [host.strip() for host in config("ALLOWED_HOSTS", default="localhost,127.0.0.1").split(",")]
 
 # Add Docker service names only in DEBUG mode
 if DEBUG:
@@ -163,7 +160,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 20,
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.TokenAuthentication",
+        "users.authentication.CookieTokenAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
@@ -175,6 +172,9 @@ REST_FRAMEWORK = {
 CAPTCHA_PRIVATE_KEY = config("RECAPTCHA_PRIVATE_KEY")
 
 FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:3000")
+
+# Authentication cookie settings
+AUTH_COOKIE_NAME = "youtube-gallery-auth"
 
 # SQL Query logging for development
 if DEBUG and LOG_DB:

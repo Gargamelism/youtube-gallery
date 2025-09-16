@@ -1,37 +1,35 @@
-import { User, LoginRequest, RegisterRequest, AuthResponse } from '@/types';
+import { User, LoginRequest, RegisterRequest } from '@/types';
 import { ResponseHandler, ApiResponse } from './ResponseHandler';
-import { API_BASE_URL, getAuthHeaders } from './shared';
+import { API_BASE_URL, getRequestOptions } from './shared';
 
-export async function login(credentials: LoginRequest): Promise<ApiResponse<AuthResponse>> {
-  const response = await fetch(`${API_BASE_URL}/auth/login`, {
+export async function login(credentials: LoginRequest): Promise<ApiResponse<{ user: User; message: string }>> {
+  const response = await fetch('/api/auth/login', {
+    ...getRequestOptions(),
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(credentials),
   });
-  return ResponseHandler.handle<AuthResponse>(response);
+  return ResponseHandler.handle<{ user: User; message: string }>(response);
 }
 
-export async function register(userData: RegisterRequest): Promise<ApiResponse<AuthResponse>> {
-  const response = await fetch(`${API_BASE_URL}/auth/register`, {
+export async function register(userData: RegisterRequest): Promise<ApiResponse<{ user: User; message: string }>> {
+  const response = await fetch('/api/auth/register', {
+    ...getRequestOptions(),
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(userData),
   });
-  return ResponseHandler.handle<AuthResponse>(response);
+  return ResponseHandler.handle<{ user: User; message: string }>(response);
 }
 
 export async function logout(): Promise<ApiResponse<{ message: string }>> {
-  const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+  const response = await fetch('/api/auth/logout', {
+    ...getRequestOptions(),
     method: 'POST',
-    headers: getAuthHeaders(),
   });
   return ResponseHandler.handle<{ message: string }>(response);
 }
 
 export async function fetchUserProfile(): Promise<ApiResponse<User>> {
-  const response = await fetch(`${API_BASE_URL}/auth/profile`, {
-    headers: getAuthHeaders(),
-  });
+  const response = await fetch(`${API_BASE_URL}/auth/profile`, getRequestOptions());
   return ResponseHandler.handle<User>(response);
 }
 
@@ -41,10 +39,7 @@ export async function getYouTubeAuthUrl(
 ): Promise<ApiResponse<{ auth_url: string }>> {
   const response = await fetch(
     `${API_BASE_URL}/auth/youtube-url?redirect_uri=${encodeURIComponent(redirectUri)}&return_url=${encodeURIComponent(returnUrl)}`,
-    {
-      headers: getAuthHeaders(),
-      credentials: 'include',
-    }
+    getRequestOptions()
   );
   return ResponseHandler.handle<{ auth_url: string }>(response);
 }

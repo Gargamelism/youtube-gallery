@@ -1,5 +1,6 @@
 import { ReadonlyURLSearchParams } from 'next/navigation';
 import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
+import { isAllowedReturnUrlRoute } from '@/config/routes';
 
 /**
  * Updates URL search parameters with new values
@@ -41,4 +42,50 @@ export function navigateWithUpdatedParams(
 ): void {
   const queryString = updateUrlParams(searchParams, updates);
   router.push(pathname + (queryString ? '?' + queryString : ''));
+}
+
+/**
+ * Sanitizes return URLs to prevent open redirect vulnerabilities
+ * Only allows same-origin, relative paths without protocols
+ */
+export function sanitizeReturnUrl(returnUrl: string | null | undefined, fallback = '/'): string {
+  if (!returnUrl || typeof returnUrl !== 'string') {
+    return fallback;
+  }
+
+  const trimmed = returnUrl.trim();
+
+  if (!trimmed) {
+    return fallback;
+  }
+
+  if (/^(https?:)?\/\//.test(trimmed)) {
+    return fallback;
+  }
+
+  if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) {
+    return fallback;
+  }
+
+  const normalizedPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+
+  if (normalizedPath.includes('../') || normalizedPath.includes('/..')) {
+    return fallback;
+  }
+
+  const pathWithoutQuery = normalizedPath.split('?')[0]!.split('#')[0]!;
+
+  if (!isAllowedReturnUrlRoute(pathWithoutQuery)) {
+    return fallback;
+  }
+
+  return normalizedPath;
+}
+
+/**
+ * Gets return URL from query params and sanitizes it
+ */
+export function getReturnUrl(searchParams: URLSearchParams, fallback = '/videos'): string {
+  const returnUrl = searchParams.get('returnUrl');
+  return sanitizeReturnUrl(returnUrl, fallback);
 }

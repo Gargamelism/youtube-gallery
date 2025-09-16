@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from videos.decorators import store_google_credentials
 from videos.services.youtube import YouTubeAuthenticationError, YouTubeService
 
+from .authentication import CookieTokenAuthentication
 from .models import User, UserChannel, UserVideo, ChannelTag, UserChannelTag
 from .serializers import (
     ChannelTagSerializer,
@@ -87,10 +88,16 @@ def register_view(request):
     if serializer.is_valid():
         user = serializer.save()
         token, created = Token.objects.get_or_create(user=user)
-        return Response(
-            {"user": UserSerializer(user).data, "token": token.key},
+
+        response = Response(
+            {"user": UserSerializer(user).data},
             status=status.HTTP_201_CREATED,
         )
+
+        auth = CookieTokenAuthentication()
+        auth.set_auth_cookie(response, token.key)
+
+        return response
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -105,7 +112,13 @@ def login_view(request):
     if serializer.is_valid():
         user = serializer.validated_data["user"]
         token, created = Token.objects.get_or_create(user=user)
-        return Response({"user": UserSerializer(user).data, "token": token.key})
+
+        response = Response({"user": UserSerializer(user).data})
+
+        auth = CookieTokenAuthentication()
+        auth.set_auth_cookie(response, token.key)
+
+        return response
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -116,7 +129,13 @@ def logout_view(request):
         request.user.auth_token.delete()
     except:
         pass
-    return Response({"message": "Successfully logged out"})
+
+    response = Response({"message": "Successfully logged out"})
+
+    auth = CookieTokenAuthentication()
+    auth.clear_auth_cookie(response)
+
+    return response
 
 
 @api_view(["GET"])
@@ -131,7 +150,12 @@ class UserChannelViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return UserChannel.objects.filter(user=self.request.user).select_related("channel").prefetch_related("channel_tags__tag").order_by("channel__title")
+        return (
+            UserChannel.objects.filter(user=self.request.user)
+            .select_related("channel")
+            .prefetch_related("channel_tags__tag")
+            .order_by("channel__title")
+        )
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

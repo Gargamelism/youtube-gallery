@@ -1,6 +1,5 @@
 This file is to remind me of little tasks todo without breaking my flow or claude related feature-creep
 
-1. sign up opens sign in modal
 1. update channel videos
 1. add video filtering search
 1. add sidebar filtering videos by channels
@@ -23,4 +22,5 @@ This file is to remind me of little tasks todo without breaking my flow or claud
 1. add story book
 1. add logo - talk with victoria about colors/branding
 1. user dropdown - change links to configuration, and that links work
-1. responsive channels page
+1. responsive channels page'
+1. move frontend to frontend folder

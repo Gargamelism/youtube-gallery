@@ -8,7 +8,7 @@ import { RegisterRequest } from '@/types';
 import { register as registerUser } from '@/services';
 import { useAuthStore } from '@/stores/authStore';
 import { useRecaptchaV3 } from '@/hooks/useRecaptchaV3';
-import { AuthViews } from '@components/navigation/types';
+import { AuthViews } from '@/components/navigation/types';
 
 interface RegisterFormProps {
   onSuccess?: () => void;
@@ -53,8 +53,11 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
       if (response.error) {
         setError(response.error);
       } else {
-        authStore.login(response.data.user, response.data.token);
-        onSuccess?.();
+        authStore.login(response.data.user);
+        // Small delay to ensure store state is persisted before redirect
+        setTimeout(() => {
+          onSuccess?.();
+        }, 100);
       }
     } catch (err) {
       setError(t('common:error'));

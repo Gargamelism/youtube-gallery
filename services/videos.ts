@@ -1,6 +1,6 @@
 import { VideoResponse, VideoStats, UserVideo, TagFilterParams, TagMode } from '@/types';
 import { ResponseHandler, ApiResponse } from './ResponseHandler';
-import { API_BASE_URL, getAuthHeaders } from './shared';
+import { API_BASE_URL, getRequestOptions } from './shared';
 
 export interface WatchStatusResponse {
   status: string;
@@ -31,17 +31,12 @@ export async function fetchVideos(params?: TagFilterParams): Promise<ApiResponse
     url += `?${queryString}`;
   }
 
-  const response = await fetch(url, {
-    headers: getAuthHeaders(),
-  });
+  const response = await fetch(url, getRequestOptions());
   return ResponseHandler.handle<VideoResponse>(response);
 }
 
 export async function fetchVideoStats(): Promise<ApiResponse<VideoStats>> {
-  const response = await fetch(`${API_BASE_URL}/videos/stats`, {
-    headers: getAuthHeaders(),
-  });
-
+  const response = await fetch(`${API_BASE_URL}/videos/stats`, getRequestOptions());
   return ResponseHandler.handle<VideoStats>(response);
 }
 
@@ -51,16 +46,14 @@ export async function updateVideoWatchStatus(
   notes?: string
 ): Promise<ApiResponse<WatchStatusResponse>> {
   const response = await fetch(`${API_BASE_URL}/videos/${videoId}/watch`, {
+    ...getRequestOptions(),
     method: 'PUT',
-    headers: getAuthHeaders(),
     body: JSON.stringify({ is_watched, notes: notes || '' }),
   });
   return ResponseHandler.handle<WatchStatusResponse>(response);
 }
 
 export async function fetchUserVideos(): Promise<ApiResponse<UserVideo[]>> {
-  const response = await fetch(`${API_BASE_URL}/auth/videos`, {
-    headers: getAuthHeaders(),
-  });
+  const response = await fetch(`${API_BASE_URL}/auth/videos`, getRequestOptions());
   return ResponseHandler.handle<UserVideo[]>(response);
 }

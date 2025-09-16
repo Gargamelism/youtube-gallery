@@ -1,7 +1,6 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TagSelector } from '../TagSelector';
-import * as mutations from '../mutations';
 
 const mockTags = [
   { id: '1', name: 'Tech', color: '#3B82F6', description: '', channel_count: 5, created_at: '2023-01-01T00:00:00Z' },
@@ -70,7 +69,7 @@ describe('TagSelector', () => {
 
     const dropdownButton = document.querySelector('.TagSelector__dropdown-button');
     fireEvent.click(dropdownButton!);
-    
+
     expect(screen.getByText('Gaming')).toBeInTheDocument();
   });
 
@@ -83,7 +82,7 @@ describe('TagSelector', () => {
 
     const dropdownButton = document.querySelector('.TagSelector__dropdown-button');
     fireEvent.click(dropdownButton!);
-    
+
     expect(screen.getByText('Gaming')).toBeInTheDocument();
   });
 });

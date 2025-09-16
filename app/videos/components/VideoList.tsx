@@ -6,7 +6,7 @@ import { Video } from '@/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchVideos, updateVideoWatchStatus } from '@/services';
 import { useVideoFilters } from '@/hooks/useVideoFilters';
-import { VIDEO_QUERY_CONFIG, queryKeys } from '@/lib/react-query-config';
+import { VIDEO_QUERY_CONFIG, queryKeys } from '@/lib/reactQueryConfig';
 
 export function VideoList() {
   const queryClient = useQueryClient();
@@ -24,11 +24,12 @@ export function VideoList() {
     error: error,
   } = useQuery({
     queryKey: queryKeys.videosWithFilter({ watch_status: filter, tags: selectedTags, tag_mode: tagMode }),
-    queryFn: () => fetchVideos({
-      watch_status: filter,
-      tags: selectedTags,
-      tag_mode: tagMode
-    }),
+    queryFn: () =>
+      fetchVideos({
+        watch_status: filter,
+        tags: selectedTags,
+        tag_mode: tagMode,
+      }),
     ...VIDEO_QUERY_CONFIG,
   });
 

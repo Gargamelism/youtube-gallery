@@ -2,7 +2,6 @@ import { KeyboardEvent } from 'react';
 
 export const handleKeyboardActivation = (handler: (event: KeyboardEvent) => void) => {
   return (event: KeyboardEvent) => {
-    console.log('Key pressed:', event.key);
     if (event.key === 'Enter') {
       handler(event);
     }

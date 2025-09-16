@@ -8,7 +8,7 @@ import { LoginRequest } from '@/types';
 import { login } from '@/services';
 import { useAuthStore } from '@/stores/authStore';
 import { useRecaptchaV3 } from '@/hooks/useRecaptchaV3';
-import { AuthViews } from '../navigation/types';
+import { AuthViews } from '@/components/navigation/types';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -49,7 +49,7 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
       if (response.error) {
         setError(response.error);
       } else {
-        authStore.login(response.data.user, response.data.token);
+        authStore.login(response.data.user);
         onSuccess?.();
       }
     } catch (err) {

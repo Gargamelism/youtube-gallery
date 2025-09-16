@@ -4,31 +4,26 @@ import { User } from '@/types';
 
 interface AuthStore {
   user: User | null;
-  token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
 
   // Actions
-  login: (user: User, token: string) => void;
+  login: (user: User) => void;
   logout: () => void;
   updateUser: (user: User) => void;
   setLoading: (loading: boolean) => void;
-
-  getAuthHeaders: () => Record<string, string>;
 }
 
 export const useAuthStore = create<AuthStore>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       user: null,
-      token: null,
       isAuthenticated: false,
       isLoading: true,
 
-      login: (user: User, token: string) => {
+      login: (user: User) => {
         set({
           user,
-          token,
           isAuthenticated: true,
           isLoading: false,
         });
@@ -37,7 +32,6 @@ export const useAuthStore = create<AuthStore>()(
       logout: () => {
         set({
           user: null,
-          token: null,
           isAuthenticated: false,
           isLoading: false,
         });
@@ -50,21 +44,12 @@ export const useAuthStore = create<AuthStore>()(
       setLoading: (isLoading: boolean) => {
         set({ isLoading });
       },
-
-      getAuthHeaders: () => {
-        const { token } = get();
-        return {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Token ${token}` } : {}),
-        };
-      },
     }),
     {
-      name: 'youtube-gallery-auth',
+      name: 'youtube-gallery-user',
       storage: createJSONStorage(() => localStorage),
       partialize: state => ({
         user: state.user,
-        token: state.token,
         isAuthenticated: state.isAuthenticated,
       }),
       onRehydrateStorage: () => state => {

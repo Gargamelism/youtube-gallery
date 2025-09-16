@@ -1,11 +1,24 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TagManager } from '../TagManager';
-import * as mutations from '../mutations';
 
 const mockTags = [
-  { id: '1', name: 'Tech', color: '#3B82F6', description: 'Technology videos', channel_count: 5, created_at: '2023-01-01T00:00:00Z' },
-  { id: '2', name: 'Gaming', color: '#EF4444', description: 'Gaming content', channel_count: 3, created_at: '2023-01-01T00:00:00Z' },
+  {
+    id: '1',
+    name: 'Tech',
+    color: '#3B82F6',
+    description: 'Technology videos',
+    channel_count: 5,
+    created_at: '2023-01-01T00:00:00Z',
+  },
+  {
+    id: '2',
+    name: 'Gaming',
+    color: '#EF4444',
+    description: 'Gaming content',
+    channel_count: 3,
+    created_at: '2023-01-01T00:00:00Z',
+  },
 ];
 
 jest.mock('../mutations', () => ({
@@ -83,10 +96,9 @@ describe('TagManager', () => {
 
     const closeButton = screen.getByRole('button', { name: /close/i });
     fireEvent.click(closeButton);
-    
+
     expect(mockProps.onClose).toHaveBeenCalledTimes(1);
   });
-
 
   it('shows delete confirmation', async () => {
     window.confirm = jest.fn(() => false);
@@ -99,7 +111,7 @@ describe('TagManager', () => {
 
     const deleteButtons = screen.getAllByLabelText(/delete/i);
     fireEvent.click(deleteButtons[0]);
-    
+
     expect(window.confirm).toHaveBeenCalled();
   });
 });
