@@ -1,6 +1,6 @@
 This file is to remind me of little tasks todo without breaking my flow or claude related feature-creep
 
-1. ${RANDOM} update channel videos
+1. update channel videos
 1. add video filtering search
 1. add sidebar filtering videos by channels
 1. add channel tagging for group filtering by channels
@@ -24,5 +24,7 @@ This file is to remind me of little tasks todo without breaking my flow or claud
 1. user dropdown - change links to configuration, and that links work
 1. responsive channels page'
 1. move frontend to frontend folder
-1. monitoring!
-1. admin system
+1. Deployment!: 
+    1. monitoring!
+    1. admin system
+    1. choose hosting for db/fe/be
