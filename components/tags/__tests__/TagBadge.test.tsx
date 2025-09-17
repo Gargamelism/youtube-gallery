@@ -24,14 +24,15 @@ describe('TagBadge', () => {
     });
   });
 
-  it('handles different sizes', () => {
-    const { rerender } = render(<TagBadge tag={mockTag} size="sm" />);
-    const badge = screen.getByText('Tech').closest('.TagBadge');
-    expect(badge).toHaveClass('text-xs px-2 py-1');
+  const sizeTestCases = [
+    { size: 'sm' as const, expectedClass: 'text-xs px-2 py-1' },
+    { size: 'lg' as const, expectedClass: 'text-base px-4 py-2' },
+  ];
 
-    rerender(<TagBadge tag={mockTag} size="lg" />);
-    const largeBadge = screen.getByText('Tech').closest('.TagBadge');
-    expect(largeBadge).toHaveClass('text-base px-4 py-2');
+  test.each(sizeTestCases)('handles $size size correctly', ({ size, expectedClass }) => {
+    render(<TagBadge tag={mockTag} size={size} />);
+    const badge = screen.getByText('Tech').closest('.TagBadge');
+    expect(badge).toHaveClass(expectedClass);
   });
 
   it('shows remove button when removable', () => {

@@ -1,4 +1,5 @@
 import unittest
+import pytest
 
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -82,23 +83,21 @@ class TestKebabCaseRouter(unittest.TestCase):
         self.assertNotIn("custom_action_name", combined_patterns)
         self.assertNotIn("another_custom_action", combined_patterns)
 
-    def test_to_kebab_case_method(self):
+    @pytest.mark.parametrize("input_str,expected", [
+        ("snake_case_string", "snake-case-string"),
+        ("already-kebab-case", "already-kebab-case"),
+        ("mixedCamelCase", "mixedcamelcase"),
+        ("with_numbers_123", "with-numbers-123"),
+        ("UPPERCASE_STRING", "uppercase-string"),
+        ("multiple__underscores", "multiple-underscores"),
+        ("ends_with_underscore_", "ends-with-underscore"),
+        ("_starts_with_underscore", "starts-with-underscore"),
+    ])
+    def test_to_kebab_case_method(self, input_str, expected):
         """Test the internal _to_kebab_case method directly"""
-        test_cases = [
-            ("snake_case_string", "snake-case-string"),
-            ("already-kebab-case", "already-kebab-case"),
-            ("mixedCamelCase", "mixedcamelcase"),
-            ("with_numbers_123", "with-numbers-123"),
-            ("UPPERCASE_STRING", "uppercase-string"),
-            ("multiple__underscores", "multiple-underscores"),
-            ("ends_with_underscore_", "ends-with-underscore"),
-            ("_starts_with_underscore", "starts-with-underscore"),
-        ]
-
-        for input_str, expected in test_cases:
-            actual = self.router._to_kebab_case(input_str)
-            self.assertEqual(
-                actual,
-                expected,
-                f"Failed to convert '{input_str}' to kebab-case. Expected '{expected}', got '{actual}'",
-            )
+        actual = self.router._to_kebab_case(input_str)
+        self.assertEqual(
+            actual,
+            expected,
+            f"Failed to convert '{input_str}' to kebab-case. Expected '{expected}', got '{actual}'",
+        )

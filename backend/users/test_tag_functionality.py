@@ -1,3 +1,4 @@
+import pytest
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from rest_framework.test import APITestCase
@@ -221,17 +222,21 @@ class ChannelTagAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(ChannelTag.objects.filter(user=self.user).count(), 0)
 
-    def test_user_cannot_access_other_users_tags(self):
+    @pytest.mark.parametrize("method,data", [
+        ("get", None),
+        ("put", {"name": "Rock"}),
+        ("delete", None),
+    ])
+    def test_user_cannot_access_other_users_tags(self, method, data):
         """Test that users cannot access other users' tags"""
         tag = ChannelTag.objects.create(user=self.other_user, name="Music")
 
-        response = self.client.get(f"/api/auth/tags/{tag.id}")
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        client_method = getattr(self.client, method)
+        if data:
+            response = client_method(f"/api/auth/tags/{tag.id}", data, format="json")
+        else:
+            response = client_method(f"/api/auth/tags/{tag.id}")
 
-        response = self.client.put(f"/api/auth/tags/{tag.id}", {"name": "Rock"}, format="json")
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-        response = self.client.delete(f"/api/auth/tags/{tag.id}")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_unauthenticated_access_denied(self):
@@ -628,7 +633,13 @@ class SearchServiceIntegrationTests(TestCase):
         with self.assertNumQueries(1):  # Should be a single optimized query
             list(service.search_videos(tag_names=["Test"], tag_mode=TagMode.ANY, watch_status=WatchStatus.ALL))
 
-    def test_search_service_with_all_filters(self):
+    @pytest.mark.parametrize("tags,tag_mode,watch_status,expected_count", [
+        (["Test"], "TagMode.ANY", "WatchStatus.WATCHED", 1),
+        (["Test"], "TagMode.ANY", "WatchStatus.UNWATCHED", 0),
+        (["Test"], "TagMode.ALL", "WatchStatus.WATCHED", 1),
+        (["NonExistent"], "TagMode.ANY", "WatchStatus.ALL", 0),
+    ])
+    def test_search_service_with_all_filters(self, tags, tag_mode, watch_status, expected_count):
         """Test search service with all filter combinations"""
         from videos.services.search import VideoSearchService
         from videos.validators import TagMode, WatchStatus
@@ -638,15 +649,9 @@ class SearchServiceIntegrationTests(TestCase):
 
         service = VideoSearchService(self.user)
 
-        # Test various combinations
-        test_cases = [
-            (["Test"], TagMode.ANY, WatchStatus.WATCHED, 1),
-            (["Test"], TagMode.ANY, WatchStatus.UNWATCHED, 0),
-            (["Test"], TagMode.ALL, WatchStatus.WATCHED, 1),
-            (["NonExistent"], TagMode.ANY, WatchStatus.ALL, 0),
-        ]
+        # Convert string representations to actual enum values
+        tag_mode_enum = getattr(TagMode, tag_mode.split('.')[1])
+        watch_status_enum = getattr(WatchStatus, watch_status.split('.')[1])
 
-        for tags, tag_mode, watch_status, expected_count in test_cases:
-            with self.subTest(tags=tags, tag_mode=tag_mode, watch_status=watch_status):
-                results = service.search_videos(tag_names=tags, tag_mode=tag_mode, watch_status=watch_status)
-                self.assertEqual(len(list(results)), expected_count)
+        results = service.search_videos(tag_names=tags, tag_mode=tag_mode_enum, watch_status=watch_status_enum)
+        self.assertEqual(len(list(results)), expected_count)
