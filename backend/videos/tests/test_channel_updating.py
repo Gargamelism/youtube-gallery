@@ -8,7 +8,7 @@ from rest_framework.test import APITestCase
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
-from videos.models import Channel, Video
+from videos.models import Channel, Video, UpdateFrequency
 from users.models import UserChannel, UserVideo, ChannelTag, UserChannelTag
 
 User = get_user_model()
