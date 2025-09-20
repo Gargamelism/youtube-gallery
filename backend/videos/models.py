@@ -2,6 +2,7 @@ import uuid
 
 from django.db import models
 from django.utils import timezone
+from dirtyfields import DirtyFieldsMixin
 
 from .fields import YouTubeDurationField
 
@@ -28,7 +29,7 @@ class UpdateFrequency(TimestampMixin):
         verbose_name_plural = "update frequencies"
 
 
-class Channel(TimestampMixin):
+class Channel(DirtyFieldsMixin, TimestampMixin):
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     channel_id = models.CharField(max_length=255, unique=True)
     title = models.CharField(max_length=500, blank=True, null=True)

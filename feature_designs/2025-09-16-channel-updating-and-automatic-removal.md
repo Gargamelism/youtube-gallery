@@ -1329,7 +1329,7 @@ class ChannelMigrationTests(TestCase):
 ```
 </details>
 
-**1.3 Basic Service Layer Implementation**
+**1.3 Basic Service Layer Implementation** - **<span style="background-color: #10B981; color: white; padding: 2px 8px; border-radius: 4px;">Implemented</span>**
 
 <details>
 <summary>Detailed implementation tasks and dependencies</summary>
@@ -3303,7 +3303,20 @@ class BatchPerformanceTests(TestCase):
 - CDN integration for channel metadata caching
 - Microservice architecture for update processing
 
-**Updating Fine details**
+**Video Metadata Refresh System**:
+- **Current Implementation**: Only fetches new videos (quota-efficient approach)
+- **Future Enhancement**: Periodic refresh of existing video metadata (view counts, like counts, comments)
+- **Challenge**: Requires significant YouTube API quota (1 unit per video for detailed metadata)
+- **Solution Approach**:
+  - Configurable refresh intervals based on video age and popularity
+  - Selective updates: only refresh videos with recent activity or user interest
+  - Batch processing with quota monitoring and throttling
+  - User-initiated refresh requests for specific videos
+  - Priority-based updating: newer videos and user-favorited content first
+- **Implementation**: Separate service (`VideoMetadataRefreshService`) with dedicated quota management
+- **Benefits**: Up-to-date engagement metrics, accurate trending analysis, better user experience
+
+**Updating Fine details**:
 - Progressive backoff with priority fallback - Automatically deprioritize low-engagement channels and switch to only high-priority updates when low quota
 - Introduce "critical" flag, for channels that must be updated first (based on subscription count)
 - Instead of deleting channels, soft delete, and only completely delete after a cool-down period

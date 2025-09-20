@@ -24,6 +24,9 @@ This file is to remind me of little tasks todo without breaking my flow or claud
 1. user dropdown - change links to configuration, and that links work
 1. responsive channels page'
 1. move frontend to frontend folder
+1. implement centralized logging:
+    1. frontend
+    1. backend
 1. Deployment!: 
     1. monitoring!
     1. admin system

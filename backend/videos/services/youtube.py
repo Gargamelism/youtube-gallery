@@ -202,13 +202,12 @@ class YouTubeService:
             # Error fetching channel details
             return None
 
-    def get_channel_videos(self, uploads_playlist_id: str) -> List[Dict[str, Any]]:
-        videos = []
+    def get_channel_videos(self, uploads_playlist_id: str):
+        """Generator that yields pages of video data"""
         next_page_token = None
 
         while True:
             try:
-                # Get playlist items (video IDs)
                 playlist_request = self.youtube.playlistItems().list(
                     part="contentDetails",
                     playlistId=uploads_playlist_id,
@@ -219,13 +218,13 @@ class YouTubeService:
 
                 video_ids = [item["contentDetails"]["videoId"] for item in playlist_response["items"]]
 
-                # Get detailed video information
                 if video_ids:
                     video_request = self.youtube.videos().list(
                         part="snippet,contentDetails,statistics", id=",".join(video_ids)
                     )
                     video_response = video_request.execute()
 
+                    page_videos = []
                     for video in video_response["items"]:
                         video_data = {
                             "video_id": video["id"],
@@ -244,17 +243,16 @@ class YouTubeService:
                                 ",".join(video["snippet"].get("tags", [])) if video["snippet"].get("tags") else None
                             ),
                         }
-                        videos.append(video_data)
+                        page_videos.append(video_data)
+
+                    yield page_videos
 
                 next_page_token = playlist_response.get("nextPageToken")
                 if not next_page_token:
                     break
 
             except Exception as e:
-                # Error fetching videos
                 break
-
-        return videos
 
     def fetch_channel(self, channel_identifier: str) -> Optional[Channel]:
         """Fetch a channel and all its videos from YouTube"""
@@ -271,13 +269,14 @@ class YouTubeService:
             },
         )
 
-        videos = self.get_channel_videos(channel_info["uploads_playlist_id"])
+        videos_generator = self.get_channel_videos(channel_info["uploads_playlist_id"])
 
-        for video_data in videos:
-            Video.objects.update_or_create(
-                video_id=video_data.pop("video_id"),
-                defaults={**video_data, "channel": channel},
-            )
+        for page_videos in videos_generator:
+            for video_data in page_videos:
+                Video.objects.update_or_create(
+                    video_id=video_data.pop("video_id"),
+                    defaults={**video_data, "channel": channel},
+                )
 
         return channel
 
