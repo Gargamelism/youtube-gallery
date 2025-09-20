@@ -35,3 +35,8 @@ class ChannelAccessDeniedError(ChannelUpdateError):
 class InvalidChannelDataError(ChannelUpdateError):
     """Channel data from API is invalid or corrupted"""
     pass
+
+
+class APIServerError(ChannelUpdateError):
+    """YouTube API server error (5xx responses)"""
+    pass

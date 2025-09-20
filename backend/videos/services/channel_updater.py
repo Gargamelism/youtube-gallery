@@ -10,6 +10,7 @@ from rest_framework import status
 
 from videos.exceptions import (
     APIRateLimitError,
+    APIServerError,
     ChannelAccessDeniedError,
     ChannelNotFoundError,
     ChannelUpdateError,
@@ -18,6 +19,7 @@ from videos.exceptions import (
 )
 from videos.models import Channel, Video
 from videos.services.youtube import YouTubeService
+from videos.utils.retry import retry_transient_failures
 
 # Priority calculation constants
 PRIORITY_HIGH_SUBSCRIBER_THRESHOLD = 1000000
@@ -33,8 +35,6 @@ PRIORITY_NEVER_UPDATED_BONUS = 200
 
 # Channel update behavior constants
 MAX_FAILED_ATTEMPTS_BEFORE_UNAVAILABLE = 5
-RETRY_BASE_DELAY_SECONDS = 300
-MAX_RETRY_DELAY_SECONDS = 3600
 
 
 @dataclass
@@ -79,6 +79,7 @@ class ChannelUpdateService:
         except Exception as e:
             return self._handle_update_error(channel, e)
 
+    @retry_transient_failures()
     def _fetch_channel_data(self, channel_id: str) -> Dict[str, Any]:
         """Fetch channel data with specific error handling for YouTube API responses"""
         try:
@@ -124,7 +125,7 @@ class ChannelUpdateService:
                 raise ChannelNotFoundError(f"Channel {channel_id} not found")
 
             elif e.resp.status >= status.HTTP_500_INTERNAL_SERVER_ERROR:
-                raise APIRateLimitError(f"YouTube API server error: {e.resp.status}")
+                raise APIServerError(f"YouTube API server error: {e.resp.status}")
 
             else:
                 raise ChannelUpdateError(f"YouTube API error: {reason}")
@@ -219,7 +220,7 @@ class ChannelUpdateService:
     def _handle_update_error(self, channel: Channel, error: Exception) -> ChannelUpdateResult:
         """Centralized error handling with specific recovery strategies"""
         if isinstance(error, QuotaExceededError):
-            print(f"WARNING: Quota exceeded for channel {channel.uuid}")
+            self._log_update_failure(channel, "quota_exceeded", str(error))
             return ChannelUpdateResult(
                 channel_uuid=str(channel.uuid),
                 success=False,
@@ -229,11 +230,14 @@ class ChannelUpdateService:
             )
 
         elif isinstance(error, ChannelNotFoundError):
+            old_status = channel.is_available
             channel.is_available = False
             channel.failed_update_count += 1
             channel.save()
 
             self._log_update_failure(channel, "channel_not_found", str(error))
+            if old_status != channel.is_available:
+                self._log_channel_status_change(channel, old_status, channel.is_available, "Channel not found on YouTube")
 
             return ChannelUpdateResult(
                 channel_uuid=str(channel.uuid),
@@ -242,25 +246,27 @@ class ChannelUpdateService:
                 error_message="Channel no longer available on YouTube"
             )
 
-        elif isinstance(error, APIRateLimitError):
-            retry_delay = min(RETRY_BASE_DELAY_SECONDS * (2 ** channel.failed_update_count), MAX_RETRY_DELAY_SECONDS)
-            print(f"INFO: Rate limited for channel {channel.uuid}, retry in {retry_delay}s")
-
+        elif isinstance(error, (APIRateLimitError, APIServerError)):
+            error_type = "rate_limited" if isinstance(error, APIRateLimitError) else "server_error"
+            self._log_update_failure(channel, error_type, str(error))
             return ChannelUpdateResult(
                 channel_uuid=str(channel.uuid),
                 success=False,
                 changes_made={},
-                error_message=f"Rate limited - retry in {retry_delay} seconds",
+                error_message=f"Transient error: {str(error)}",
                 quota_used=0
             )
 
         elif isinstance(error, ChannelAccessDeniedError):
+            old_status = channel.is_available
             channel.failed_update_count += 1
             if channel.failed_update_count >= MAX_FAILED_ATTEMPTS_BEFORE_UNAVAILABLE:
                 channel.is_available = False
             channel.save()
 
             self._log_update_failure(channel, "access_denied", str(error))
+            if old_status != channel.is_available:
+                self._log_channel_status_change(channel, old_status, channel.is_available, f"Too many failed attempts ({channel.failed_update_count})")
 
             return ChannelUpdateResult(
                 channel_uuid=str(channel.uuid),
@@ -286,7 +292,6 @@ class ChannelUpdateService:
             channel.failed_update_count += 1
             channel.save()
 
-            print(f"ERROR: Unexpected error updating channel {channel.uuid}: {str(error)}")
             self._log_update_failure(channel, "unknown_error", str(error))
 
             return ChannelUpdateResult(
@@ -297,18 +302,45 @@ class ChannelUpdateService:
             )
 
     def _log_update_success(self, channel: Channel, changes_made: Dict[str, Any], new_videos_count: int) -> None:
-        """Log successful update with change tracking"""
-        print(
-            f"INFO: Successfully updated channel {channel.uuid} ({channel.title}): "
-            f"{len(changes_made)} changes made, {new_videos_count} new videos added"
-        )
+        """Log successful update with structured change tracking"""
+        change_summary = ", ".join([f"{field}: {change['old']} -> {change['new']}"
+                                   for field, change in changes_made.items()
+                                   if field != 'new_videos'])
+
+        print(f"[CHANNEL_UPDATE_SUCCESS] Channel: {channel.uuid} ({channel.title})")
+        print(f"  - Changes: {len(changes_made)} fields updated")
+        if change_summary:
+            print(f"  - Details: {change_summary}")
+        if new_videos_count > 0:
+            print(f"  - New videos: {new_videos_count} added")
 
     def _log_update_failure(self, channel: Channel, error_type: str, error_message: str) -> None:
-        """Log failed update with error categorization"""
-        print(
-            f"ERROR: Failed to update channel {channel.uuid} ({channel.title}): "
-            f"{error_type} - {error_message}"
-        )
+        """Log failed update with comprehensive error categorization"""
+        error_categories = {
+            'channel_not_found': 'PERMANENT_FAILURE',
+            'access_denied': 'PERMISSION_FAILURE',
+            'invalid_data': 'DATA_INTEGRITY_FAILURE',
+            'quota_exceeded': 'QUOTA_FAILURE',
+            'rate_limited': 'RATE_LIMIT_FAILURE',
+            'server_error': 'TRANSIENT_FAILURE',
+            'unknown_error': 'UNKNOWN_FAILURE'
+        }
+
+        category = error_categories.get(error_type, 'UNKNOWN_FAILURE')
+
+        print(f"[CHANNEL_UPDATE_FAILURE] Channel: {channel.uuid} ({channel.title})")
+        print(f"  - Error Type: {error_type}")
+        print(f"  - Category: {category}")
+        print(f"  - Message: {error_message}")
+        print(f"  - Failed Attempts: {channel.failed_update_count}")
+        print(f"  - Available: {channel.is_available}")
+
+    def _log_channel_status_change(self, channel: Channel, old_status: bool, new_status: bool, reason: str) -> None:
+        """Log channel availability status changes"""
+        status_change = "ENABLED" if new_status else "DISABLED"
+        print(f"[CHANNEL_STATUS_CHANGE] Channel: {channel.uuid} ({channel.title})")
+        print(f"  - Status: {old_status} -> {new_status} ({status_change})")
+        print(f"  - Reason: {reason}")
 
     def determine_update_priority(self, channel: Channel) -> int:
         """Calculate channel update priority based on user engagement"""
