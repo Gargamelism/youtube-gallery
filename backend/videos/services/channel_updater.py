@@ -19,6 +19,7 @@ from videos.exceptions import (
 )
 from videos.models import Channel, Video
 from videos.services.youtube import YouTubeService
+from videos.services.quota_tracker import QuotaTracker
 from videos.utils.retry import retry_transient_failures
 
 # Priority calculation constants
@@ -52,16 +53,27 @@ class ChannelUpdateResult:
 class ChannelUpdateService:
     """Service for updating channel metadata from YouTube API"""
 
-    def __init__(self, youtube_service: YouTubeService):
+    def __init__(self, youtube_service: YouTubeService, quota_tracker: Optional[QuotaTracker] = None):
         self.youtube_service = youtube_service
+        self.quota_tracker = quota_tracker or QuotaTracker()
 
     def update_channel(self, channel: Channel) -> ChannelUpdateResult:
         """Update a single channel's metadata and fetch new videos"""
+        if not self.quota_tracker.can_make_request("channels.list"):
+            return ChannelUpdateResult(
+                channel_uuid=str(channel.uuid),
+                success=False,
+                changes_made={},
+                error_message="Insufficient quota for channel update",
+                quota_used=0
+            )
+
         try:
             channel_data = self._fetch_channel_data(channel.channel_id)
+            self.quota_tracker.record_usage("channels.list")
+
             changes_made = self._apply_channel_updates(channel, channel_data)
 
-            # Fetch new videos using existing YouTubeService
             new_videos_count = self._fetch_new_videos(channel)
             if new_videos_count > 0:
                 changes_made['new_videos'] = {'count': new_videos_count}
@@ -179,6 +191,10 @@ class ChannelUpdateService:
     def _fetch_new_videos(self, channel: Channel) -> int:
         """Fetch new videos for the channel, stopping at first existing video for efficiency"""
         try:
+            if not self.quota_tracker.can_make_request("playlistItems.list"):
+                print(f"WARNING: Insufficient quota for video fetching for channel {channel.uuid}")
+                return 0
+
             channel_details = self.youtube_service.get_channel_details(channel.channel_id)
             if not channel_details or 'uploads_playlist_id' not in channel_details:
                 print(f"INFO: No uploads playlist found for channel {channel.uuid}")
@@ -194,6 +210,11 @@ class ChannelUpdateService:
             videos_generator = self.youtube_service.get_channel_videos(uploads_playlist_id)
 
             for page_videos in videos_generator:
+                self.quota_tracker.record_usage("playlistItems.list")
+
+                if page_videos:
+                    self.quota_tracker.record_usage("videos.list")
+
                 found_existing_video = False
 
                 for video_data in page_videos:
@@ -363,3 +384,49 @@ class ChannelUpdateService:
             priority += PRIORITY_NEVER_UPDATED_BONUS
 
         return max(0, priority)
+
+    def update_channels_batch(self, channels) -> Dict[str, Any]:
+        """Update multiple channels with quota optimization"""
+        if not channels:
+            return {
+                'processed': 0,
+                'successful': 0,
+                'failed': 0,
+                'quota_used': 0,
+                'stopped_due_to_quota': False,
+                'results': []
+            }
+
+        optimal_batch_size = self.quota_tracker.optimize_batch_size("channels.list")
+        channels_to_process = channels[:optimal_batch_size] if optimal_batch_size > 0 else []
+
+        successful_updates = 0
+        failed_updates = 0
+        total_quota_used = 0
+        results = []
+        stopped_due_to_quota = len(channels_to_process) < len(channels)
+
+        for channel in channels_to_process:
+            if not self.quota_tracker.can_make_request("channels.list"):
+                stopped_due_to_quota = True
+                break
+
+            result = self.update_channel(channel)
+            results.append(result)
+
+            if result.success:
+                successful_updates += 1
+            else:
+                failed_updates += 1
+
+            total_quota_used += result.quota_used
+
+        return {
+            'processed': len(results),
+            'successful': successful_updates,
+            'failed': failed_updates,
+            'quota_used': total_quota_used,
+            'stopped_due_to_quota': stopped_due_to_quota,
+            'results': results,
+            'quota_summary': self.quota_tracker.get_usage_summary()
+        }

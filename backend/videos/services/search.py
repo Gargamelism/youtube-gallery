@@ -3,7 +3,7 @@ from django.db.models import QuerySet, Count, Q, Exists, OuterRef, Prefetch
 
 from ..models import Video
 from ..validators import TagMode, WatchStatus
-from users.models import User, UserChannel, UserVideo, UserChannelTag
+from users.models import User, UserChannel, UserVideo, UserChannelTag, ChannelTag
 
 
 class VideoSearchService:
@@ -19,7 +19,7 @@ class VideoSearchService:
         watch_status: Optional[WatchStatus] = None,
     ) -> QuerySet[Video]:
         """
-        Search videos with complex filtering using a single optimized query
+        Search videos with complex filtering using optimized 4-query strategy
 
         Args:
             tag_names: List of validated tag names that belong to the user
@@ -27,13 +27,27 @@ class VideoSearchService:
             watch_status: WatchStatus enum for filtering by watch status
 
         Returns:
-            QuerySet of filtered videos (single DB call when evaluated)
+            QuerySet of filtered videos (4 optimized DB queries regardless of filtering complexity)
         """
-        queryset = Video.objects.select_related("channel").prefetch_related(
-            Prefetch("user_videos", queryset=UserVideo.objects.filter(user=self.user)),
+        # Optimized 4-query strategy achieves consistent performance:
+        # Query 1: Videos with channel data
+        queryset = Video.objects.select_related("channel")
+
+        # Query 2: User videos prefetch
+        queryset = queryset.prefetch_related(
+            Prefetch("user_videos", queryset=UserVideo.objects.filter(user=self.user))
+        )
+
+        # Query 3 & 4: Channel tags with strategic prefetching
+        queryset = queryset.prefetch_related(
             Prefetch(
-                "channel__user_subscriptions", 
-                queryset=UserChannel.objects.filter(user=self.user).prefetch_related("channel_tags__tag")
+                "channel__user_subscriptions",
+                queryset=UserChannel.objects.filter(user=self.user).prefetch_related(
+                    Prefetch(
+                        "channel_tags",
+                        queryset=UserChannelTag.objects.select_related("tag").filter(tag__user=self.user)
+                    )
+                )
             )
         )
 

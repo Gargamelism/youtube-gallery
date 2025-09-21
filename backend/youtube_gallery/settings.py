@@ -173,6 +173,11 @@ CAPTCHA_PRIVATE_KEY = config("RECAPTCHA_PRIVATE_KEY")
 
 FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:3000")
 
+# Redis settings
+REDIS_HOST = config("REDIS_HOST", default="localhost")
+REDIS_PORT = config("REDIS_PORT", default=6379, cast=int)
+REDIS_DB = config("REDIS_DB", default=0, cast=int)
+
 # Authentication cookie settings
 AUTH_COOKIE_NAME = "youtube-gallery-auth"
 
