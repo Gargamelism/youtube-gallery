@@ -177,6 +177,8 @@ FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:3000")
 REDIS_HOST = config("REDIS_HOST", default="localhost")
 REDIS_PORT = config("REDIS_PORT", default=6379, cast=int)
 REDIS_DB = config("REDIS_DB", default=0, cast=int)
+REDIS_PASSWORD = config("REDIS_PASSWORD", default="default_dev_password")
+REDIS_USER = config("REDIS_USER", default="youtube_app")
 
 # Authentication cookie settings
 AUTH_COOKIE_NAME = "youtube-gallery-auth"

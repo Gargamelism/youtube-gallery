@@ -14,6 +14,8 @@ This file is to remind me of little tasks todo without breaking my flow or claud
     1. add a background gradient based on the tag and have cards with frosted glass
     1. make text and items hierarchy 
 1. continue importing after youtube auth
+1. email verification
+1. otp login
 1. add profile page
 1. add settings page
 1. extract your subscriptions to componenet

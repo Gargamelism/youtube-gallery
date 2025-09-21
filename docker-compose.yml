@@ -1,4 +1,22 @@
 services:
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-default_dev_password}
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - youtube_gallery_network
+    command: >
+      sh -c "
+      sed 's/REDIS_PASSWORD_PLACEHOLDER/$$REDIS_PASSWORD/' /usr/local/etc/redis/redis.conf > /tmp/redis.conf &&
+      redis-server /tmp/redis.conf
+      "
+
   # PostgreSQL Database
   db:
     image: postgres:15
@@ -32,12 +50,18 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=postgres
       - DB_PORT=5432
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-default_dev_password}
+      - REDIS_USER=youtube_app
     volumes:
       - ./backend:/app
     ports:
       - '5679:5679' # debugpy port for test debugging
     depends_on:
       - db
+      - redis
     networks:
       - youtube_gallery_network
     # Exit after running tests (or debug mode)
@@ -58,6 +82,11 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=postgres
       - DB_PORT=5432
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-default_dev_password}
+      - REDIS_USER=youtube_app
       - YOUTUBE_CREDENTIALS_DIR=/app/config/credentials
       - YOUTUBE_CLIENT_SECRET_FILE=client_secret.json
       - YOUTUBE_TOKEN_FILE=token.json
@@ -69,6 +98,7 @@ services:
       - '5678:5678' # debugpy port for VS Code debugging
     depends_on:
       - db
+      - redis
     networks:
       - youtube_gallery_network
     command: >
@@ -102,6 +132,8 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+  redis_data:
     driver: local
 
 networks:
