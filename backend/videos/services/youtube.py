@@ -10,6 +10,7 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import Resource, build
 from videos.models import Channel, Video
+from videos.services.quota_tracker import QuotaTracker
 from videos.utils.dateutils import timezone_aware_datetime
 
 YOUTUBE_SCOPES = ["https://www.googleapis.com/auth/youtube.readonly"]
@@ -41,13 +42,14 @@ class YouTubeAuthenticationError(Exception):
 
 
 class YouTubeService:
-    def __init__(self, credentials=None, redirect_uri=None):
+    def __init__(self, credentials=None, redirect_uri=None, quota_tracker: Optional[QuotaTracker] = None):
         if not credentials:
             auth_url = self._generate_oauth_url(redirect_uri)
             raise YouTubeAuthenticationError("YouTube credentials are required", auth_url=auth_url)
 
         self.credentials = credentials
         self.youtube: Resource = build("youtube", "v3", credentials=credentials)
+        self.quota_tracker = quota_tracker or QuotaTracker()
 
     @staticmethod
     def get_client_config() -> YouTubeClientConfig:
@@ -136,8 +138,12 @@ class YouTubeService:
 
     def _get_channel_by_id(self, channel_id: str) -> Optional[Dict[str, Any]]:
         """Get channel details using channel ID"""
+        if not self.quota_tracker.can_make_request("channels.list"):
+            raise Exception("Insufficient quota for channels.list API call")
+
         request = self.youtube.channels().list(part="snippet,statistics,contentDetails", id=channel_id)
         response = request.execute()
+        self.quota_tracker.record_usage("channels.list")
 
         if not response["items"]:
             return None
@@ -146,8 +152,12 @@ class YouTubeService:
 
     def _get_channel_by_handle(self, handle: str) -> Optional[Dict[str, Any]]:
         """Get channel details using username (without @ symbol)"""
+        if not self.quota_tracker.can_make_request("channels.list"):
+            raise Exception("Insufficient quota for channels.list API call")
+
         request = self.youtube.channels().list(part="snippet,statistics,contentDetails", forUsername=handle)
         response = request.execute()
+        self.quota_tracker.record_usage("channels.list")
 
         if response["pageInfo"]["totalResults"] == 0:
             return None
@@ -156,8 +166,12 @@ class YouTubeService:
 
     def _search_channel_by_handle(self, handle: str) -> Optional[str]:
         """Search for channel ID using handle via search API"""
+        if not self.quota_tracker.can_make_request("search.list"):
+            raise Exception("Insufficient quota for search.list API call")
+
         request = self.youtube.search().list(part="snippet", q=handle, type="channel", maxResults=1)
         response = request.execute()
+        self.quota_tracker.record_usage("search.list")
 
         if not response["items"]:
             return None
@@ -208,6 +222,10 @@ class YouTubeService:
 
         while True:
             try:
+                if not self.quota_tracker.can_make_request("playlistItems.list"):
+                    print("WARNING: Insufficient quota for playlistItems.list API call")
+                    break
+
                 playlist_request = self.youtube.playlistItems().list(
                     part="contentDetails",
                     playlistId=uploads_playlist_id,
@@ -215,14 +233,20 @@ class YouTubeService:
                     pageToken=next_page_token,
                 )
                 playlist_response = playlist_request.execute()
+                self.quota_tracker.record_usage("playlistItems.list")
 
                 video_ids = [item["contentDetails"]["videoId"] for item in playlist_response["items"]]
 
                 if video_ids:
+                    if not self.quota_tracker.can_make_request("videos.list"):
+                        print("WARNING: Insufficient quota for videos.list API call")
+                        break
+
                     video_request = self.youtube.videos().list(
                         part="snippet,contentDetails,statistics", id=",".join(video_ids)
                     )
                     video_response = video_request.execute()
+                    self.quota_tracker.record_usage("videos.list")
 
                     page_videos = []
                     for video in video_response["items"]:
