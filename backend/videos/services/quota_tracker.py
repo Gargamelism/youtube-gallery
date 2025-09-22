@@ -17,13 +17,14 @@ class QuotaUsageModel(JsonModel):
     operations_count: Dict[str, int] = Field(default_factory=dict)
 
     class Meta:
+        global_key_prefix = "quota"
         database = get_redis_connection(
             host=settings.REDIS_HOST,
             port=settings.REDIS_PORT,
             db=settings.REDIS_DB,
             username=settings.REDIS_USER,
             password=settings.REDIS_PASSWORD,
-            decode_responses=True
+            decode_responses=True,
         )
 
 
@@ -148,7 +149,9 @@ class QuotaTracker:
         except Exception as e:
             print(f"WARNING: Failed to retrieve quota data from Redis-OM: {e}")
 
-        return QuotaUsageModel(pk=self.quota_key, daily_usage=0, operations_count={})
+        new_quota = QuotaUsageModel(daily_usage=0, operations_count={})
+        new_quota.save()
+        return new_quota
 
     def _store_usage_data(self, usage_data: QuotaUsageModel) -> None:
         if not self.use_redis_om:
@@ -176,4 +179,6 @@ class QuotaTracker:
                 return "normal"
 
     def _get_fallback_data(self) -> QuotaUsageModel:
-        return QuotaUsageModel(pk=self.quota_key, daily_usage=0, operations_count={})
+        new_quota = QuotaUsageModel(daily_usage=0, operations_count={})
+        new_quota.save()
+        return new_quota
