@@ -174,6 +174,9 @@ CAPTCHA_PRIVATE_KEY = config("RECAPTCHA_PRIVATE_KEY")
 
 FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:3000")
 
+# YouTube API settings
+YOUTUBE_API_KEY = config("YOUTUBE_API_KEY", default="")
+
 # Redis settings
 REDIS_HOST = config("REDIS_HOST", default="localhost")
 REDIS_PORT = config("REDIS_PORT", default=6379, cast=int)

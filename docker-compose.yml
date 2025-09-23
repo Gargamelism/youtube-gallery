@@ -1,19 +1,21 @@
 # YAML anchors for shared environment variables
 x-backend-env: &backend-env
   DEBUG: True
-  DB_HOST: db
-  DB_NAME: postgres
-  DB_USER: postgres
-  DB_PASSWORD: postgres
-  DB_PORT: 5432
+  DB_HOST: ${DB_HOST}
+  DB_NAME: ${DB_NAME}
+  DB_USER: ${DB_USER}
+  DB_PASSWORD: ${DB_PASSWORD}
+  DB_PORT: ${DB_PORT}
   REDIS_HOST: redis
   REDIS_PORT: 6379
   REDIS_DB: 0
-  REDIS_PASSWORD: ${REDIS_PASSWORD:-default_dev_password}
-  REDIS_USER: youtube_app
+  REDIS_PASSWORD: ${REDIS_PASSWORD}
+  REDIS_USER: ${REDIS_USER}
   YOUTUBE_CREDENTIALS_DIR: /app/config/credentials
   YOUTUBE_CLIENT_SECRET_FILE: client_secret.json
   YOUTUBE_TOKEN_FILE: token.json
+  YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
+  RECAPTCHA_PRIVATE_KEY: ${RECAPTCHA_PRIVATE_KEY}
   FRONTEND_URL: http://localhost:3000
 
 x-test-env: &test-env
@@ -27,23 +29,17 @@ x-test-env: &test-env
   DB_PORT: 5432
 
 services:
-  # Redis Cache
+  # Redis Stack Server with JSON support
   redis:
-    image: redis:7-alpine
+    image: redis/redis-stack-server:latest
     environment:
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-default_dev_password}
+      - REDIS_ARGS=--requirepass ${REDIS_PASSWORD:-default_dev_password} --user default off --user ${REDIS_USER:-youtube_app} on >${REDIS_PASSWORD:-default_dev_password} ~* &* +@all
     ports:
       - '6379:6379'
     volumes:
       - redis_data:/data
-      - ./redis.conf:/usr/local/etc/redis/redis.conf
     networks:
       - youtube_gallery_network
-    command: >
-      sh -c "
-      sed 's/REDIS_PASSWORD_PLACEHOLDER/'\"$$REDIS_PASSWORD\"'/' /usr/local/etc/redis/redis.conf > /tmp/redis.conf &&
-      redis-server /tmp/redis.conf
-      "
 
   # PostgreSQL Database
   db:

@@ -20,6 +20,7 @@ app.conf.update(
     # Broker settings
     broker_url=f"redis://:{settings.REDIS_PASSWORD}@{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB}",
     result_backend=f"redis://:{settings.REDIS_PASSWORD}@{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB}",
+    broker_connection_retry_on_startup=True,
     # Task settings
     task_serializer="json",
     accept_content=["json"],

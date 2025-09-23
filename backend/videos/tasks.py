@@ -1,5 +1,6 @@
 from celery import shared_task
 from celery.exceptions import Retry
+from django.conf import settings
 from django.db import transaction
 from typing import List
 
@@ -39,7 +40,7 @@ def update_single_channel(self, channel_uuid: str):
                 "error_type": "channel_not_found"
             }
 
-        youtube_service = YouTubeService()
+        youtube_service = YouTubeService(api_key=settings.YOUTUBE_API_KEY)
         quota_tracker = QuotaTracker()
         channel_updater = ChannelUpdateService(youtube_service, quota_tracker)
 
@@ -81,7 +82,7 @@ def update_channels_batch(self, channel_uuids: List[str] = None):
         else:
             channels = Channel.objects.filter(uuid__in=channel_uuids, is_available=True)
 
-        youtube_service = YouTubeService()
+        youtube_service = YouTubeService(api_key=settings.YOUTUBE_API_KEY)
         quota_tracker = QuotaTracker()
         channel_updater = ChannelUpdateService(youtube_service, quota_tracker)
 
@@ -118,7 +119,7 @@ def update_channels_batch(self, channel_uuids: List[str] = None):
 def update_priority_channels_async(self, max_channels: int = 50):
     """Update high-priority channels based on user engagement and subscriber count"""
     try:
-        youtube_service = YouTubeService()
+        youtube_service = YouTubeService(api_key=settings.YOUTUBE_API_KEY)
         quota_tracker = QuotaTracker()
         channel_updater = ChannelUpdateService(youtube_service, quota_tracker)
 

@@ -5,15 +5,21 @@ This module provides functionality to track and manage YouTube API quota usage
 using Redis-OM for persistence and daily quota limits.
 """
 
+import warnings
 from datetime import datetime, timezone, timedelta
 from typing import Dict, Optional
 
 from django.conf import settings
 from redis_om import Field, JsonModel, Migrator, get_redis_connection
 
+# Suppress Redis-OM/Pydantic pk field shadowing warnings
+warnings.filterwarnings("ignore", message='Field name "pk" shadows an attribute in parent', category=UserWarning)
 
-class QuotaUsageModel(JsonModel):
-    daily_usage: int = Field(default=0, index=True)
+THIRTY_DAYS_IN_SECONDS = 30 * 24 * 60 * 60
+
+class DailyQuotaUsage(JsonModel):
+    date: str = Field(index=True)
+    daily_usage: int = Field(default=0)
     operations_count: Dict[str, int] = Field(default_factory=dict)
 
     class Meta:
@@ -26,6 +32,15 @@ class QuotaUsageModel(JsonModel):
             password=settings.REDIS_PASSWORD,
             decode_responses=True,
         )
+
+    def save(self, **kwargs):
+        """Save with automatic TTL of 30 days"""
+        result = super().save(**kwargs)
+        try:
+            self.db().expire(self.key(), THIRTY_DAYS_IN_SECONDS)
+        except Exception as e:
+            print(f"WARNING: Failed to set TTL on quota record: {e}")
+        return result
 
 
 class QuotaTracker:
@@ -44,15 +59,17 @@ class QuotaTracker:
 
     def __init__(self, daily_quota_limit: int = 10000):
         self.daily_quota_limit = daily_quota_limit
-        self.quota_key = "youtube_api_quota"
 
         try:
             Migrator().run()
             self.use_redis_om = True
-            print("INFO: QuotaTracker initialized with Redis-OM storage")
         except Exception as e:
             print(f"WARNING: Redis-OM initialization failed: {e}")
             self.use_redis_om = False
+
+    def _get_today_key(self) -> str:
+        """Get current date as string key"""
+        return datetime.now().strftime("%Y-%m-%d")
 
     def can_make_request(self, operation: str = "channels.list") -> bool:
         quota_cost = self.QUOTA_COSTS.get(operation)
@@ -85,9 +102,6 @@ class QuotaTracker:
 
         self._store_usage_data(usage_data)
 
-        print(
-            f"INFO: Recorded quota usage - {operation} cost={quota_cost}, total_usage={usage_data.daily_usage}/{self.daily_quota_limit}"
-        )
 
         if usage_data.daily_usage >= (self.daily_quota_limit * self.ALERT_THRESHOLD):
             percentage = usage_data.daily_usage / self.daily_quota_limit * 100
@@ -129,56 +143,62 @@ class QuotaTracker:
         return max(0, optimal_size)
 
     def force_reset_quota(self) -> None:
+        """Reset today's quota usage"""
         if self.use_redis_om:
             try:
-                existing_quota = QuotaUsageModel.find(QuotaUsageModel.pk == self.quota_key).first()
+                today = self._get_today_key()
+                existing_quota = DailyQuotaUsage.find(DailyQuotaUsage.date == today).first()
                 if existing_quota:
                     existing_quota.delete()
             except Exception as e:
                 print(f"WARNING: Failed to delete quota data: {e}")
-        print("INFO: Quota manually reset")
 
-    def _get_usage_data(self) -> QuotaUsageModel:
+    def _get_usage_data(self) -> DailyQuotaUsage:
+        """Get or create today's quota usage record"""
         if not self.use_redis_om:
             return self._get_fallback_data()
 
+        today = self._get_today_key()
+
         try:
-            existing_quota = QuotaUsageModel.find(QuotaUsageModel.pk == self.quota_key).first()
+            existing_quota = DailyQuotaUsage.find(DailyQuotaUsage.date == today).first()
             if existing_quota:
                 return existing_quota
         except Exception as e:
             print(f"WARNING: Failed to retrieve quota data from Redis-OM: {e}")
+            return self._get_fallback_data()
 
-        new_quota = QuotaUsageModel(daily_usage=0, operations_count={})
-        new_quota.save()
-        return new_quota
+        # Create new record for today
+        try:
+            new_quota = DailyQuotaUsage(date=today, daily_usage=0, operations_count={})
+            new_quota.save()
+            return new_quota
+        except Exception as e:
+            print(f"ERROR: Failed to create/save new quota record: {e}")
+            return self._get_fallback_data()
 
-    def _store_usage_data(self, usage_data: QuotaUsageModel) -> None:
+    def _store_usage_data(self, usage_data: DailyQuotaUsage) -> None:
+        """Store updated quota data"""
         if not self.use_redis_om:
             return
 
         try:
-            now = datetime.now(timezone.utc)
-            midnight = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-            seconds_until_midnight = int((midnight - now).total_seconds())
-
-            usage_data.expire(seconds_until_midnight)
             usage_data.save()
         except Exception as e:
             print(f"ERROR: Failed to store quota data: {e}")
 
     def _get_quota_status(self, percentage_used: float) -> str:
-        match percentage_used:
-            case used if used >= 95:
-                return "critical"
-            case used if used >= 80:
-                return "high"
-            case used if used >= 60:
-                return "moderate"
-            case _:
-                return "normal"
+        """Get human-readable quota status"""
+        if percentage_used >= 95:
+            return "critical"
+        elif percentage_used >= 80:
+            return "high"
+        elif percentage_used >= 60:
+            return "moderate"
+        else:
+            return "normal"
 
-    def _get_fallback_data(self) -> QuotaUsageModel:
-        new_quota = QuotaUsageModel(daily_usage=0, operations_count={})
-        new_quota.save()
-        return new_quota
+    def _get_fallback_data(self) -> DailyQuotaUsage:
+        """Fallback quota data when Redis-OM is unavailable"""
+        today = self._get_today_key()
+        return DailyQuotaUsage(date=today, daily_usage=0, operations_count={})

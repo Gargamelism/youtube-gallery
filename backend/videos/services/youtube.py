@@ -42,14 +42,24 @@ class YouTubeAuthenticationError(Exception):
 
 
 class YouTubeService:
-    def __init__(self, credentials=None, redirect_uri=None, quota_tracker: Optional[QuotaTracker] = None):
-        if not credentials:
+    def __init__(self, credentials=None, api_key=None, redirect_uri=None, quota_tracker: Optional[QuotaTracker] = None):
+        self.credentials = credentials
+        self.api_key = api_key
+        self.quota_tracker = quota_tracker or QuotaTracker()
+
+        # Initialize YouTube API client
+        if credentials:
+            # OAuth authentication
+            self.youtube: Resource = build("youtube", "v3", credentials=credentials)
+            self.auth_type = "oauth"
+        elif api_key:
+            # API key authentication
+            self.youtube: Resource = build("youtube", "v3", developerKey=api_key)
+            self.auth_type = "api_key"
+        else:
+            # Neither provided - require OAuth
             auth_url = self._generate_oauth_url(redirect_uri)
             raise YouTubeAuthenticationError("YouTube credentials are required", auth_url=auth_url)
-
-        self.credentials = credentials
-        self.youtube: Resource = build("youtube", "v3", credentials=credentials)
-        self.quota_tracker = quota_tracker or QuotaTracker()
 
     @staticmethod
     def get_client_config() -> YouTubeClientConfig:
