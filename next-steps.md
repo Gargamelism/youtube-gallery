@@ -1,6 +1,5 @@
 This file is to remind me of little tasks todo without breaking my flow or claude related feature-creep
 
-1. update channel videos
 1. limit user's quota usage
 1. add video filtering search
 1. add sidebar filtering videos by channels
