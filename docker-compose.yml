@@ -1,4 +1,46 @@
+# YAML anchors for shared environment variables
+x-backend-env: &backend-env
+  DEBUG: True
+  DB_HOST: ${DB_HOST}
+  DB_NAME: ${DB_NAME}
+  DB_USER: ${DB_USER}
+  DB_PASSWORD: ${DB_PASSWORD}
+  DB_PORT: ${DB_PORT}
+  REDIS_HOST: redis
+  REDIS_PORT: 6379
+  REDIS_DB: 0
+  REDIS_PASSWORD: ${REDIS_PASSWORD}
+  REDIS_USER: ${REDIS_USER}
+  YOUTUBE_CREDENTIALS_DIR: /app/config/credentials
+  YOUTUBE_CLIENT_SECRET_FILE: client_secret.json
+  YOUTUBE_TOKEN_FILE: token.json
+  YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
+  RECAPTCHA_PRIVATE_KEY: ${RECAPTCHA_PRIVATE_KEY}
+  FRONTEND_URL: http://localhost:3000
+
+x-test-env: &test-env
+  TESTING: 1
+  PYTHONPATH: /app
+  DJANGO_SETTINGS_MODULE: youtube_gallery.settings
+  DB_HOST: db
+  DB_NAME: postgres
+  DB_USER: postgres
+  DB_PASSWORD: postgres
+  DB_PORT: 5432
+
 services:
+  # Redis Stack Server with JSON support
+  redis:
+    image: redis/redis-stack-server:latest
+    environment:
+      - REDIS_ARGS=--requirepass ${REDIS_PASSWORD:-default_dev_password} --user default off --user ${REDIS_USER:-youtube_app} on >${REDIS_PASSWORD:-default_dev_password} ~* &* +@all
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    networks:
+      - youtube_gallery_network
+
   # PostgreSQL Database
   db:
     image: postgres:15
@@ -20,24 +62,14 @@ services:
       target: test
     working_dir: /app
     profiles: ['test']
-    environment:
-      - TESTING=1
-      - PYTHONPATH=/app
-      - DJANGO_SETTINGS_MODULE=youtube_gallery.settings
-      - YOUTUBE_CREDENTIALS_DIR=/app/config/credentials
-      - YOUTUBE_CLIENT_SECRET_FILE=client_secret.json
-      - YOUTUBE_TOKEN_FILE=token.json
-      - DB_HOST=db
-      - DB_NAME=postgres
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DB_PORT=5432
+    environment: *test-env
     volumes:
       - ./backend:/app
     ports:
       - '5679:5679' # debugpy port for test debugging
     depends_on:
       - db
+      - redis
     networks:
       - youtube_gallery_network
     # Exit after running tests (or debug mode)
@@ -51,17 +83,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       target: development
-    environment:
-      - DEBUG=True
-      - DB_HOST=db
-      - DB_NAME=postgres
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DB_PORT=5432
-      - YOUTUBE_CREDENTIALS_DIR=/app/config/credentials
-      - YOUTUBE_CLIENT_SECRET_FILE=client_secret.json
-      - YOUTUBE_TOKEN_FILE=token.json
-      - FRONTEND_URL=http://localhost:3000
+    environment: *backend-env
     volumes:
       - ./backend:/app
     ports:
@@ -69,16 +91,72 @@ services:
       - '5678:5678' # debugpy port for VS Code debugging
     depends_on:
       - db
+      - redis
     networks:
       - youtube_gallery_network
     command: >
       sh -c "/usr/local/bin/python manage.py makemigrations videos &&
              /usr/local/bin/python manage.py migrate &&
+             /usr/local/bin/python manage.py setup_periodic_tasks &&
              /usr/local/bin/python manage.py collectstatic --noinput &&
              /usr/local/bin/python -m debugpy --listen 0.0.0.0:5678 manage.py runserver 0.0.0.0:8000 --noreload"
     # Note: Add --wait-for-client after debugpy if you need to debug Django startup code
     stdin_open: true
     tty: true
+
+  # Celery Worker
+  celery_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    environment: *backend-env
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - db
+      - redis
+    networks:
+      - youtube_gallery_network
+    command: celery -A youtube_gallery worker --loglevel=info --concurrency=2 -Q celery,priority,bulk,maintenance
+    restart: unless-stopped
+
+  # Celery Beat (Task Scheduler)
+  celery_beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    environment: *backend-env
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - db
+      - redis
+      - celery_worker
+    networks:
+      - youtube_gallery_network
+    command: celery -A youtube_gallery beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    restart: unless-stopped
+
+  # Celery Flower (Monitoring)
+  celery_flower:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    environment: *backend-env
+    volumes:
+      - ./backend:/app
+    ports:
+      - '5555:5555'
+    depends_on:
+      - redis
+      - celery_worker
+    networks:
+      - youtube_gallery_network
+    command: celery -A youtube_gallery flower --address=0.0.0.0 --port=5555
+    restart: unless-stopped
 
   # Next.js Frontend (Development with hot reload)
   frontend:
@@ -102,6 +180,8 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+  redis_data:
     driver: local
 
 networks:

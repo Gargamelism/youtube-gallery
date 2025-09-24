@@ -10,6 +10,7 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import Resource, build
 from videos.models import Channel, Video
+from videos.services.quota_tracker import QuotaTracker
 from videos.utils.dateutils import timezone_aware_datetime
 
 YOUTUBE_SCOPES = ["https://www.googleapis.com/auth/youtube.readonly"]
@@ -41,13 +42,24 @@ class YouTubeAuthenticationError(Exception):
 
 
 class YouTubeService:
-    def __init__(self, credentials=None, redirect_uri=None):
-        if not credentials:
+    def __init__(self, credentials=None, api_key=None, redirect_uri=None, quota_tracker: Optional[QuotaTracker] = None):
+        self.credentials = credentials
+        self.api_key = api_key
+        self.quota_tracker = quota_tracker or QuotaTracker()
+
+        # Initialize YouTube API client
+        if credentials:
+            # OAuth authentication
+            self.youtube: Resource = build("youtube", "v3", credentials=credentials)
+            self.auth_type = "oauth"
+        elif api_key:
+            # API key authentication
+            self.youtube: Resource = build("youtube", "v3", developerKey=api_key)
+            self.auth_type = "api_key"
+        else:
+            # Neither provided - require OAuth
             auth_url = self._generate_oauth_url(redirect_uri)
             raise YouTubeAuthenticationError("YouTube credentials are required", auth_url=auth_url)
-
-        self.credentials = credentials
-        self.youtube: Resource = build("youtube", "v3", credentials=credentials)
 
     @staticmethod
     def get_client_config() -> YouTubeClientConfig:
@@ -136,8 +148,12 @@ class YouTubeService:
 
     def _get_channel_by_id(self, channel_id: str) -> Optional[Dict[str, Any]]:
         """Get channel details using channel ID"""
+        if not self.quota_tracker.can_make_request("channels.list"):
+            raise Exception("Insufficient quota for channels.list API call")
+
         request = self.youtube.channels().list(part="snippet,statistics,contentDetails", id=channel_id)
         response = request.execute()
+        self.quota_tracker.record_usage("channels.list")
 
         if not response["items"]:
             return None
@@ -146,8 +162,12 @@ class YouTubeService:
 
     def _get_channel_by_handle(self, handle: str) -> Optional[Dict[str, Any]]:
         """Get channel details using username (without @ symbol)"""
+        if not self.quota_tracker.can_make_request("channels.list"):
+            raise Exception("Insufficient quota for channels.list API call")
+
         request = self.youtube.channels().list(part="snippet,statistics,contentDetails", forUsername=handle)
         response = request.execute()
+        self.quota_tracker.record_usage("channels.list")
 
         if response["pageInfo"]["totalResults"] == 0:
             return None
@@ -156,8 +176,12 @@ class YouTubeService:
 
     def _search_channel_by_handle(self, handle: str) -> Optional[str]:
         """Search for channel ID using handle via search API"""
+        if not self.quota_tracker.can_make_request("search.list"):
+            raise Exception("Insufficient quota for search.list API call")
+
         request = self.youtube.search().list(part="snippet", q=handle, type="channel", maxResults=1)
         response = request.execute()
+        self.quota_tracker.record_usage("search.list")
 
         if not response["items"]:
             return None
@@ -202,13 +226,16 @@ class YouTubeService:
             # Error fetching channel details
             return None
 
-    def get_channel_videos(self, uploads_playlist_id: str) -> List[Dict[str, Any]]:
-        videos = []
+    def get_channel_videos(self, uploads_playlist_id: str):
+        """Generator that yields pages of video data"""
         next_page_token = None
 
         while True:
             try:
-                # Get playlist items (video IDs)
+                if not self.quota_tracker.can_make_request("playlistItems.list"):
+                    print("WARNING: Insufficient quota for playlistItems.list API call")
+                    break
+
                 playlist_request = self.youtube.playlistItems().list(
                     part="contentDetails",
                     playlistId=uploads_playlist_id,
@@ -216,16 +243,22 @@ class YouTubeService:
                     pageToken=next_page_token,
                 )
                 playlist_response = playlist_request.execute()
+                self.quota_tracker.record_usage("playlistItems.list")
 
                 video_ids = [item["contentDetails"]["videoId"] for item in playlist_response["items"]]
 
-                # Get detailed video information
                 if video_ids:
+                    if not self.quota_tracker.can_make_request("videos.list"):
+                        print("WARNING: Insufficient quota for videos.list API call")
+                        break
+
                     video_request = self.youtube.videos().list(
                         part="snippet,contentDetails,statistics", id=",".join(video_ids)
                     )
                     video_response = video_request.execute()
+                    self.quota_tracker.record_usage("videos.list")
 
+                    page_videos = []
                     for video in video_response["items"]:
                         video_data = {
                             "video_id": video["id"],
@@ -244,17 +277,16 @@ class YouTubeService:
                                 ",".join(video["snippet"].get("tags", [])) if video["snippet"].get("tags") else None
                             ),
                         }
-                        videos.append(video_data)
+                        page_videos.append(video_data)
+
+                    yield page_videos
 
                 next_page_token = playlist_response.get("nextPageToken")
                 if not next_page_token:
                     break
 
             except Exception as e:
-                # Error fetching videos
                 break
-
-        return videos
 
     def fetch_channel(self, channel_identifier: str) -> Optional[Channel]:
         """Fetch a channel and all its videos from YouTube"""
@@ -271,13 +303,14 @@ class YouTubeService:
             },
         )
 
-        videos = self.get_channel_videos(channel_info["uploads_playlist_id"])
+        videos_generator = self.get_channel_videos(channel_info["uploads_playlist_id"])
 
-        for video_data in videos:
-            Video.objects.update_or_create(
-                video_id=video_data.pop("video_id"),
-                defaults={**video_data, "channel": channel},
-            )
+        for page_videos in videos_generator:
+            for video_data in page_videos:
+                Video.objects.update_or_create(
+                    video_id=video_data.pop("video_id"),
+                    defaults={**video_data, "channel": channel},
+                )
 
         return channel
 

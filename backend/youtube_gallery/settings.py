@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "corsheaders",
+    "django_celery_beat",
     "users",
     "videos",
 ]
@@ -173,8 +174,26 @@ CAPTCHA_PRIVATE_KEY = config("RECAPTCHA_PRIVATE_KEY")
 
 FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:3000")
 
+# YouTube API settings
+YOUTUBE_API_KEY = config("YOUTUBE_API_KEY", default="")
+
+# Redis settings
+REDIS_HOST = config("REDIS_HOST", default="localhost")
+REDIS_PORT = config("REDIS_PORT", default=6379, cast=int)
+REDIS_DB = config("REDIS_DB", default=0, cast=int)
+REDIS_PASSWORD = config("REDIS_PASSWORD", default="default_dev_password")
+REDIS_USER = config("REDIS_USER", default="youtube_app")
+
 # Authentication cookie settings
 AUTH_COOKIE_NAME = "youtube-gallery-auth"
+
+# Celery Configuration
+CELERY_BROKER_URL = f"redis://{REDIS_USER}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
+CELERY_RESULT_BACKEND = f"redis://{REDIS_USER}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
+CELERY_ACCEPT_CONTENT = ["application/json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = TIME_ZONE
 
 # SQL Query logging for development
 if DEBUG and LOG_DB:

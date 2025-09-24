@@ -14,10 +14,14 @@ describe('addOpacityToHexColor', () => {
       expect(addOpacityToHexColor('#3B82F6')).toBe('#3B82F633');
     });
 
-    it('adds custom opacity percentage', () => {
-      expect(addOpacityToHexColor('#FF0000', 50)).toBe('#FF000080');
-      expect(addOpacityToHexColor('#00FF00', 100)).toBe('#00FF00ff');
-      expect(addOpacityToHexColor('#0000FF', 0)).toBe('#0000FF00');
+    const customOpacityTestCases = [
+      { color: '#FF0000', opacity: 50, expected: '#FF000080' },
+      { color: '#00FF00', opacity: 100, expected: '#00FF00ff' },
+      { color: '#0000FF', opacity: 0, expected: '#0000FF00' },
+    ];
+
+    test.each(customOpacityTestCases)('adds $opacity% opacity to $color', ({ color, opacity, expected }) => {
+      expect(addOpacityToHexColor(color, opacity)).toBe(expected);
     });
 
     it('handles single digit hex values correctly', () => {
@@ -73,24 +77,16 @@ describe('OPACITY_LEVELS constants', () => {
 describe('convenience opacity functions', () => {
   const testColor = '#3B82F6';
 
-  it('withSubtleOpacity applies 10% opacity', () => {
-    expect(withSubtleOpacity(testColor)).toBe('#3B82F61a'); // 10% = 26 = 0x1A
-  });
+  const opacityFunctionTestCases = [
+    { func: withSubtleOpacity, name: 'withSubtleOpacity', opacity: '10%', expected: '#3B82F61a' }, // 10% = 26 = 0x1A
+    { func: withLightOpacity, name: 'withLightOpacity', opacity: '20%', expected: '#3B82F633' }, // 20% = 51 = 0x33
+    { func: withMediumOpacity, name: 'withMediumOpacity', opacity: '40%', expected: '#3B82F666' }, // 40% = 102 = 0x66
+    { func: withStrongOpacity, name: 'withStrongOpacity', opacity: '60%', expected: '#3B82F699' }, // 60% = 153 = 0x99
+    { func: withOpaqueOpacity, name: 'withOpaqueOpacity', opacity: '80%', expected: '#3B82F6cc' }, // 80% = 204 = 0xCC
+  ];
 
-  it('withLightOpacity applies 20% opacity', () => {
-    expect(withLightOpacity(testColor)).toBe('#3B82F633'); // 20% = 51 = 0x33
-  });
-
-  it('withMediumOpacity applies 40% opacity', () => {
-    expect(withMediumOpacity(testColor)).toBe('#3B82F666'); // 40% = 102 = 0x66
-  });
-
-  it('withStrongOpacity applies 60% opacity', () => {
-    expect(withStrongOpacity(testColor)).toBe('#3B82F699'); // 60% = 153 = 0x99
-  });
-
-  it('withOpaqueOpacity applies 80% opacity', () => {
-    expect(withOpaqueOpacity(testColor)).toBe('#3B82F6cc'); // 80% = 204 = 0xCC
+  test.each(opacityFunctionTestCases)('$name applies $opacity opacity', ({ func, expected }) => {
+    expect(func(testColor)).toBe(expected);
   });
 });
 

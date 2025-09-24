@@ -2,46 +2,42 @@ import { isHebrew, getTextDirection, getTextAlign } from '../textHelpers';
 
 describe('isHebrew', () => {
   describe('Hebrew text detection', () => {
-    it('detects Hebrew characters', () => {
-      expect(isHebrew('שלום')).toBe(true);
-      expect(isHebrew('עברית')).toBe(true);
-      expect(isHebrew('ישראל')).toBe(true);
-      expect(isHebrew('אבגדהוזחטיכלמנסעפצקרשת')).toBe(true);
-    });
+    const hebrewTestCases = [
+      'שלום',
+      'עברית',
+      'ישראל',
+      'אבגדהוזחטיכלמנסעפצקרשת',
+      'Hello שלום',
+      '123 עברית',
+      'שלום World!',
+      'תיאור Video',
+      'שלום, עולם!',
+      'עברית 2024',
+      'הערוץ של דני - פרק 5',
+    ];
 
-    it('detects mixed Hebrew and other characters', () => {
-      expect(isHebrew('Hello שלום')).toBe(true);
-      expect(isHebrew('123 עברית')).toBe(true);
-      expect(isHebrew('שלום World!')).toBe(true);
-      expect(isHebrew('תיאור Video')).toBe(true);
-    });
-
-    it('detects Hebrew with punctuation and numbers', () => {
-      expect(isHebrew('שלום, עולם!')).toBe(true);
-      expect(isHebrew('עברית 2024')).toBe(true);
-      expect(isHebrew('הערוץ של דני - פרק 5')).toBe(true);
+    test.each(hebrewTestCases)('detects Hebrew in "%s"', (text) => {
+      expect(isHebrew(text)).toBe(true);
     });
   });
 
   describe('non-Hebrew text detection', () => {
-    it('returns false for English text', () => {
-      expect(isHebrew('Hello World')).toBe(false);
-      expect(isHebrew('English text')).toBe(false);
-      expect(isHebrew('YouTube Video')).toBe(false);
-    });
+    const nonHebrewTestCases = [
+      'Hello World',
+      'English text',
+      'YouTube Video',
+      '123456',
+      '!@#$%^&*()',
+      '2024-01-01',
+      'Bonjour le monde', // French
+      'Hola mundo', // Spanish
+      'مرحبا بالعالم', // Arabic
+      'こんにちは世界', // Japanese
+      'Привет мир', // Russian
+    ];
 
-    it('returns false for numbers and symbols only', () => {
-      expect(isHebrew('123456')).toBe(false);
-      expect(isHebrew('!@#$%^&*()')).toBe(false);
-      expect(isHebrew('2024-01-01')).toBe(false);
-    });
-
-    it('returns false for other languages', () => {
-      expect(isHebrew('Bonjour le monde')).toBe(false); // French
-      expect(isHebrew('Hola mundo')).toBe(false); // Spanish
-      expect(isHebrew('مرحبا بالعالم')).toBe(false); // Arabic
-      expect(isHebrew('こんにちは世界')).toBe(false); // Japanese
-      expect(isHebrew('Привет мир')).toBe(false); // Russian
+    test.each(nonHebrewTestCases)('returns false for non-Hebrew text "%s"', (text) => {
+      expect(isHebrew(text)).toBe(false);
     });
   });
 
@@ -193,12 +189,10 @@ describe('integration tests', () => {
       { text: '', expectedHebrew: false, expectedDirection: 'ltr', expectedAlign: 'text-left' },
     ];
 
-    testCases.forEach(({ text, expectedHebrew, expectedDirection, expectedAlign }) => {
-      it(`handles "${text}" consistently across all functions`, () => {
-        expect(isHebrew(text)).toBe(expectedHebrew);
-        expect(getTextDirection(text)).toBe(expectedDirection);
-        expect(getTextAlign(text)).toBe(expectedAlign);
-      });
+    test.each(testCases)('handles "$text" consistently across all functions', ({ text, expectedHebrew, expectedDirection, expectedAlign }) => {
+      expect(isHebrew(text)).toBe(expectedHebrew);
+      expect(getTextDirection(text)).toBe(expectedDirection);
+      expect(getTextAlign(text)).toBe(expectedAlign);
     });
   });
 

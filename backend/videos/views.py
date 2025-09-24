@@ -12,6 +12,7 @@ from .decorators import youtube_auth_required
 from .models import Channel, Video
 from .serializers import ChannelSerializer, VideoListSerializer, VideoSerializer
 from .services.youtube import YouTubeAuthenticationError, YouTubeService
+from .services.quota_tracker import QuotaTracker
 from .services.search import VideoSearchService
 from .validators import VideoSearchParams, WatchStatus, TagMode
 
@@ -35,7 +36,8 @@ class ChannelViewSet(viewsets.ModelViewSet):
             raise ValidationError({"channel_id": "This field is required."})
 
         try:
-            youtube_service = YouTubeService(credentials=request.youtube_credentials)
+            quota_tracker = QuotaTracker()
+            youtube_service = YouTubeService(credentials=request.youtube_credentials, quota_tracker=quota_tracker)
             channel = youtube_service.import_or_create_channel(channel_id)
             serializer = self.get_serializer(channel, context={"request": request})
             return Response(serializer.data)

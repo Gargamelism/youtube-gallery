@@ -6,6 +6,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **CRITICAL**: Never run Bash commands for file system operations (mkdir, cp, mv, rm, etc.). Always ask the user to create directories or move files instead of attempting to do it yourself.
 
+## Sensitive File Protection
+
+**CRITICAL**: Never read from or write to files containing sensitive information:
+- `.env` files (environment variables, API keys, passwords)
+- Configuration files with credentials or secrets
+- Private key files, certificates, or authentication tokens
+- Any file that may contain sensitive data
+
+When configuration changes are needed, document the requirements and ask the user to make changes manually.
+
 ## Command Execution
 
 **CRITICAL**: Never run commands directly using the Bash tool. Always ask the user to run commands instead. Instead of executing commands, provide the exact command for the user to run and explain what it does.
