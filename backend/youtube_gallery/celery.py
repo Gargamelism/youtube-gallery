@@ -34,7 +34,7 @@ app.conf.update(
     # Task routing for priority queues
     task_routes={
         "videos.tasks.update_priority_channels_async": {"queue": "priority"},
-        "videos.tasks.update_channels_batch_async": {"queue": "bulk"},
+        "videos.tasks.update_channels_batch": {"queue": "bulk"},
         "videos.tasks.cleanup_orphaned_channels": {"queue": "maintenance"},
     },
     # Retry settings

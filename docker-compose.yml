@@ -118,7 +118,7 @@ services:
       - redis
     networks:
       - youtube_gallery_network
-    command: celery -A youtube_gallery worker --loglevel=info --concurrency=2
+    command: celery -A youtube_gallery worker --loglevel=info --concurrency=2 -Q celery,priority,bulk,maintenance
     restart: unless-stopped
 
   # Celery Beat (Task Scheduler)

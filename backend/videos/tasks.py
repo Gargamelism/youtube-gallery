@@ -8,6 +8,7 @@ from videos.models import Channel
 from videos.services.channel_updater import ChannelUpdateService
 from videos.services.youtube import YouTubeService
 from videos.services.quota_tracker import QuotaTracker
+from videos.services.channel_cleanup import ChannelCleanupService
 
 # Task retry configuration
 MAX_RETRIES = 3
@@ -172,14 +173,46 @@ def update_priority_channels_async(self, max_channels: int = 50):
         }
 
 
-@shared_task(bind=True)
-def cleanup_orphaned_channels(self):
+@shared_task(bind=True, name="videos.tasks.cleanup_orphaned_channels")
+def cleanup_orphaned_channels(self, max_channels: int = 50):
     """
-    Placeholder task for cleaning up orphaned channels
-    Will be implemented in Phase 2.2
-    """
-    print("cleanup_orphaned_channels task started")
+    Clean up orphaned channels with selective video preservation based on user interaction
 
-    # Placeholder implementation
-    print("Would cleanup orphaned channels")
-    return {"status": "success", "message": "Placeholder: Would cleanup orphaned channels", "task_id": self.request.id}
+    Args:
+        max_channels: Maximum number of channels to clean up in one batch (default: 50)
+
+    Returns:
+        Dictionary with cleanup operation results
+    """
+    try:
+        cleanup_service = ChannelCleanupService()
+        result = cleanup_service.cleanup_orphaned_channels(max_channels=max_channels)
+
+        return {
+            "status": "success" if result['success'] else "failed",
+            "task_id": self.request.id,
+            "channels_processed": result['channels_processed'],
+            "soft_deletions": result['soft_deletions'],
+            "hard_deletions": result['hard_deletions'],
+            "failed_cleanups": result['failed_cleanups'],
+            "total_videos_preserved": result['total_videos_preserved'],
+            "total_videos_deleted": result['total_videos_deleted'],
+            "total_user_videos_deleted": result['total_user_videos_deleted'],
+            "cleanup_timestamp": result['cleanup_timestamp'],
+            "error_message": result.get('error_message')
+        }
+
+    except Exception as exc:
+        if isinstance(exc, (ConnectionError, TimeoutError)):
+            raise self.retry(
+                exc=exc,
+                countdown=calculate_exponential_backoff(self.request.retries),
+                max_retries=MAX_RETRIES
+            )
+
+        return {
+            "status": "error",
+            "message": str(exc),
+            "task_id": self.request.id,
+            "error_type": "unexpected_error"
+        }
