@@ -113,7 +113,15 @@ class UserYouTubeCredentials(TimestampMixin):
         db_table = "user_youtube_credentials"
 
     def encrypt_token(self, token_value):
-        """Encrypt a token value using key from settings"""
+        """
+        Encrypt a plaintext OAuth token using the configured YouTube encryption key.
+        
+        Parameters:
+            token_value (str | None): The plaintext token to encrypt. If falsy, no encryption is performed.
+        
+        Returns:
+            str | None: The encrypted token as a UTF-8 string, or `None` if `token_value` is falsy.
+        """
         if not token_value:
             return None
 
@@ -121,7 +129,15 @@ class UserYouTubeCredentials(TimestampMixin):
         return fernet.encrypt(token_value.encode()).decode()
 
     def decrypt_token(self, encrypted_token):
-        """Decrypt a token value using key from settings"""
+        """
+        Return the decrypted token string for a stored encrypted token.
+        
+        Parameters:
+            encrypted_token (str | None): The encrypted token value to decrypt. If falsy, no decryption is performed.
+        
+        Returns:
+            str | None: The decrypted token string, or `None` if `encrypted_token` is falsy.
+        """
         if not encrypted_token:
             return None
 
@@ -129,29 +145,59 @@ class UserYouTubeCredentials(TimestampMixin):
         return fernet.decrypt(encrypted_token.encode()).decode()
 
     def set_access_token(self, token):
-        """Set encrypted access token"""
+        """
+        Store the user's access token in the model's encrypted_access_token field.
+        
+        Parameters:
+            token (str | None): The raw access token to store. If `token` is falsy, the stored encrypted value will be cleared.
+        """
         self.encrypted_access_token = self.encrypt_token(token)
 
     def get_access_token(self):
-        """Get decrypted access token"""
+        """
+        Return the decrypted access token for this credential record.
+        
+        Returns:
+            str or None: Decrypted access token if stored, otherwise None.
+        """
         return self.decrypt_token(self.encrypted_access_token)
 
     def set_refresh_token(self, token):
-        """Set encrypted refresh token"""
+        """
+        Store the user's refresh token in encrypted form.
+        
+        Parameters:
+            token (str | None): Plaintext refresh token to encrypt and store on the model; if falsy, the stored encrypted value will be cleared.
+        """
         self.encrypted_refresh_token = self.encrypt_token(token)
 
     def get_refresh_token(self):
-        """Get decrypted refresh token"""
+        """
+        Return the user's decrypted YouTube refresh token.
+        
+        Returns:
+            The decrypted refresh token as a string, or None if no refresh token is stored.
+        """
         return self.decrypt_token(self.encrypted_refresh_token)
 
     def get_tz_unaware_expiry(self):
-        """Return timezone-unaware expiry for compatibility"""
+        """
+        Return the token expiry as a timezone-unaware datetime for compatibility.
+        
+        Returns:
+            datetime.datetime or None: The expiry with tzinfo removed if set, otherwise None.
+        """
         if self.token_expiry:
             return self.token_expiry.replace(tzinfo=None)
         return None
 
     def to_google_credentials(self):
-        """Build Google Credentials object from this database model"""
+        """
+        Construct a google.oauth2.credentials.Credentials object populated from this model's stored YouTube OAuth data.
+        
+        Returns:
+            Credentials: A Credentials instance with token, refresh_token, token_uri, client_id, client_secret, scopes, and expiry (expiry is a timezone-naive datetime or `None` when not set).
+        """
         client_config = YouTubeService.get_client_config()
 
         return Credentials(
@@ -165,7 +211,12 @@ class UserYouTubeCredentials(TimestampMixin):
         )
 
     def update_from_credentials(self, credentials):
-        """Update this model with refreshed credentials"""
+        """
+        Refresh stored token fields from a Google Credentials object and persist the model.
+        
+        Parameters:
+            credentials (google.oauth2.credentials.Credentials): Credentials instance whose `token`, optional `refresh_token`, and `expiry` will be stored on this model.
+        """
         self.set_access_token(credentials.token)
         if credentials.refresh_token:
             self.set_refresh_token(credentials.refresh_token)
@@ -174,7 +225,18 @@ class UserYouTubeCredentials(TimestampMixin):
 
     @classmethod
     def from_credentials_data(cls, user, credentials_data):
-        """Create or update user credentials from OAuth data"""
+        """
+        Create or update a user's YouTube OAuth credentials from a Credentials object or raw token data.
+        
+        If a credentials record for the user does not exist, one is created with defaults. The function accepts either a google.oauth2.credentials.Credentials instance or a raw dict containing OAuth fields (accepted keys: "access_token" or "token", "refresh_token", "expires_in" or "expiry", "scopes", "client_id"). Access and refresh tokens are stored encrypted, token expiry, scopes, and client_id are set or updated, and the record is saved.
+        
+        Parameters:
+            user (User): The user to associate the credentials with.
+            credentials_data (Credentials | dict): Either a Credentials instance or a dict with OAuth token data.
+        
+        Returns:
+            UserYouTubeCredentials: The created or updated credentials instance for the given user.
+        """
         client_config = YouTubeService.get_client_config()
 
         # Handle both raw OAuth response and Credentials object
@@ -224,4 +286,10 @@ class UserYouTubeCredentials(TimestampMixin):
         return user_credentials
 
     def __str__(self):
+        """
+        Human-readable representation of the user's YouTube credentials.
+        
+        Returns:
+            str: A string in the form "YouTube credentials for {user.email}".
+        """
         return f"YouTube credentials for {self.user.email}"

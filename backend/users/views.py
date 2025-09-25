@@ -208,7 +208,17 @@ class UserVideoViewSet(viewsets.ModelViewSet):
 @api_view(["GET"])
 @permission_classes([permissions.IsAuthenticated])
 def youtube_auth_url(request):
-    """Get YouTube OAuth URL for authenticated user"""
+    """
+    Provide the YouTube OAuth URL or the current YouTube authentication status for the requesting user.
+    
+    If the user already has valid stored YouTube credentials, returns a response indicating the user is authenticated. If a safe `return_url` query parameter is provided, it is saved to the session for use after OAuth completes. The endpoint determines the OAuth `redirect_uri` from the `redirect_uri` query parameter or defaults to the API callback URL, then attempts to prepare a YouTube OAuth flow. If the service indicates an authorization URL is required, returns that `auth_url` with `authenticated: False`. On unexpected errors, returns an error message and a 500 status.
+    
+    Returns:
+        Response: A DRF Response containing one of:
+            - {"message": "Already authenticated", "authenticated": True}
+            - {"auth_url": "<url>", "authenticated": False}
+            - {"error": "<message>"} with HTTP 500 on unexpected failures
+    """
     # Check if user already has valid credentials
     existing_credentials = get_youtube_credentials(request.user)
     if existing_credentials:
@@ -239,7 +249,15 @@ def youtube_auth_url(request):
 @api_view(["GET"])
 @permission_classes([permissions.IsAuthenticated])
 def youtube_auth_callback(request):
-    """Handle OAuth callback and store credentials in database"""
+    """
+    Handle the YouTube OAuth2 callback, persist the obtained credentials for the current user, and redirect the client.
+    
+    Exchanges the authorization `code` from the request query parameters for YouTube credentials, stores those credentials in the database linked to the authenticated user, and then redirects the client to the URL previously saved in the session under `auth_return_url` or, if missing, to the configured frontend URL.
+    
+    Returns:
+        HttpResponse: A 400 response with an error message if the `code` is missing or if credential exchange/storage fails.
+        HttpResponseRedirect: A redirect to the saved return URL or the frontend URL on successful credential storage.
+    """
     authorization_code = request.GET.get("code")
     if not authorization_code:
         return HttpResponse("Authorization failed: No code provided", status=status.HTTP_400_BAD_REQUEST)

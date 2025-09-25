@@ -4,7 +4,15 @@ from .models import UserYouTubeCredentials
 
 
 def get_youtube_credentials(user):
-    """Get valid YouTube credentials for a user from database"""
+    """
+    Retrieve a valid Google (YouTube) credentials object for the given user, refreshing and persisting it if necessary.
+    
+    Parameters:
+        user: The user model instance whose YouTube credentials should be fetched.
+    
+    Returns:
+        credentials: A Google credentials object usable with Google APIs if available; `None` if no credentials exist or they cannot be obtained.
+    """
     try:
         user_credentials = UserYouTubeCredentials.objects.get(user=user)
         credentials = user_credentials.to_google_credentials()

@@ -89,6 +89,15 @@ class QuotaTracker:
         return can_proceed
 
     def record_usage(self, operation: str = "channels.list", quota_cost: Optional[int] = None) -> None:
+        """
+        Record quota usage for a given operation and persist the updated daily totals.
+        
+        Increments the stored DailyQuotaUsage.daily_usage by the operation's quota cost and increments the per-operation counter in DailyQuotaUsage.operations_count, then saves the updated usage record. If quota_cost is not provided, the cost is looked up from QUOTA_COSTS and defaults to 1 when undefined. Emits a warning when an operation's cost is undefined and when the updated daily usage reaches or exceeds ALERT_THRESHOLD of the daily limit.
+        
+        Parameters:
+            operation (str): The API operation name (e.g., "channels.list") whose usage to record.
+            quota_cost (Optional[int]): Optional explicit quota cost to apply instead of the configured cost.
+        """
         if quota_cost is None:
             quota_cost = self.QUOTA_COSTS.get(operation)
             if quota_cost is None:

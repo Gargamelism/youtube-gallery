@@ -30,7 +30,25 @@ class ChannelViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["post"])
     @youtube_auth_required
     def fetch_from_youtube(self, request):
-        """Import channel from YouTube or create basic entry"""
+        """
+        Import a YouTube channel by ID and return its serialized representation.
+        
+        Reads `channel_id` from `request.data` and attempts to import or create the corresponding Channel via YouTubeService. If successful, returns the Channel serialized with the viewset's serializer.
+        
+        Parameters:
+            request (rest_framework.request.Request): DRF request containing:
+                - data['channel_id']: The YouTube channel ID to import.
+                - request.youtube_credentials: Credentials used by YouTubeService.
+        
+        Returns:
+            dict: On success, the serialized Channel data.
+            dict: On failure, a JSON object with an `error` message and HTTP status:
+                - 403 if YouTube authentication fails.
+                - 500 for other errors.
+        
+        Raises:
+            rest_framework.exceptions.ValidationError: If `channel_id` is not provided in the request data.
+        """
         channel_id = request.data.get("channel_id")
         if not channel_id:
             raise ValidationError({"channel_id": "This field is required."})

@@ -22,6 +22,13 @@ def pytest_configure():
 
 @pytest.fixture
 def mock_youtube_credentials(monkeypatch):
-    """Mock YouTube API credentials"""
+    """
+    Provide pytest monkeypatch updates that set environment variables for YouTube API credentials during tests.
+    
+    Sets `YOUTUBE_CREDENTIALS_DIR` to "/tmp/test_credentials" and `YOUTUBE_CLIENT_SECRET_FILE` to "test_client_secret.json".
+    
+    Parameters:
+        monkeypatch: pytest `MonkeyPatch` fixture used to set environment variables for the test process.
+    """
     monkeypatch.setenv("YOUTUBE_CREDENTIALS_DIR", "/tmp/test_credentials")
     monkeypatch.setenv("YOUTUBE_CLIENT_SECRET_FILE", "test_client_secret.json")

@@ -7,6 +7,21 @@ from users.models import UserYouTubeCredentials
 
 
 def youtube_auth_required(view_func):
+    """
+    Decorator that ensures the requesting user has valid YouTube (Google) credentials and attaches them to the request.
+    
+    When applied to a DRF view method, the wrapper:
+    - Retrieves per-user YouTube credentials from UserYouTubeCredentials.
+    - Attempts to refresh expired credentials if a refresh token is available and updates the stored credentials.
+    - Attaches the resulting Google credentials to request.youtube_credentials.
+    - Returns an HTTP 403 Response with an error payload if credentials are missing, expired without refresh, or cannot be refreshed.
+    
+    Parameters:
+        view_func (callable): The view method to wrap.
+    
+    Returns:
+        callable: A wrapped view function that enforces YouTube authentication; the wrapper returns the original view's response when credentials are valid, or a 403 Response otherwise.
+    """
     @wraps(view_func)
     def wrapper(self, request, *args, **kwargs):
         try:
