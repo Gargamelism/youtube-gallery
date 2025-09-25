@@ -43,8 +43,14 @@ class ChannelViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
 
         except YouTubeAuthenticationError as e:
-            serializer = self.get_serializer(channel, context={"request": request})
-            return Response(serializer.data)
+            return Response(
+                {
+                    "error": "YouTube authentication failed",
+                    "youtube_auth_required": True,
+                    "message": "Please re-authenticate with Google",
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         except Exception as e:
             print(f"Error importing channel: {e}")

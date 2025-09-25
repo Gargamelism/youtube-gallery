@@ -176,6 +176,7 @@ FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:3000")
 
 # YouTube API settings
 YOUTUBE_API_KEY = config("YOUTUBE_API_KEY", default="")
+YOUTUBE_ENCRYPTION_TOKEN = config("YOUTUBE_ENCRYPTION_TOKEN", default="")
 
 # Redis settings
 REDIS_HOST = config("REDIS_HOST", default="localhost")

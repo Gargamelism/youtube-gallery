@@ -6,19 +6,21 @@ using Redis-OM for persistence and daily quota limits.
 """
 
 import warnings
+
+# Suppress Redis-OM/Pydantic pk field shadowing warnings
+warnings.filterwarnings("ignore", message='Field name "pk" shadows an attribute in parent', category=UserWarning)
+
 from datetime import datetime, timezone, timedelta
 from typing import Dict, Optional
 
 from django.conf import settings
 from redis_om import Field, JsonModel, Migrator, get_redis_connection
 
-# Suppress Redis-OM/Pydantic pk field shadowing warnings
-warnings.filterwarnings("ignore", message='Field name "pk" shadows an attribute in parent', category=UserWarning)
-
 THIRTY_DAYS_IN_SECONDS = 30 * 24 * 60 * 60
 
+
 class DailyQuotaUsage(JsonModel):
-    date: str = Field(index=True)
+    date: str = Field(primary_key=True)
     daily_usage: int = Field(default=0)
     operations_count: Dict[str, int] = Field(default_factory=dict)
 
@@ -69,7 +71,7 @@ class QuotaTracker:
 
     def _get_today_key(self) -> str:
         """Get current date as string key"""
-        return datetime.now().strftime("%Y-%m-%d")
+        return datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     def can_make_request(self, operation: str = "channels.list") -> bool:
         quota_cost = self.QUOTA_COSTS.get(operation)
@@ -101,7 +103,6 @@ class QuotaTracker:
         usage_data.operations_count[operation] += 1
 
         self._store_usage_data(usage_data)
-
 
         if usage_data.daily_usage >= (self.daily_quota_limit * self.ALERT_THRESHOLD):
             percentage = usage_data.daily_usage / self.daily_quota_limit * 100
@@ -147,35 +148,33 @@ class QuotaTracker:
         if self.use_redis_om:
             try:
                 today = self._get_today_key()
-                existing_quota = DailyQuotaUsage.find(DailyQuotaUsage.date == today).first()
-                if existing_quota:
+                try:
+                    existing_quota = DailyQuotaUsage.get(today)
                     existing_quota.delete()
+                except Exception:
+                    pass  # Record doesn't exist, nothing to delete
             except Exception as e:
                 print(f"WARNING: Failed to delete quota data: {e}")
 
     def _get_usage_data(self) -> DailyQuotaUsage:
-        """Get or create today's quota usage record"""
+        """Get or create today's quota usage record atomically"""
         if not self.use_redis_om:
             return self._get_fallback_data()
 
         today = self._get_today_key()
 
         try:
-            existing_quota = DailyQuotaUsage.find(DailyQuotaUsage.date == today).first()
-            if existing_quota:
-                return existing_quota
-        except Exception as e:
-            print(f"WARNING: Failed to retrieve quota data from Redis-OM: {e}")
-            return self._get_fallback_data()
-
-        # Create new record for today
-        try:
-            new_quota = DailyQuotaUsage(date=today, daily_usage=0, operations_count={})
-            new_quota.save()
-            return new_quota
-        except Exception as e:
-            print(f"ERROR: Failed to create/save new quota record: {e}")
-            return self._get_fallback_data()
+            # Try to get existing record by primary key
+            return DailyQuotaUsage.get(today)
+        except Exception:
+            # Record doesn't exist, create new one
+            try:
+                new_quota = DailyQuotaUsage(date=today, daily_usage=0, operations_count={})
+                new_quota.save()
+                return new_quota
+            except Exception as e:
+                print(f"ERROR: Failed to create new quota record: {e}")
+                return self._get_fallback_data()
 
     def _store_usage_data(self, usage_data: DailyQuotaUsage) -> None:
         """Store updated quota data"""

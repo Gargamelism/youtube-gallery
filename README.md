@@ -401,7 +401,6 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
    ```env
    YOUTUBE_CREDENTIALS_DIR=/app/config/credentials
    YOUTUBE_CLIENT_SECRET_FILE=client_secret.json
-   YOUTUBE_TOKEN_FILE=token.json
    ```
 
 3. First-time authentication for development:

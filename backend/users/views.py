@@ -1,3 +1,4 @@
+import secrets
 from urllib.parse import unquote, urlparse
 
 import requests
@@ -9,11 +10,11 @@ from rest_framework import generics, permissions, status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-from videos.decorators import store_google_credentials
+from users.utils import get_youtube_credentials
 from videos.services.youtube import YouTubeAuthenticationError, YouTubeService
 
 from .authentication import CookieTokenAuthentication
-from .models import User, UserChannel, UserVideo, ChannelTag, UserChannelTag
+from .models import User, UserChannel, UserVideo, ChannelTag, UserChannelTag, UserYouTubeCredentials
 from .serializers import (
     ChannelTagSerializer,
     UserChannelSerializer,
@@ -209,6 +210,11 @@ class UserVideoViewSet(viewsets.ModelViewSet):
 @permission_classes([permissions.IsAuthenticated])
 def youtube_auth_url(request):
     """Get YouTube OAuth URL for authenticated user"""
+    # Check if user already has valid credentials
+    existing_credentials = get_youtube_credentials(request.user)
+    if existing_credentials:
+        return Response({"message": "Already authenticated", "authenticated": True})
+
     # Store return URL in session for post-auth redirect
     return_url = request.GET.get("return_url")
     if return_url and _is_safe_url(return_url, request):
@@ -216,15 +222,17 @@ def youtube_auth_url(request):
 
     redirect_uri = request.GET.get("redirect_uri")
     if not redirect_uri:
-        # Construct consistent redirect URI
         redirect_uri = f"{request.scheme}://{request.get_host()}/api/auth/youtube/callback"
     else:
-        # Frontend sends URL-encoded redirect URI, so decode it
         redirect_uri = unquote(redirect_uri)
+
+    # CSRF protection state
+    request.session["oauth_redirect_uri"] = redirect_uri
+    state = secrets.token_urlsafe(32)
+    request.session["oauth_state"] = state
 
     try:
         service = YouTubeService(redirect_uri=redirect_uri)
-        return Response({"message": "Already authenticated", "authenticated": True})
     except YouTubeAuthenticationError as e:
         if hasattr(e, "auth_url") and e.auth_url:
             return Response({"auth_url": e.auth_url, "authenticated": False})
@@ -234,20 +242,30 @@ def youtube_auth_url(request):
 
 
 @api_view(["GET"])
-@permission_classes([permissions.AllowAny])
+@permission_classes([permissions.IsAuthenticated])
 def youtube_auth_callback(request):
-    """Handle OAuth callback and store credentials in session"""
+    """Handle OAuth callback and store credentials in database"""
+    # Validate state parameter for CSRF protection
+    state = request.GET.get("state")
+    expected_stat = request.session.get("oauth_state", None)
+    if not state or not expected_stat or state != expected_stat:
+        return HttpResponse("Invalid state parameter", status=status.HTTP_400_BAD_REQUEST)
+
     authorization_code = request.GET.get("code")
     if not authorization_code:
         return HttpResponse("Authorization failed: No code provided", status=status.HTTP_400_BAD_REQUEST)
 
-    # Use the exact same redirect URI format as sent to Google originally
-    # This ensures consistency and avoids invalid_grant errors
-    redirect_uri = f"{request.scheme}://{request.get_host()}/api/auth/youtube/callback"
+    redirect_uri = request.session.pop(
+        "oauth_redirect_uri", f"{request.scheme}://{request.get_host()}/api/auth/youtube/callback"
+    )
 
-    credentials = YouTubeService.handle_oauth_callback(authorization_code, redirect_uri)
-
-    store_google_credentials(request.session, credentials)
+    try:
+        credentials = YouTubeService.handle_oauth_callback(authorization_code, redirect_uri)
+        UserYouTubeCredentials.from_credentials_data(request.user, credentials)
+    except YouTubeAuthenticationError as e:
+        return HttpResponse(f"Authentication failed: {str(e)}", status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return HttpResponse(f"An error occurred: {str(e)}", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     redirect_url = request.session.pop("auth_return_url", settings.FRONTEND_URL)
     return redirect(redirect_url)
