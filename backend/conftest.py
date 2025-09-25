@@ -25,4 +25,3 @@ def mock_youtube_credentials(monkeypatch):
     """Mock YouTube API credentials"""
     monkeypatch.setenv("YOUTUBE_CREDENTIALS_DIR", "/tmp/test_credentials")
     monkeypatch.setenv("YOUTUBE_CLIENT_SECRET_FILE", "test_client_secret.json")
-    monkeypatch.setenv("YOUTUBE_TOKEN_FILE", "test_token.json")

@@ -6,16 +6,18 @@ using Redis-OM for persistence and daily quota limits.
 """
 
 import warnings
+
+# Suppress Redis-OM/Pydantic pk field shadowing warnings
+warnings.filterwarnings("ignore", message='Field name "pk" shadows an attribute in parent', category=UserWarning)
+
 from datetime import datetime, timezone, timedelta
 from typing import Dict, Optional
 
 from django.conf import settings
 from redis_om import Field, JsonModel, Migrator, get_redis_connection
 
-# Suppress Redis-OM/Pydantic pk field shadowing warnings
-warnings.filterwarnings("ignore", message='Field name "pk" shadows an attribute in parent', category=UserWarning)
-
 THIRTY_DAYS_IN_SECONDS = 30 * 24 * 60 * 60
+
 
 class DailyQuotaUsage(JsonModel):
     date: str = Field(index=True)
@@ -101,7 +103,6 @@ class QuotaTracker:
         usage_data.operations_count[operation] += 1
 
         self._store_usage_data(usage_data)
-
 
         if usage_data.daily_usage >= (self.daily_quota_limit * self.ALERT_THRESHOLD):
             percentage = usage_data.daily_usage / self.daily_quota_limit * 100

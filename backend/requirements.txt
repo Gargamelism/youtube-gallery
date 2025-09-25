@@ -20,3 +20,4 @@ flower==2.0.1
 redis-om==0.3.5
 gunicorn==21.2.0
 django-dirtyfields==1.9.2
+cryptography==43.0.1
