@@ -71,7 +71,7 @@ class QuotaTracker:
 
     def _get_today_key(self) -> str:
         """Get current date as string key"""
-        return datetime.now().strftime("%Y-%m-%d")
+        return datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     def can_make_request(self, operation: str = "channels.list") -> bool:
         quota_cost = self.QUOTA_COSTS.get(operation)

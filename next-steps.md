@@ -15,9 +15,10 @@ This file is to remind me of little tasks todo without breaking my flow or claud
 1. Create design system: 
     1. use Dribbble.com for insparation 
     1. work with chatgpt/claude to decide on what needs to be defined and how for the design system
-    1. choose to main colors
+    1. choose two main colors
     1. add a background gradient based on the tag and have cards with frosted glass
     1. make text and items hierarchy 
+1. add config validation on start
 1. sso login with google
 1. email verification
 1. otp login
@@ -25,11 +26,12 @@ This file is to remind me of little tasks todo without breaking my flow or claud
 1. add settings page
 1. extract your subscriptions to componenet
 1. extract available channels to component
+1. Running Migrator().run() in init can be heavy- Initializing migrations every time a tracker is instantiated may add latency. Prefer running once at startup (e.g., AppConfig.ready) or gate with a module-level flag.
 1. make skeleton loader more independent
 1. add story book
 1. add logo - talk with victoria about colors/branding
 1. user dropdown - change links to configuration, and that links work
-1. responsive channels page'
+1. responsive channels page
 1. move frontend to frontend folder
 1. implement centralized logging:
     1. frontend

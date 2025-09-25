@@ -5,6 +5,7 @@ from cryptography.fernet import Fernet
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone as dj_tz
 from google.oauth2.credentials import Credentials
 from videos.services.youtube import YOUTUBE_SCOPES, YouTubeService
 
@@ -146,9 +147,13 @@ class UserYouTubeCredentials(TimestampMixin):
 
     def get_tz_unaware_expiry(self):
         """Return timezone-unaware expiry for compatibility"""
-        if self.token_expiry:
-            return self.token_expiry.replace(tzinfo=None)
-        return None
+        if not self.token_expiry:
+            return None
+
+        if dj_tz.is_aware(self.token_expiry):
+            return dj_tz.make_naive(self.token_expiry)
+
+        return self.token_expiry
 
     def to_google_credentials(self):
         """Build Google Credentials object from this database model"""
@@ -191,21 +196,25 @@ class UserYouTubeCredentials(TimestampMixin):
 
             # Calculate expiry from expires_in
             if "expires_in" in credentials_data:
-                expiry = datetime.now() + timedelta(seconds=credentials_data["expires_in"])
+                expiry = dj_tz.now() + timedelta(seconds=credentials_data["expires_in"])
             elif "expiry" in credentials_data:
                 expiry = (
                     datetime.fromisoformat(credentials_data["expiry"])
                     if isinstance(credentials_data["expiry"], str)
                     else credentials_data["expiry"]
                 )
+                if expiry and dj_tz.is_naive(expiry):
+                    expiry = dj_tz.make_aware(expiry, dj_tz.utc)
             else:
                 expiry = None
 
-            scopes = credentials_data.get("scopes", YOUTUBE_SCOPES)
+            scopes = credentials_data.get("scopes") or credentials_data.get("scope") or YOUTUBE_SCOPES
+            if isinstance(scopes, str):
+                scopes = scopes.split()
             client_id = credentials_data.get("client_id", client_config.get("client_id"))
 
         # Create or update user credentials
-        user_credentials, created = cls.objects.get_or_create(
+        user_credentials, _ = cls.objects.get_or_create(
             user=user,
             defaults={
                 "client_id": client_id,
