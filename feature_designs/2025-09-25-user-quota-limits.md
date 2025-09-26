@@ -294,11 +294,22 @@ export async function importChannel(channelId: string): Promise<Channel> {
 - Added comprehensive test coverage for `UserQuotaExceededError` scenarios
 - Quota usage endpoint returns ISO UTC timestamp for `resets_at` field
 
-### Phase 3: Frontend Integration (**Pending**)
-- Add quota info types and API service methods
-- Create `QuotaIndicator` component for usage display
-- Update channel import form with quota-aware error handling
-- Add quota usage display to user dashboard/settings
+### Phase 3: Frontend Integration (**Implemented**)
+- ✅ Add quota info types and API service methods
+- ✅ Create `QuotaIndicator` component for usage display
+- ✅ Update channel import form with quota-aware error handling
+- ✅ Add quota usage display to user dashboard/settings
+
+**Implementation Details:**
+- Added `UserQuotaInfo` and `QuotaExceededError` types to `types.ts` with `HttpStatusCode` enum
+- Created `fetchUserQuotaUsage()` API service in `services/auth.ts`
+- Built `QuotaIndicator` and `QuotaIndicatorCompact` components in `components/quota/` with shared color system
+- Added quota-aware error handling in `ImportChannelModal` with `QuotaExceededError` class
+- Created `/settings` page with full quota indicator display
+- Added compact circular quota indicator to channels page with real-time updates (30s refresh)
+- Implemented query invalidation to refetch quota after channel imports
+- Added proper i18n support with `quota.json` and `settings.json` localization files
+- Created barrel exports and organized components in dedicated quota folder
 
 ## Performance Considerations
 

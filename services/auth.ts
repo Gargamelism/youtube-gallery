@@ -1,4 +1,4 @@
-import { User, LoginRequest, RegisterRequest } from '@/types';
+import { User, LoginRequest, RegisterRequest, UserQuotaInfo } from '@/types';
 import { ResponseHandler, ApiResponse } from './ResponseHandler';
 import { API_BASE_URL, getRequestOptions } from './shared';
 
@@ -42,4 +42,9 @@ export async function getYouTubeAuthUrl(
     getRequestOptions()
   );
   return ResponseHandler.handle<{ auth_url: string }>(response);
+}
+
+export async function fetchUserQuotaUsage(): Promise<ApiResponse<UserQuotaInfo>> {
+  const response = await fetch(`${API_BASE_URL}/auth/quota-usage`, getRequestOptions());
+  return ResponseHandler.handle<UserQuotaInfo>(response);
 }

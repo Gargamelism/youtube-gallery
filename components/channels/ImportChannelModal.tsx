@@ -1,10 +1,12 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { importChannelFromYoutube, getYouTubeAuthUrl } from '@/services';
+import { importChannelFromYoutube, getYouTubeAuthUrl, QuotaExceededError } from '@/services';
 import { Loader2 } from 'lucide-react';
 import { useChannelSubscribe } from './mutations';
 import { handleKeyboardActivation } from '../utils/keyboardUtils';
 import { useQueryClient } from '@tanstack/react-query';
+import { QuotaIndicator } from '@/components/quota';
+import { UserQuotaInfo } from '@/types';
 
 export interface ImportChannelModalProps {
   isOpen: boolean;
@@ -19,6 +21,7 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
   const [importError, setImportError] = useState<string | null | undefined>(null);
   const [newChannelId, setNewChannelId] = useState('');
   const [needsYoutubeAuth, setNeedsYoutubeAuth] = useState(false);
+  const [quotaInfo, setQuotaInfo] = useState<UserQuotaInfo | null>(null);
   const queryClient = useQueryClient();
   const subscribeMutation = useChannelSubscribe(queryClient);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -47,11 +50,17 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
               setImportError(response.error);
             } else {
               await subscribeMutation.mutateAsync(response.data.uuid);
+              queryClient.invalidateQueries({ queryKey: ['userQuota'] });
               setNewChannelId('');
               onClose();
             }
           } catch (error) {
-            setImportError(t('importError'));
+            if (error instanceof QuotaExceededError) {
+              setImportError(error.message);
+              setQuotaInfo(error.quotaInfo.quota_info);
+            } else {
+              setImportError(t('importError'));
+            }
             console.error('Import error:', error);
           } finally {
             setIsImporting(false);
@@ -114,11 +123,17 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
         setImportError(response.error);
       } else {
         await subscribeMutation.mutateAsync(response.data.uuid);
+        queryClient.invalidateQueries({ queryKey: ['userQuota'] });
         setNewChannelId('');
         onClose();
       }
     } catch (error) {
-      setImportError(t('importError'));
+      if (error instanceof QuotaExceededError) {
+        setImportError(error.message);
+        setQuotaInfo(error.quotaInfo.quota_info);
+      } else {
+        setImportError(t('importError'));
+      }
       console.error('Import error:', error);
     } finally {
       setIsImporting(false);
@@ -159,6 +174,12 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
                   {t('authenticateWithYoutube')}
                 </button>
               )}
+            </div>
+          )}
+
+          {quotaInfo && (
+            <div className="ChannelSubscriptions__quota-info mb-4">
+              <QuotaIndicator quotaInfo={quotaInfo} />
             </div>
           )}
 

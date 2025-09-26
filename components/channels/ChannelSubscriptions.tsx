@@ -4,13 +4,14 @@ import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Plus, Search, Users, Trash2, Loader2, ExternalLink, Tags } from 'lucide-react';
-import { fetchUserChannels, fetchChannels } from '@/services';
+import { fetchUserChannels, fetchChannels, fetchUserQuotaUsage } from '@/services';
 import { UserChannel, Channel } from '@/types';
 import AvailableChannelCard from './AvailableChannelCard';
 import ImportChannelModal from './ImportChannelModal';
 import { useChannelUnsubscribe, useChannelSubscribe } from './mutations';
 import { TagSelector } from '@/components/tags/TagSelector';
 import { TagManager } from '@/components/tags/TagManager';
+import { QuotaIndicatorCompact } from '@/components/quota';
 
 export default function ChannelSubscriptions() {
   const { t } = useTranslation('channels');
@@ -20,6 +21,8 @@ export default function ChannelSubscriptions() {
   const queryClient = useQueryClient();
   const unsubscribeMutation = useChannelUnsubscribe(queryClient);
   const subscribeMutation = useChannelSubscribe(queryClient);
+
+  const QUOTA_REFETCH_INTERVAL_MS = 30000;
 
   const { data: userChannels, isLoading: isLoadingUserChannels } = useQuery({
     queryKey: ['userChannels'],
@@ -31,6 +34,13 @@ export default function ChannelSubscriptions() {
     queryKey: ['allChannels'],
     queryFn: fetchChannels,
     select: response => response.data?.results || [],
+  });
+
+  const { data: userQuotaInfo } = useQuery({
+    queryKey: ['userQuota'],
+    queryFn: fetchUserQuotaUsage,
+    select: response => response.data,
+    refetchInterval: QUOTA_REFETCH_INTERVAL_MS,
   });
 
   const handleChannelUnsubscribe = async (channelId: string) => {
@@ -60,21 +70,26 @@ export default function ChannelSubscriptions() {
           <h1 className="ChannelSubscriptions__title text-3xl font-bold text-gray-900">{t('channelSubscriptions')}</h1>
           <p className="ChannelSubscriptions__subtitle text-gray-600 mt-2">{t('manageSubscriptions')}</p>
         </div>
-        <div className="ChannelSubscriptions__actions flex gap-3">
-          <button
-            onClick={() => setIsTagManagerOpen(true)}
-            className="ChannelSubscriptions__tags-button flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
-          >
-            <Tags className="ChannelSubscriptions__tags-icon h-5 w-5 mr-2" />
-            {t('manageTags')}
-          </button>
-          <button
-            onClick={() => setIsAddChannelModalOpen(true)}
-            className="ChannelSubscriptions__add-button flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <Plus className="ChannelSubscriptions__add-icon h-5 w-5 mr-2" />
-            {t('addChannel')}
-          </button>
+        <div className="ChannelSubscriptions__actions flex flex-col items-end gap-3">
+          <div className="ChannelSubscriptions__buttons flex gap-3 items-center">
+            <button
+              onClick={() => setIsTagManagerOpen(true)}
+              className="ChannelSubscriptions__tags-button flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+            >
+              <Tags className="ChannelSubscriptions__tags-icon h-5 w-5 mr-2" />
+              {t('manageTags')}
+            </button>
+            <button
+              onClick={() => setIsAddChannelModalOpen(true)}
+              className="ChannelSubscriptions__add-button flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <Plus className="ChannelSubscriptions__add-icon h-5 w-5 mr-2" />
+              {t('addChannel')}
+            </button>
+            {userQuotaInfo && (
+              <QuotaIndicatorCompact quotaInfo={userQuotaInfo} className="ChannelSubscriptions__quota-indicator" />
+            )}
+          </div>
         </div>
       </div>
 
