@@ -1,17 +1,19 @@
 import secrets
 from urllib.parse import unquote, urlparse
-
 import requests
 from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.utils import timezone
+from django.utils import timezone as dj_tz
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from users.utils import get_youtube_credentials
 from videos.services.youtube import YouTubeAuthenticationError, YouTubeService
+from videos.services.user_quota_tracker import UserQuotaTracker
+from datetime import timedelta
 
 from .authentication import CookieTokenAuthentication
 from .models import User, UserChannel, UserVideo, ChannelTag, UserChannelTag, UserYouTubeCredentials
@@ -143,6 +145,29 @@ def logout_view(request):
 @permission_classes([permissions.IsAuthenticated])
 def profile_view(request):
     return Response(UserSerializer(request.user).data)
+
+
+@api_view(["GET"])
+@permission_classes([permissions.IsAuthenticated])
+def quota_usage_view(request):
+    """Get current user's quota usage information"""
+    user_quota_tracker = UserQuotaTracker(user=request.user)
+    usage_info = user_quota_tracker.get_user_usage_summary()
+
+    tomorrow = dj_tz.now().date() + timedelta(days=1)
+    next_midnight_utc = dj_tz.make_aware(dj_tz.datetime.combine(tomorrow, dj_tz.datetime.min.time()))
+
+    return Response(
+        {
+            "daily_limit": usage_info["daily_limit"],
+            "used": usage_info["daily_usage"],
+            "remaining": usage_info["remaining"],
+            "percentage_used": usage_info["percentage_used"],
+            "status": usage_info["status"],
+            "operations_breakdown": usage_info["operations_count"],
+            "resets_at": next_midnight_utc.isoformat(),
+        }
+    )
 
 
 class UserChannelViewSet(viewsets.ModelViewSet):

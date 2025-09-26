@@ -279,11 +279,20 @@ export async function importChannel(channelId: string): Promise<Channel> {
 - Added `UserQuotaExceededError` exception in `videos/exceptions.py`
 - Migration pending: Run `docker-compose run --rm backend python manage.py makemigrations users`
 
-### Phase 2: Backend API Integration (**Current**)
-- Update `ChannelViewSet.fetch_from_youtube()` to use per-user quota
-- Add user quota usage endpoint (`/api/auth/quota-usage/`)
-- Implement proper error responses for quota exceeded scenarios
-- Update existing tests to cover user quota logic
+### Phase 2: Backend API Integration (**Implemented**)
+- ✅ Update `ChannelViewSet.fetch_from_youtube()` to use per-user quota
+- ✅ Add user quota usage endpoint (`/api/auth/quota-usage/`)
+- ✅ Implement proper error responses for quota exceeded scenarios
+- ✅ Update existing tests to cover user quota logic
+
+**Implementation Details:**
+- Updated `videos/views.py` to use `UserQuotaTracker` instead of global `QuotaTracker`
+- Added `UserQuotaExceededError` handling with HTTP 429 status code and detailed quota information
+- Created `/api/auth/quota-usage/` endpoint in `users/views.py` returning real-time quota status
+- Added URL routing for quota usage endpoint in `users/urls.py`
+- Updated `test_channel_import_view_quota.py` to test user-specific quota logic
+- Added comprehensive test coverage for `UserQuotaExceededError` scenarios
+- Quota usage endpoint returns ISO UTC timestamp for `resets_at` field
 
 ### Phase 3: Frontend Integration (**Pending**)
 - Add quota info types and API service methods
