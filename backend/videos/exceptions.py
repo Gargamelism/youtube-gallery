@@ -40,3 +40,11 @@ class InvalidChannelDataError(ChannelUpdateError):
 class APIServerError(ChannelUpdateError):
     """YouTube API server error (5xx responses)"""
     pass
+
+
+class UserQuotaExceededError(Exception):
+    """Raised when a user exceeds their daily quota limit"""
+
+    def __init__(self, message: str, quota_info: dict = None):
+        super().__init__(message)
+        self.quota_info = quota_info or {}

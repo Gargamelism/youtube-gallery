@@ -92,6 +92,27 @@ class UserChannelTag(TimestampMixin):
         unique_together = ("user_channel", "tag")
 
 
+class UserDailyQuota(TimestampMixin):
+    """Track daily quota usage per user"""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="daily_quotas")
+    date = models.DateField(default=dj_tz.now)
+    quota_used = models.IntegerField(default=0)
+    operations_count = models.JSONField(default=dict)  # Track operation types
+
+    class Meta:
+        db_table = "user_daily_quotas"
+        unique_together = ("user", "date")
+        indexes = [
+            models.Index(fields=["user", "date"]),
+            models.Index(fields=["date"]),
+        ]
+
+    def __str__(self):
+        return f"{self.user.email} - {self.date}: {self.quota_used} quota used"
+
+
 class UserYouTubeCredentials(TimestampMixin):
     """Store encrypted YouTube OAuth credentials for each user"""
 
