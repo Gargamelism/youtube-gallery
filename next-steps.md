@@ -1,13 +1,12 @@
 This file is to remind me of little tasks todo without breaking my flow or claude related feature-creep
 
-1. limit user's quota usage
+1. videos page pagination
+1. channels page pagination
 1. add video filtering search
 1. add sidebar filtering videos by channels
 1. add channel tagging for group filtering by channels
 1. add "not interested" option - and filtering based on it
 1. keep filters state when moving between pages
-1. videos page pagination
-1. channels page pagination
 1. import flow:
   1. import should start on "enter"
   1. import should continue after authentication flow
