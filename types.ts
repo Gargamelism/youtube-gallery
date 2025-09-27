@@ -148,3 +148,34 @@ export interface TagFilterParams {
 export interface TagAssignmentRequest {
   tag_ids: string[];
 }
+
+export enum HttpStatusCode {
+  OK = 200,
+  CREATED = 201,
+  BAD_REQUEST = 400,
+  UNAUTHORIZED = 401,
+  FORBIDDEN = 403,
+  NOT_FOUND = 404,
+  CONFLICT = 409,
+  UNPROCESSABLE_ENTITY = 422,
+  TOO_MANY_REQUESTS = 429,
+  INTERNAL_SERVER_ERROR = 500,
+  SERVICE_UNAVAILABLE = 503
+}
+
+// User Quota Types
+export interface UserQuotaInfo {
+  daily_limit: number;
+  used: number;
+  remaining: number;
+  percentage_used: number;
+  status: 'normal' | 'moderate' | 'high' | 'critical';
+  operations_breakdown: Record<string, number>;
+  resets_at: string;
+}
+
+export interface QuotaExceededErrorType {
+  error: string;
+  quota_info: UserQuotaInfo;
+  message: string;
+}

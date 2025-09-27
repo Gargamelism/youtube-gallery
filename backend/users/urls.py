@@ -15,9 +15,10 @@ urlpatterns = [
     path("login", views.login_view, name="login"),
     path("logout", views.logout_view, name="logout"),
     path("profile", views.profile_view, name="profile"),
+    path("quota-usage", views.quota_usage_view, name="quota-usage"),
     path("youtube-url", views.youtube_auth_url, name="youtube-auth-url"),
     path("youtube/callback", views.youtube_auth_callback, name="youtube-auth-callback"),
-    
+
     # ViewSets through router
     path("", include(router.urls)),
 ]

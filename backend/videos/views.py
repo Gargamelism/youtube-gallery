@@ -12,7 +12,8 @@ from .decorators import youtube_auth_required
 from .models import Channel, Video
 from .serializers import ChannelSerializer, VideoListSerializer, VideoSerializer
 from .services.youtube import YouTubeAuthenticationError, YouTubeService
-from .services.quota_tracker import QuotaTracker
+from .services.user_quota_tracker import UserQuotaTracker
+from .exceptions import UserQuotaExceededError
 from .services.search import VideoSearchService
 from .validators import VideoSearchParams, WatchStatus, TagMode
 
@@ -30,17 +31,35 @@ class ChannelViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["post"])
     @youtube_auth_required
     def fetch_from_youtube(self, request):
-        """Import channel from YouTube or create basic entry"""
+        """Import channel from YouTube with per-user quota limits"""
         channel_id = request.data.get("channel_id")
         if not channel_id:
             raise ValidationError({"channel_id": "This field is required."})
 
         try:
-            quota_tracker = QuotaTracker()
-            youtube_service = YouTubeService(credentials=request.youtube_credentials, quota_tracker=quota_tracker)
+            user_quota_tracker = UserQuotaTracker(user=request.user)
+            youtube_service = YouTubeService(credentials=request.youtube_credentials, quota_tracker=user_quota_tracker)
             channel = youtube_service.import_or_create_channel(channel_id)
             serializer = self.get_serializer(channel, context={"request": request})
             return Response(serializer.data)
+
+        except UserQuotaExceededError as e:
+            quota_info = e.quota_info or {}
+            daily_usage = quota_info.get("daily_usage")
+            daily_limit = quota_info.get("daily_limit")
+            message = e.args[0]
+
+            if daily_usage is not None and daily_limit is not None:
+                message = f"You've used {daily_usage}/{daily_limit} quota units today"
+
+            return Response(
+                {
+                    "error": "Daily quota limit exceeded",
+                    "quota_info": quota_info,
+                    "message": message,
+                },
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
 
         except YouTubeAuthenticationError as e:
             return Response(

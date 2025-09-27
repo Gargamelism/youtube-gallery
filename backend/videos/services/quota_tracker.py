@@ -11,12 +11,20 @@ import warnings
 warnings.filterwarnings("ignore", message='Field name "pk" shadows an attribute in parent', category=UserWarning)
 
 from datetime import datetime, timezone, timedelta
+from enum import Enum
 from typing import Dict, Optional
 
 from django.conf import settings
 from redis_om import Field, JsonModel, Migrator, get_redis_connection
 
 THIRTY_DAYS_IN_SECONDS = 30 * 24 * 60 * 60
+
+
+class QuotaStatus(Enum):
+    NORMAL = "normal"
+    MODERATE = "moderate"
+    HIGH = "high"
+    CRITICAL = "critical"
 
 
 class DailyQuotaUsage(JsonModel):
@@ -118,6 +126,7 @@ class QuotaTracker:
     def get_usage_summary(self) -> Dict:
         usage_data = self._get_usage_data()
         percentage_used = (usage_data.daily_usage / self.daily_quota_limit) * 100
+        percentage_used = min(percentage_used, 100.0)
 
         return {
             "daily_usage": usage_data.daily_usage,
@@ -125,7 +134,7 @@ class QuotaTracker:
             "remaining": self.get_remaining_quota(),
             "percentage_used": round(percentage_used, 2),
             "operations_count": usage_data.operations_count.copy(),
-            "status": self._get_quota_status(percentage_used),
+            "status": self.get_quota_status(percentage_used),
         }
 
     def optimize_batch_size(self, operation: str = "channels.list") -> int:
@@ -186,16 +195,17 @@ class QuotaTracker:
         except Exception as e:
             print(f"ERROR: Failed to store quota data: {e}")
 
-    def _get_quota_status(self, percentage_used: float) -> str:
+    def get_quota_status(self, percentage_used: float) -> str:
         """Get human-readable quota status"""
-        if percentage_used >= 95:
-            return "critical"
-        elif percentage_used >= 80:
-            return "high"
-        elif percentage_used >= 60:
-            return "moderate"
-        else:
-            return "normal"
+        match percentage_used:
+            case percentage if percentage >= 95:
+                return QuotaStatus.CRITICAL.value
+            case percentage if percentage >= 80:
+                return QuotaStatus.HIGH.value
+            case percentage if percentage >= 60:
+                return QuotaStatus.MODERATE.value
+            case _:
+                return QuotaStatus.NORMAL.value
 
     def _get_fallback_data(self) -> DailyQuotaUsage:
         """Fallback quota data when Redis-OM is unavailable"""

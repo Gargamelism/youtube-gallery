@@ -16,8 +16,6 @@ interface TagManagerProps {
 }
 
 export function TagManager({ isOpen, onClose, onTagsChange }: TagManagerProps) {
-  if (!isOpen) return null;
-
   const { t } = useTranslation('tags');
   const queryClient = useQueryClient();
   const [isCreating, setIsCreating] = useState(false);
@@ -30,6 +28,8 @@ export function TagManager({ isOpen, onClose, onTagsChange }: TagManagerProps) {
   const updateMutation = useUpdateChannelTag(queryClient);
   const deleteMutation = useDeleteChannelTag(queryClient);
 
+  if (!isOpen) return null;
+
   const handleFormSubmit = async (formData: TagCreateRequest) => {
     try {
       if (editingTag) {
@@ -40,7 +40,7 @@ export function TagManager({ isOpen, onClose, onTagsChange }: TagManagerProps) {
       } else {
         await createMutation.mutateAsync(formData);
       }
-      
+
       handleFormCancel();
       onTagsChange();
     } catch (error) {
@@ -98,9 +98,7 @@ export function TagManager({ isOpen, onClose, onTagsChange }: TagManagerProps) {
 
           <div className="sm:flex sm:items-start">
             <div className="w-full">
-              <h3 className="TagManager__title text-lg leading-6 font-medium text-gray-900 mb-6">
-                {t('tagManager')}
-              </h3>
+              <h3 className="TagManager__title text-lg leading-6 font-medium text-gray-900 mb-6">{t('tagManager')}</h3>
 
               {!isCreating && (
                 <button

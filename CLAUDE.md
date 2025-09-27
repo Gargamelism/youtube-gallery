@@ -55,7 +55,8 @@ This allows step-by-step implementation tracking and clear visibility of what ha
 
 ## Feature Design Guidelines
 
-All feature designs should follow a consistent structure and be documented in the `/feature_designs/` directory. Use the channel tagging and filtering design as a reference template.
+All feature designs should follow a consistent structure and be documented in the `/feature_designs/` directory. 
+Naming should follow the following YYYY-MM-DD-feature-description.md
 
 ### Required Design Document Structure
 
@@ -75,10 +76,8 @@ Each feature design document must include:
 7. **Implementation Phases** - Broken down into logical, testable stages
 8. **Performance Considerations** - Database, frontend, and API efficiency concerns
 9. **Testing Strategy** - Backend, frontend, and integration testing approaches
-10. **Success Metrics** - Measurable outcomes for feature adoption and performance
-11. **Risks and Mitigation** - Technical, UX, and business risks with mitigation strategies
-12. **Future Enhancements** - Short, medium, and long-term evolution possibilities
-13. **Conclusion** - Summary of value and implementation approach
+10. **Risks and Mitigation** - Technical, UX, and business risks with mitigation strategies
+11. **Conclusion** - Summary of value and implementation approach
 
 ### Mermaid Flow Diagrams
 

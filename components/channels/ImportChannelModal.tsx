@@ -1,28 +1,69 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { importChannelFromYoutube, getYouTubeAuthUrl } from '@/services';
+import { importChannelFromYoutube, getYouTubeAuthUrl, QuotaExceededError } from '@/services';
 import { Loader2 } from 'lucide-react';
 import { useChannelSubscribe } from './mutations';
 import { handleKeyboardActivation } from '../utils/keyboardUtils';
 import { useQueryClient } from '@tanstack/react-query';
+import { QuotaIndicator } from '@/components/quota';
+import { UserQuotaInfo } from '@/types';
+import { usePostMessage } from '@/hooks/usePostMessage';
+import { queryKeys } from '@/lib/reactQueryConfig';
 
 export interface ImportChannelModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export default function ImportChannelModal({ isOpen, onClose }: ImportChannelModalProps) {
-  if (!isOpen) return null;
-
+export function ImportChannelModal({ isOpen, onClose }: ImportChannelModalProps) {
   const { t } = useTranslation('channels');
   const [isImporting, setIsImporting] = useState(false);
   const [importError, setImportError] = useState<string | null | undefined>(null);
   const [newChannelId, setNewChannelId] = useState('');
   const [needsYoutubeAuth, setNeedsYoutubeAuth] = useState(false);
+  const [quotaInfo, setQuotaInfo] = useState<UserQuotaInfo | null>(null);
   const queryClient = useQueryClient();
   const subscribeMutation = useChannelSubscribe(queryClient);
   const modalRef = useRef<HTMLDivElement>(null);
   const pendingChannelId = useRef<string>('');
+
+  const handleAuthMessage = async (event: MessageEvent) => {
+    if (event.data === 'youtube-auth-success') {
+      setNeedsYoutubeAuth(false);
+      setImportError(null);
+
+      // Retry with stored channel ID
+      if (pendingChannelId.current) {
+        setIsImporting(true);
+
+        try {
+          const response = await importChannelFromYoutube(pendingChannelId.current);
+
+          if (response.error) {
+            setImportError(response.error);
+          } else {
+            await subscribeMutation.mutateAsync(response.data.uuid);
+            queryClient.invalidateQueries({ queryKey: queryKeys.userQuota });
+            setNewChannelId('');
+            onClose();
+          }
+        } catch (error) {
+          if (error instanceof QuotaExceededError) {
+            setImportError(error.message);
+            setQuotaInfo(error.quotaInfo.quota_info);
+          } else {
+            setImportError(t('importError'));
+          }
+          console.error('Import error:', error);
+        } finally {
+          setIsImporting(false);
+          pendingChannelId.current = '';
+        }
+      }
+    }
+  };
+
+  usePostMessage(handleAuthMessage);
 
   useEffect(() => {
     const handleYoutubeAuthRequired = (event: CustomEvent) => {
@@ -31,44 +72,12 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
       setIsImporting(false);
     };
 
-    const handleAuthMessage = async (event: MessageEvent) => {
-      if (event.data === 'youtube-auth-success') {
-        setNeedsYoutubeAuth(false);
-        setImportError(null);
-
-        // Retry with stored channel ID
-        if (pendingChannelId.current) {
-          setIsImporting(true);
-
-          try {
-            const response = await importChannelFromYoutube(pendingChannelId.current);
-
-            if (response.error) {
-              setImportError(response.error);
-            } else {
-              await subscribeMutation.mutateAsync(response.data.uuid);
-              setNewChannelId('');
-              onClose();
-            }
-          } catch (error) {
-            setImportError(t('importError'));
-            console.error('Import error:', error);
-          } finally {
-            setIsImporting(false);
-            pendingChannelId.current = '';
-          }
-        }
-      }
-    };
-
     window.addEventListener('youtube-auth-required', handleYoutubeAuthRequired as EventListener);
-    window.addEventListener('message', handleAuthMessage);
 
     return () => {
       window.removeEventListener('youtube-auth-required', handleYoutubeAuthRequired as EventListener);
-      window.removeEventListener('message', handleAuthMessage);
     };
-  }, [subscribeMutation, onClose]);
+  }, []);
 
   useLayoutEffect(() => {
     if (isOpen) {
@@ -78,6 +87,8 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
       }
     }
   }, [isOpen]);
+
+  if (!isOpen) return null;
 
   const handleYoutubeAuth = async () => {
     try {
@@ -89,10 +100,10 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
       } else if (response.data.auth_url) {
         window.location.href = response.data.auth_url;
       } else {
-        setImportError('Failed to get authentication URL');
+        setImportError(t('failedToGetAuthUrl'));
       }
     } catch {
-      setImportError('Failed to start authentication process');
+      setImportError(t('failedToStartAuth'));
     }
   };
 
@@ -102,6 +113,7 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
     setIsImporting(true);
     setImportError(null);
     setNeedsYoutubeAuth(false);
+    setQuotaInfo(null);
 
     try {
       const response = await importChannelFromYoutube(newChannelId);
@@ -114,11 +126,17 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
         setImportError(response.error);
       } else {
         await subscribeMutation.mutateAsync(response.data.uuid);
+        queryClient.invalidateQueries({ queryKey: queryKeys.userQuota });
         setNewChannelId('');
         onClose();
       }
     } catch (error) {
-      setImportError(t('importError'));
+      if (error instanceof QuotaExceededError) {
+        setImportError(error.message);
+        setQuotaInfo(error.quotaInfo.quota_info);
+      } else {
+        setImportError(t('importError'));
+      }
       console.error('Import error:', error);
     } finally {
       setIsImporting(false);
@@ -159,6 +177,12 @@ export default function ImportChannelModal({ isOpen, onClose }: ImportChannelMod
                   {t('authenticateWithYoutube')}
                 </button>
               )}
+            </div>
+          )}
+
+          {quotaInfo && (
+            <div className="ChannelSubscriptions__quota-info mb-4">
+              <QuotaIndicator quotaInfo={quotaInfo} />
             </div>
           )}
 

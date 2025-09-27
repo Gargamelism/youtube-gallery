@@ -2,6 +2,18 @@
 Exceptions for channel updating and management operations.
 """
 
+from typing import TypedDict, Optional, Dict
+
+
+class QuotaInfo(TypedDict):
+    """Type definition for quota usage information"""
+    daily_usage: int
+    daily_limit: int
+    remaining: int
+    percentage_used: float
+    operations_count: Dict[str, int]
+    status: str
+
 
 class ChannelUpdateError(Exception):
     """Base exception for channel update errors"""
@@ -40,3 +52,11 @@ class InvalidChannelDataError(ChannelUpdateError):
 class APIServerError(ChannelUpdateError):
     """YouTube API server error (5xx responses)"""
     pass
+
+
+class UserQuotaExceededError(Exception):
+    """Raised when a user exceeds their daily quota limit"""
+
+    def __init__(self, message: str, quota_info: Optional[QuotaInfo] = None):
+        super().__init__(message)
+        self.quota_info = quota_info or {}
