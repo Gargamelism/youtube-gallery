@@ -8,5 +8,6 @@
   "resetsAt": "Resets at {{time}} local time",
   "resetsExplainer": "(midnight UTC)",
   "loading": "Loading quota information...",
-  "loadError": "Failed to load quota information"
+  "loadError": "Failed to load quota information",
+  "quotaPercentageAria": "Daily quota used: {{percent}}%"
 }

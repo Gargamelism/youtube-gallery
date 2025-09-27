@@ -2,53 +2,69 @@
  * React Query configuration constants
  */
 
+// Time constants in milliseconds
+const THIRTY_SECONDS = 30 * 1000;
+const NINETY_SECONDS = 90 * 1000;
+const ONE_MINUTE = 1 * 60 * 1000;
+const TWO_MINUTES = 2 * 60 * 1000;
+const FIVE_MINUTES = 5 * 60 * 1000;
+const TEN_MINUTES = 10 * 60 * 1000;
+const FIFTEEN_MINUTES = 15 * 60 * 1000;
+const THIRTY_MINUTES = 30 * 60 * 1000;
+
 const STABLE_DATA_CONFIG = {
-  staleTime: 5 * 60 * 1000, // 5 minutes
-  gcTime: 10 * 60 * 1000, // 10 minutes
+  staleTime: FIVE_MINUTES,
+  gcTime: TEN_MINUTES,
   refetchOnWindowFocus: false,
   retry: 2,
 } as const;
 
 const DYNAMIC_DATA_CONFIG = {
-  staleTime: 2 * 60 * 1000, // 2 minutes
-  gcTime: 5 * 60 * 1000, // 5 minutes
+  staleTime: TWO_MINUTES,
+  gcTime: FIVE_MINUTES,
   refetchOnWindowFocus: false,
   retry: 1,
 } as const;
 
 export const TAG_QUERY_CONFIG = {
   ...STABLE_DATA_CONFIG,
-  staleTime: 5 * 60 * 1000,
+  staleTime: FIVE_MINUTES,
 } as const;
 
 export const VIDEO_QUERY_CONFIG = {
   ...DYNAMIC_DATA_CONFIG,
-  staleTime: 90 * 1000, // 90 seconds
+  staleTime: NINETY_SECONDS,
   retry: 1,
 } as const;
 
 export const CHANNEL_QUERY_CONFIG = {
   ...STABLE_DATA_CONFIG,
-  staleTime: 10 * 60 * 1000, // 10 minutes
+  staleTime: TEN_MINUTES,
 } as const;
 
 export const USER_DATA_CONFIG = {
   ...STABLE_DATA_CONFIG,
-  staleTime: 15 * 60 * 1000, // 15 minutes
-  gcTime: 30 * 60 * 1000, // 30 minutes
+  staleTime: FIFTEEN_MINUTES,
+  gcTime: THIRTY_MINUTES,
 } as const;
 
 export const REALTIME_DATA_CONFIG = {
   staleTime: 0,
-  gcTime: 1 * 60 * 1000, // 1 minute
+  gcTime: ONE_MINUTE,
   refetchOnWindowFocus: true,
   retry: 0,
 } as const;
 
+export const USER_QUOTA_CONFIG = {
+  ...USER_DATA_CONFIG,
+  staleTime: THIRTY_SECONDS,
+  refetchInterval: THIRTY_SECONDS,
+} as const;
+
 export const DEFAULT_QUERY_CONFIG = {
   queries: {
-    staleTime: 2 * 60 * 1000,
-    gcTime: 5 * 60 * 1000,
+    staleTime: TWO_MINUTES,
+    gcTime: FIVE_MINUTES,
     refetchOnWindowFocus: false,
     retry: 1,
   },
@@ -71,4 +87,5 @@ export const queryKeys = {
 
   userProfile: ['user', 'profile'] as const,
   userAuth: ['user', 'auth'] as const,
+  userQuota: ['userQuota'] as const,
 } as const;

@@ -20,5 +20,7 @@
   "importing": "Importing...",
   "authenticateWithYoutube": "Authenticate with YouTube",
   "importError": "Failed to import channel. Please try again.",
-  "authenticationFailed": "Authentication failed:"
+  "authenticationFailed": "Authentication failed:",
+  "failedToGetAuthUrl": "Failed to get authentication URL",
+  "failedToStartAuth": "Failed to start authentication process"
 }

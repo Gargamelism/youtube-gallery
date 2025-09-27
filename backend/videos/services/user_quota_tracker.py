@@ -18,7 +18,7 @@ class UserQuotaTracker(QuotaTracker):
 
     DEFAULT_USER_DAILY_LIMIT = 1000  # Conservative per-user limit
 
-    def __init__(self, user, user_daily_limit: int = None):
+    def __init__(self, user, user_daily_limit: Optional[int] = None):
         super().__init__(daily_quota_limit=10000)  # Keep global limit
         self.user = user
         self.user_daily_limit = user_daily_limit or self.DEFAULT_USER_DAILY_LIMIT
@@ -60,7 +60,7 @@ class UserQuotaTracker(QuotaTracker):
             quota_info = self.get_user_usage_summary()
             raise UserQuotaExceededError(
                 f"Daily user quota limit exceeded. Used {quota_info['daily_usage']}/{quota_info['daily_limit']} units.",
-                quota_info=quota_info
+                quota_info=quota_info,
             )
 
         return can_proceed
@@ -84,19 +84,16 @@ class UserQuotaTracker(QuotaTracker):
         # Alert if usage is high
         if user_quota_record.quota_used >= (self.user_daily_limit * self.ALERT_THRESHOLD):
             percentage = user_quota_record.quota_used / self.user_daily_limit * 100
-            print(f"WARNING: User {self.user.email} quota usage high - {user_quota_record.quota_used}/{self.user_daily_limit} ({percentage:.1f}%)")
+            print(
+                f"WARNING: User {self.user.email} quota usage high - {user_quota_record.quota_used}/{self.user_daily_limit} ({percentage:.1f}%)"
+            )
 
     def _get_or_create_user_quota(self) -> UserDailyQuota:
         """Get or create today's user quota record atomically"""
         today = dj_tz.now().date()
 
         user_quota_record, _ = UserDailyQuota.objects.get_or_create(
-            user=self.user,
-            date=today,
-            defaults={
-                'quota_used': 0,
-                'operations_count': {}
-            }
+            user=self.user, date=today, defaults={"quota_used": 0, "operations_count": {}}
         )
 
         return user_quota_record

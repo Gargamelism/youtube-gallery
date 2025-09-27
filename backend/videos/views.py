@@ -44,11 +44,19 @@ class ChannelViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
 
         except UserQuotaExceededError as e:
+            quota_info = e.quota_info or {}
+            daily_usage = quota_info.get("daily_usage")
+            daily_limit = quota_info.get("daily_limit")
+            message = e.args[0]
+
+            if daily_usage is not None and daily_limit is not None:
+                message = f"You've used {daily_usage}/{daily_limit} quota units today"
+
             return Response(
                 {
                     "error": "Daily quota limit exceeded",
-                    "quota_info": e.quota_info,
-                    "message": f"You've used {e.quota_info['daily_usage']}/{e.quota_info['daily_limit']} quota units today",
+                    "quota_info": quota_info,
+                    "message": message,
                 },
                 status=status.HTTP_429_TOO_MANY_REQUESTS,
             )

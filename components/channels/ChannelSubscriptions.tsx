@@ -7,11 +7,12 @@ import { Plus, Search, Users, Trash2, Loader2, ExternalLink, Tags } from 'lucide
 import { fetchUserChannels, fetchChannels, fetchUserQuotaUsage } from '@/services';
 import { UserChannel, Channel } from '@/types';
 import AvailableChannelCard from './AvailableChannelCard';
-import ImportChannelModal from './ImportChannelModal';
+import { ImportChannelModal } from './ImportChannelModal';
 import { useChannelUnsubscribe, useChannelSubscribe } from './mutations';
 import { TagSelector } from '@/components/tags/TagSelector';
 import { TagManager } from '@/components/tags/TagManager';
 import { QuotaIndicatorCompact } from '@/components/quota';
+import { USER_QUOTA_CONFIG, queryKeys } from '@/lib/reactQueryConfig';
 
 export default function ChannelSubscriptions() {
   const { t } = useTranslation('channels');
@@ -21,8 +22,6 @@ export default function ChannelSubscriptions() {
   const queryClient = useQueryClient();
   const unsubscribeMutation = useChannelUnsubscribe(queryClient);
   const subscribeMutation = useChannelSubscribe(queryClient);
-
-  const QUOTA_REFETCH_INTERVAL_MS = 30000;
 
   const { data: userChannels, isLoading: isLoadingUserChannels } = useQuery({
     queryKey: ['userChannels'],
@@ -37,10 +36,10 @@ export default function ChannelSubscriptions() {
   });
 
   const { data: userQuotaInfo } = useQuery({
-    queryKey: ['userQuota'],
+    queryKey: queryKeys.userQuota,
     queryFn: fetchUserQuotaUsage,
     select: response => response.data,
-    refetchInterval: QUOTA_REFETCH_INTERVAL_MS,
+    ...USER_QUOTA_CONFIG,
   });
 
   const handleChannelUnsubscribe = async (channelId: string) => {

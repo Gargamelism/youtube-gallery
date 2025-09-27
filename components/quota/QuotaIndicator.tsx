@@ -22,9 +22,7 @@ export function QuotaIndicator({ quotaInfo, className = '' }: QuotaIndicatorProp
       `}
     >
       <div className="QuotaIndicator__header flex items-center justify-between mb-2">
-        <div className="QuotaIndicator__title text-sm font-medium">
-          {t('dailyUsage')}
-        </div>
+        <div className="QuotaIndicator__title text-sm font-medium">{t('dailyUsage')}</div>
         <div className="QuotaIndicator__stats text-xs font-mono">
           {quotaInfo.used}/{quotaInfo.daily_limit}
         </div>
@@ -36,7 +34,7 @@ export function QuotaIndicator({ quotaInfo, className = '' }: QuotaIndicatorProp
             QuotaIndicator__progress-bar h-2 rounded-full transition-all duration-300
             ${getQuotaProgressClasses(quotaInfo.status)}
           `}
-          style={{ width: `${Math.min(quotaInfo.percentage_used, 100)}%` }}
+          style={{ width: `${Math.max(0, Math.min(quotaInfo.percentage_used, 100))}%` }}
         />
       </div>
 
@@ -46,11 +44,9 @@ export function QuotaIndicator({ quotaInfo, className = '' }: QuotaIndicatorProp
         </span>
         <div className="QuotaIndicator__reset-info text-right">
           <div className="QuotaIndicator__reset-time text-gray-500">
-            {t('resetsAt', { time: formatTimeFromUTC(quotaInfo.resets_at) })}
+            {t('resetsAt', { time: quotaInfo.resets_at ? formatTimeFromUTC(quotaInfo.resets_at) : '—' })}
           </div>
-          <div className="QuotaIndicator__reset-explainer text-gray-400 text-xs">
-            {t('resetsExplainer')}
-          </div>
+          <div className="QuotaIndicator__reset-explainer text-gray-400 text-xs">{t('resetsExplainer')}</div>
         </div>
       </div>
     </div>

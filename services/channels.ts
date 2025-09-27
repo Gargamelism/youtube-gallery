@@ -1,4 +1,4 @@
-import { Channel, UserChannel, ChannelResponse, UserChannelResponse, QuotaExceededError as QuotaExceededErrorType, HttpStatusCode } from '@/types';
+import { Channel, UserChannel, ChannelResponse, UserChannelResponse, QuotaExceededErrorType as QuotaExceededErrorType, HttpStatusCode } from '@/types';
 import { ResponseHandler, ApiResponse } from './ResponseHandler';
 import { API_BASE_URL, getRequestOptions } from './shared';
 

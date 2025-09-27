@@ -16,7 +16,8 @@ export function QuotaIndicatorCompact({ quotaInfo, className = '' }: QuotaIndica
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const strokeDasharray = circumference;
-  const strokeDashoffset = circumference - (quotaInfo.percentage_used / 100) * circumference;
+  const percent = Math.max(0, Math.min(100, quotaInfo.percentage_used));
+  const strokeDashoffset = circumference - (percent / 100) * circumference;
 
   return (
     <div
@@ -26,6 +27,7 @@ export function QuotaIndicatorCompact({ quotaInfo, className = '' }: QuotaIndica
         ${className}
       `}
       title={t('dailyYouTubeQuota')}
+      aria-label={t('quotaPercentageAria', { percent: quotaInfo.percentage_used.toFixed(0) })}
     >
       <div className="QuotaIndicatorCompact__circle relative">
         <svg width={size} height={size} className="transform -rotate-90">
@@ -50,9 +52,15 @@ export function QuotaIndicatorCompact({ quotaInfo, className = '' }: QuotaIndica
           />
         </svg>
 
-        <div className="QuotaIndicatorCompact__center absolute inset-0 flex flex-col items-center justify-center text-center">
+        <div className="QuotaIndicatorCompact__center absolute inset-0 flex items-center justify-center">
           <div
-            className={`QuotaIndicatorCompact__percentage text-xs font-bold ${getQuotaTextClasses(quotaInfo.status)}`}
+            className={`QuotaIndicatorCompact__percentage text-[9px] font-medium leading-none ${getQuotaTextClasses(
+              quotaInfo.status
+            )}`}
+            style={{
+              maxWidth: `${radius * 1.8}px`,
+              minWidth: 'fit-content',
+            }}
           >
             {quotaInfo.percentage_used.toFixed(0)}%
           </div>

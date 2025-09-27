@@ -108,6 +108,9 @@ class UserDailyQuota(TimestampMixin):
             models.Index(fields=["user", "date"]),
             models.Index(fields=["date"]),
         ]
+        constraints = [
+            models.CheckConstraint(check=models.Q(quota_used__gte=0), name="user_daily_quota_used_gte_0"),
+        ]
 
     def __str__(self):
         return f"{self.user.email} - {self.date}: {self.quota_used} quota used"

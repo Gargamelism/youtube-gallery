@@ -154,8 +154,8 @@ def quota_usage_view(request):
     user_quota_tracker = UserQuotaTracker(user=request.user)
     usage_info = user_quota_tracker.get_user_usage_summary()
 
-    tomorrow = dj_tz.now().date() + timedelta(days=1)
-    next_midnight_utc = dj_tz.make_aware(dj_tz.datetime.combine(tomorrow, dj_tz.datetime.min.time()))
+    now = dj_tz.now()
+    next_midnight_utc = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
 
     return Response(
         {

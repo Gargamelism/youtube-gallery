@@ -1,44 +1,30 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/authStore';
 import { fetchUserQuotaUsage } from '@/services';
 import { QuotaIndicator } from '@/components/quota';
-import { UserQuotaInfo } from '@/types';
+import { USER_QUOTA_CONFIG, queryKeys } from '@/lib/reactQueryConfig';
 import { Loader2 } from 'lucide-react';
 
 export default function SettingsPage() {
   const { t } = useTranslation(['settings', 'quota', 'auth']);
   const { user } = useAuthStore();
-  const [quotaInfo, setQuotaInfo] = useState<UserQuotaInfo | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const loadQuotaInfo = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const response = await fetchUserQuotaUsage();
+  const {
+    data: quotaInfo,
+    isLoading,
+    error: queryError,
+  } = useQuery({
+    queryKey: [...queryKeys.userQuota, user?.id],
+    queryFn: fetchUserQuotaUsage,
+    enabled: !!user,
+    select: response => response.data,
+    ...USER_QUOTA_CONFIG,
+  });
 
-        if (response.error) {
-          setError(response.error);
-        } else {
-          setQuotaInfo(response.data);
-        }
-      } catch (error) {
-        console.error('Failed to load quota info:', error);
-        setError(t('quota:loadError'));
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (user) {
-      loadQuotaInfo();
-    }
-  }, [user, t]);
+  const error = queryError ? t('quota:loadError') : null;
 
   if (!user) {
     return (

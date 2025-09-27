@@ -126,6 +126,7 @@ class QuotaTracker:
     def get_usage_summary(self) -> Dict:
         usage_data = self._get_usage_data()
         percentage_used = (usage_data.daily_usage / self.daily_quota_limit) * 100
+        percentage_used = min(percentage_used, 100.0)
 
         return {
             "daily_usage": usage_data.daily_usage,

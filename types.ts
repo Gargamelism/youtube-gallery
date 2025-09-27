@@ -174,7 +174,7 @@ export interface UserQuotaInfo {
   resets_at: string;
 }
 
-export interface QuotaExceededError {
+export interface QuotaExceededErrorType {
   error: string;
   quota_info: UserQuotaInfo;
   message: string;
