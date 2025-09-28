@@ -6,6 +6,12 @@ export interface PaginatedResponse<T> {
   results: T[];
 }
 
+// Pagination Parameters
+export interface PaginationParams {
+  page?: number;
+  page_size?: number;
+}
+
 // User Authentication Types
 export interface User {
   id: string;

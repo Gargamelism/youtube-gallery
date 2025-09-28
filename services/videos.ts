@@ -1,4 +1,4 @@
-import { VideoResponse, VideoStats, UserVideo, TagFilterParams, TagMode } from '@/types';
+import { VideoResponse, VideoStats, UserVideo, TagFilterParams, TagMode, PaginationParams } from '@/types';
 import { ResponseHandler, ApiResponse } from './ResponseHandler';
 import { API_BASE_URL, getRequestOptions } from './shared';
 
@@ -9,7 +9,7 @@ export interface WatchStatusResponse {
   notes: string | null;
 }
 
-function buildVideoQueryParams(params: TagFilterParams): string {
+function buildVideoQueryParams(params: TagFilterParams & PaginationParams): string {
   const queryParams = new URLSearchParams();
 
   if (params.watch_status && params.watch_status !== 'all') {
@@ -21,10 +21,18 @@ function buildVideoQueryParams(params: TagFilterParams): string {
     queryParams.set('tag_mode', params.tag_mode || TagMode.ANY);
   }
 
+  if (params.page) {
+    queryParams.set('page', params.page.toString());
+  }
+
+  if (params.page_size) {
+    queryParams.set('page_size', params.page_size.toString());
+  }
+
   return queryParams.toString();
 }
 
-export async function fetchVideos(params?: TagFilterParams): Promise<ApiResponse<VideoResponse>> {
+export async function fetchVideos(params?: TagFilterParams & PaginationParams): Promise<ApiResponse<VideoResponse>> {
   const queryString = buildVideoQueryParams(params || {});
   let url = `${API_BASE_URL}/videos`;
   if (queryString) {

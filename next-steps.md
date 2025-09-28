@@ -1,6 +1,5 @@
 This file is to remind me of little tasks todo without breaking my flow or claude related feature-creep
 
-1. fix 100% quota used in compact view hidden 100
 1. videos page pagination
 1. channels page pagination
 1. add video filtering search
@@ -26,7 +25,8 @@ This file is to remind me of little tasks todo without breaking my flow or claud
 1. email verification
 1. otp login
 1. add profile page
-1. add settings page
+1. review settings page
+1. tag management / assigning pagination
 1. extract your subscriptions to componenet
 1. extract available channels to component
 1. Running Migrator().run() in init can be heavy- Initializing migrations every time a tracker is instantiated may add latency. Prefer running once at startup (e.g., AppConfig.ready) or gate with a module-level flag.
