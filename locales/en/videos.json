@@ -13,5 +13,6 @@
   "views": "views",
   "noMoreVideos": "No more videos to load",
   "loadingMoreVideos": "Loading more videos...",
-  "subscribeToMoreChannels": "Subscribe to more channels"
+  "subscribeToMoreChannels": "Subscribe to more channels",
+  "restoringPosition": "Restoring your last scroll position..."
 }

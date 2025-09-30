@@ -16,6 +16,7 @@ export interface VideoFiltersActions {
   updateTagMode: (newMode: TagModeType) => void;
   addTag: (tagName: string) => void;
   removeTag: (tagName: string) => void;
+  areFiltersEqual: (otherFilters: VideoFilters) => boolean;
 }
 
 export function useVideoFilters(): VideoFilters & VideoFiltersActions {
@@ -69,6 +70,14 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
     updateTags(newTags);
   };
 
+  const areFiltersEqual = (otherFilters: VideoFilters): boolean => {
+    return (
+      filter === otherFilters.filter &&
+      JSON.stringify(selectedTags.sort()) === JSON.stringify(otherFilters.selectedTags.sort()) &&
+      tagMode === otherFilters.tagMode
+    );
+  };
+
   return {
     filter,
     selectedTags,
@@ -78,5 +87,6 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
     updateTagMode,
     addTag,
     removeTag,
+    areFiltersEqual,
   };
 }

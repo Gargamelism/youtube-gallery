@@ -135,18 +135,18 @@ export function useInfiniteVideos(filters: VideoFilters) {
     ...VIDEO_QUERY_CONFIG,
   });
 
-  // Restore scroll position after initial load
+  // Restore scroll position after initial load (only on mount)
   useEffect(() => {
-    if (query.data && !isRestoring) {
-      const savedPosition = getPosition();
-      if (savedPosition && areFiltersEqual(savedPosition.filters, filters)) {
-        setIsRestoring(true);
-        restoreScrollPosition(savedPosition, query.fetchNextPage);
-      }
+    const savedPosition = getPosition();
+    if (savedPosition) {
+      setIsRestoring(true);
+      restoreScrollPosition(savedPosition, query.fetchNextPage).finally(() => {
+        setTimeout(() => setIsRestoring(false), 500);
+      });
     }
-  }, [query.data, isRestoring]);
+  }, []); // Empty deps - only restore on mount
 
-  return { ...query, isRestoring, setIsRestoring };
+  return { ...query, isRestoring };
 }
 
 async function restoreScrollPosition(
@@ -214,24 +214,34 @@ export function useInfiniteScroll(
   const { savePosition } = useScrollPosition('videos');
 
   // Save position on scroll (debounced)
-  const saveCurrentPosition = useMemo(
-    () =>
-      debounce(() => {
-        savePosition({
-          scrollY: window.scrollY,
-          loadedPages: currentPageCount,
-          timestamp: Date.now(),
-          filters
-        });
-      }, 1000),
-    [currentPageCount, filters, savePosition]
-  );
+  const saveCurrentPosition = useDebouncedCallback(() => {
+    savePosition({
+      scrollY: window.scrollY,
+      loadedPages: currentPageCount,
+      timestamp: Date.now(),
+      filters
+    });
+  }, 1000);
 
+  // Save on scroll
   useEffect(() => {
     const handleScroll = () => saveCurrentPosition();
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      saveCurrentPosition.cancel();
+    };
   }, [saveCurrentPosition]);
+
+  // Save immediately when filters change (not on page count changes)
+  useEffect(() => {
+    savePosition({
+      scrollY: window.scrollY,
+      loadedPages: currentPageCount,
+      timestamp: Date.now(),
+      filters
+    });
+  }, [filters, savePosition]);
 
   useEffect(() => {
     if (!loadingRef.current) return;
@@ -422,18 +432,22 @@ interface ScrollPositionData {
 - [x] Implement localized messages for loading and end-of-list states
 - [x] Add channels subscription link when no more videos available
 
-### Phase 2: Scroll Position Preservation ⭐ **Current**
-- [ ] Implement `useScrollPosition` hook with sessionStorage
-- [ ] Add position saving on scroll (debounced)
-- [ ] Create restoration logic for returning users
-- [ ] Add visual feedback during restoration
-- [ ] Test position preservation across navigation
+### Phase 2: Scroll Position Preservation ✅ **Completed**
+- [x] Implement `useScrollPosition` hook with sessionStorage
+- [x] Add position saving on scroll (debounced with 1s delay)
+- [x] Create restoration logic for returning users (mount-only trigger)
+- [x] Add visual feedback during restoration (toast notification)
+- [x] Test position preservation across navigation
+- [x] Fix: Remove `currentPageCount` from save trigger to prevent unwanted saves during pagination
+- [x] Add 30-minute expiration for saved positions
+- [x] Implement comprehensive test suite for scroll restoration
 
-### Phase 3: Enhanced UX
-- [ ] Add loading states and error handling
+### Phase 3: Enhanced UX ⭐ **Current**
+- [x] Add loading states and error handling
+- [x] Add visual feedback during restoration (toast notification)
 - [ ] Implement "Load More" button as fallback for accessibility
 - [ ] Add smooth scroll transitions
-- [ ] Test filter interactions with pagination and position
+- [ ] Test filter interactions with pagination and position in production
 
 ### Phase 4: Performance Optimization
 - [ ] Implement virtual scrolling for large datasets (>500 videos)
@@ -474,12 +488,17 @@ interface ScrollPositionData {
 - **Performance tests**: Verify query count remains constant with pagination
 - **Edge cases**: Test last page, empty results, invalid page numbers
 
-### Frontend Testing
-- **Position preservation**: Test scroll position saving and restoration
-- **Filter interactions**: Verify position clearing when filters change
-- **Navigation flow**: Test position preservation across page transitions
-- **Storage management**: Test sessionStorage cleanup and expiration
-- **Error scenarios**: Test restoration failure handling
+### Frontend Testing ✅ **Implemented**
+- **Test files created**:
+  - `hooks/__tests__/useInfiniteVideos.test.tsx` - Infinite query behavior and restoration state
+  - `hooks/__tests__/useInfiniteScroll.test.tsx` - Position saving logic and filter change handling
+  - `hooks/__tests__/useScrollPosition.test.tsx` - SessionStorage operations and expiration
+  - `app/videos/components/__tests__/VideoList.test.tsx` - Updated with proper mocks
+- **Coverage**:
+  - Position preservation: Scroll position saving and restoration
+  - Filter interactions: Position NOT saved on page count changes
+  - Storage management: SessionStorage cleanup and 30-minute expiration
+  - Key isolation: Different storage keys for different contexts
 
 ### Test Cases
 ```typescript

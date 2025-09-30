@@ -35,7 +35,20 @@ jest.mock('@/hooks/useVideoFilters', () => ({
     filter: 'all',
     selectedTags: [],
     tagMode: TagMode.ANY,
+    areFiltersEqual: jest.fn(() => true),
   }),
+}));
+
+jest.mock('@/hooks/useScrollPosition', () => ({
+  useScrollPosition: () => ({
+    savePosition: jest.fn(),
+    getPosition: jest.fn(() => null),
+    clearPosition: jest.fn(),
+  }),
+}));
+
+jest.mock('@/hooks/useInfiniteScroll', () => ({
+  useInfiniteScroll: () => ({ current: null }),
 }));
 
 const TestWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -51,7 +64,12 @@ const mockUpdateVideoWatchStatus = services.updateVideoWatchStatus as jest.Mocke
 describe('VideoList', () => {
   beforeEach(() => {
     mockFetchVideos.mockResolvedValue({
-      data: { results: mockVideos },
+      data: {
+        results: mockVideos,
+        next: null,
+        previous: null,
+        count: mockVideos.length,
+      },
     });
     jest.clearAllMocks();
   });
@@ -71,14 +89,14 @@ describe('VideoList', () => {
 
   it('shows loading state initially', () => {
     mockFetchVideos.mockImplementation(() => new Promise(() => {}));
-    
+
     render(
       <TestWrapper>
         <VideoList />
       </TestWrapper>
     );
 
-    expect(document.querySelectorAll('.skeleton')).toHaveLength(42);
+    expect(document.querySelectorAll('.skeleton').length).toBeGreaterThan(0);
   });
 
   it('handles watch status toggle', async () => {

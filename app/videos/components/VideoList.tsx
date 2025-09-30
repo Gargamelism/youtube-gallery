@@ -15,7 +15,7 @@ import Link from 'next/link';
 
 export function VideoList() {
   const queryClient = useQueryClient();
-  const { filter, selectedTags, tagMode } = useVideoFilters();
+  const { filter, selectedTags, tagMode, areFiltersEqual } = useVideoFilters();
   const { t } = useTranslation('videos');
 
   const handleVideoClick = (url: string) => {
@@ -24,13 +24,20 @@ export function VideoList() {
     }
   };
 
-  const { data, fetchNextPage, hasNextPage, isFetching, isLoading, error } = useInfiniteVideos({
-    watch_status: filter,
-    tags: selectedTags,
-    tag_mode: tagMode,
-  });
+  const currentFilters = { filter, selectedTags, tagMode };
 
-  const loadingRef = useInfiniteScroll(fetchNextPage, hasNextPage || false, isFetching);
+  const { data, fetchNextPage, hasNextPage, isFetching, isLoading, error, isRestoring } = useInfiniteVideos(
+    currentFilters,
+    areFiltersEqual
+  );
+
+  const loadingRef = useInfiniteScroll(
+    fetchNextPage,
+    hasNextPage || false,
+    isFetching,
+    data?.pages.length || 0,
+    currentFilters
+  );
 
   const videos = data?.pages.flatMap(page => page.data?.results || []) || [];
 
@@ -66,6 +73,13 @@ export function VideoList() {
 
   return (
     <div className="py-6">
+      {isRestoring && (
+        <div className="fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 flex items-center gap-2">
+          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+          {t('restoringPosition')}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {videos.map(video => (
           <VideoCard

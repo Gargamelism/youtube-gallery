@@ -27,6 +27,7 @@
     "react-dom": "^19.1.1",
     "react-hook-form": "^7.53.2",
     "react-i18next": "^15.6.1",
+    "use-debounce": "^10.0.6",
     "zustand": "^5.0.2"
   },
   "devDependencies": {

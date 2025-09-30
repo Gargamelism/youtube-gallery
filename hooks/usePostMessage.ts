@@ -16,6 +16,11 @@ const ALLOWED_ORIGINS = [
   window.location.origin
 ];
 
+export enum PostMessageType {
+  YOUTUBE_AUTH_SUCCESS = 'youtube-auth-success',
+  YOUTUBE_AUTH_ERROR = 'youtube-auth-error',
+}
+
 interface PostMessageOptions {
   targetOrigin?: string;
   validateOrigin?: boolean;
@@ -23,7 +28,7 @@ interface PostMessageOptions {
 }
 
 interface UsePostMessageReturn {
-  sendMessage: (message: any, targetWindow?: Window) => void;
+  sendMessage: (message: PostMessageType, targetWindow?: Window) => void;
 }
 
 export function usePostMessage(
@@ -56,7 +61,7 @@ export function usePostMessage(
     onMessageRef.current(event);
   }, [validateOrigin, allowedOrigins]);
 
-  const sendMessage = useCallback((message: any, targetWindow: Window = window.parent) => {
+  const sendMessage = useCallback((message: PostMessageType, targetWindow: Window = window.parent) => {
     try {
       targetWindow.postMessage(message, targetOrigin);
     } catch (error) {

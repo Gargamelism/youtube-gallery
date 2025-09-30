@@ -8,8 +8,9 @@ import {
   fetchVideos,
 } from '@/services';
 import { QueryClient, useMutation, useQuery } from '@tanstack/react-query';
-import { ChannelTag, ChannelTagResponse, TagCreateRequest, TagFilterParams } from '@/types';
+import { ChannelTag, ChannelTagResponse, TagCreateRequest } from '@/types';
 import { TAG_QUERY_CONFIG, VIDEO_QUERY_CONFIG, queryKeys } from '@/lib/reactQueryConfig';
+import { VideoFilters } from '@/hooks/useVideoFilters';
 
 export function useChannelTags() {
   return useQuery({
@@ -34,14 +35,14 @@ export function useChannelTagsById(channelId: string) {
   });
 }
 
-export function useVideosWithTags(params: TagFilterParams) {
+export function useVideosWithTags(filters: VideoFilters) {
   return useQuery({
-    queryKey: queryKeys.videosWithFilter(params),
+    queryKey: queryKeys.videosWithFilter(filters),
     queryFn: async () => {
-      const response = await fetchVideos(params);
+      const response = await fetchVideos(filters);
       return response.data;
     },
-    enabled: Boolean(params.tags?.length || params.watch_status),
+    enabled: Boolean(filters.selectedTags?.length || filters.filter !== 'all'),
     ...VIDEO_QUERY_CONFIG,
   });
 }

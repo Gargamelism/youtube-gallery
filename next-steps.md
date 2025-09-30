@@ -32,7 +32,8 @@ This file is to remind me of little tasks todo without breaking my flow or claud
 1. Running Migrator().run() in init can be heavy- Initializing migrations every time a tracker is instantiated may add latency. Prefer running once at startup (e.g., AppConfig.ready) or gate with a module-level flag.
 1. make skeleton loader more independent
 1. add story book
-1. add logo - talk with victoria about colors/branding
+1. add reference when marking watched it's being saved
+1. add logo - talk with victoria
 1. user dropdown - change links to configuration, and that links work
 1. responsive channels page
 1. move frontend to frontend folder

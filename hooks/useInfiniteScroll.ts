@@ -1,21 +1,56 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { useDebouncedCallback } from 'use-debounce';
+import { useScrollPosition } from './useScrollPosition';
+import { VideoFilters } from './useVideoFilters';
 
 export function useInfiniteScroll(
   fetchNextPage: () => void,
   hasNextPage: boolean,
-  isFetching: boolean
+  isFetching: boolean,
+  currentPageCount: number,
+  filters: VideoFilters
 ) {
   const observerRef = useRef<IntersectionObserver>();
   const loadingRef = useRef<HTMLDivElement>(null);
+  const { savePosition } = useScrollPosition('videos');
+
+  const saveCurrentPosition = useDebouncedCallback(() => {
+    savePosition({
+      scrollY: window.scrollY,
+      loadedPages: currentPageCount,
+      timestamp: Date.now(),
+      filters
+    });
+  }, 1000);
+
+  // Save on scroll
+  useEffect(() => {
+    const handleScroll = () => saveCurrentPosition();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      saveCurrentPosition.cancel();
+    };
+  }, [saveCurrentPosition]);
+
+  // Save immediately when filters change (not on page count changes)
+  useEffect(() => {
+    savePosition({
+      scrollY: window.scrollY,
+      loadedPages: currentPageCount,
+      timestamp: Date.now(),
+      filters
+    });
+  }, [filters, savePosition]);
 
   useEffect(() => {
     if (!loadingRef.current) return;
 
     observerRef.current = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && hasNextPage && !isFetching) {
+        if (entry?.isIntersecting && hasNextPage && !isFetching) {
           fetchNextPage();
         }
       },
@@ -23,7 +58,6 @@ export function useInfiniteScroll(
     );
 
     observerRef.current.observe(loadingRef.current);
-
     return () => observerRef.current?.disconnect();
   }, [fetchNextPage, hasNextPage, isFetching]);
 

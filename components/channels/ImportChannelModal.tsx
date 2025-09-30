@@ -7,7 +7,7 @@ import { handleKeyboardActivation } from '../utils/keyboardUtils';
 import { useQueryClient } from '@tanstack/react-query';
 import { QuotaIndicator } from '@/components/quota';
 import { UserQuotaInfo } from '@/types';
-import { usePostMessage } from '@/hooks/usePostMessage';
+import { usePostMessage, PostMessageType } from '@/hooks/usePostMessage';
 import { queryKeys } from '@/lib/reactQueryConfig';
 
 export interface ImportChannelModalProps {
@@ -28,7 +28,7 @@ export function ImportChannelModal({ isOpen, onClose }: ImportChannelModalProps)
   const pendingChannelId = useRef<string>('');
 
   const handleAuthMessage = async (event: MessageEvent) => {
-    if (event.data === 'youtube-auth-success') {
+    if (event.data === PostMessageType.YOUTUBE_AUTH_SUCCESS) {
       setNeedsYoutubeAuth(false);
       setImportError(null);
 

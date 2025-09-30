@@ -145,12 +145,6 @@ export type ChannelTagPreview = Pick<ChannelTagBase, 'name' | 'color'> &
 // For partial updates
 export type TagUpdateRequest = Partial<TagCreateRequest>;
 
-export interface TagFilterParams {
-  tags?: string[];
-  tag_mode?: TagModeType;
-  watch_status?: string;
-}
-
 export interface TagAssignmentRequest {
   tag_ids: string[];
 }
