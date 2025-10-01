@@ -72,7 +72,14 @@ export function VideoCard({ video, onWatch, onToggleWatched }: VideoCardProps) {
     <div className="VideoCard relative overflow-hidden rounded-lg border bg-white shadow hover:shadow-lg transition-shadow p-4">
       <div className="VideoCard__content flex flex-col gap-4">
         <div className="VideoCard__thumbnail w-full h-48 relative overflow-hidden rounded-md">
-          <Image src={video.thumbnail_url} alt={video.title} fill className="VideoCard__image object-cover" />
+          <Image
+            src={video.thumbnail_url}
+            alt={video.title}
+            fill
+            className="VideoCard__image object-cover"
+            loading="lazy"
+            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          />
           <button
             onClick={onWatch}
             className="VideoCard__play-overlay absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 hover:opacity-100 transition-opacity"

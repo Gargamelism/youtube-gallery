@@ -9,6 +9,7 @@ import { updateVideoWatchStatus } from '@/services';
 import { useVideoFilters } from '@/hooks/useVideoFilters';
 import { useInfiniteVideos } from '@/hooks/useInfiniteVideos';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 import { queryKeys } from '@/lib/reactQueryConfig';
 import { PAGINATION_CONFIG } from '@/lib/pagination';
 import { ScrollMode } from '@/lib/storage';
@@ -47,6 +48,13 @@ export function VideoList({ scrollMode }: VideoListProps) {
   );
 
   const videos = data?.pages.flatMap(page => page.data?.results || []) || [];
+
+  usePerformanceMonitor({
+    category: 'video-list',
+    totalVideos: videos.length,
+    pagesLoaded: data?.pages.length || 0,
+    isRestoring,
+  });
 
   const { mutate: toggleWatchStatus } = useMutation({
     mutationFn: (videoId: string) => {
