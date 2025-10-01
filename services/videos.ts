@@ -22,6 +22,10 @@ function buildVideoQueryParams(params: VideoFilters & PaginationParams): string 
     queryParams.set('tag_mode', params.tagMode || TagMode.ANY);
   }
 
+  if (params.searchQuery) {
+    queryParams.set('search', params.searchQuery);
+  }
+
   if (params.page) {
     queryParams.set('page', params.page.toString());
   }

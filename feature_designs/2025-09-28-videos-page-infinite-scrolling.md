@@ -530,12 +530,55 @@ storage: createJSONStorage(() => ({
 - [x] Optimize image loading with lazy loading - Added `loading="lazy"` and responsive `sizes` to Next.js Image components
 - [x] Performance testing with large video collections - Created performance monitoring utilities (`lib/performance.ts`, `hooks/usePerformanceMonitor.ts`)
 
-### Phase 6: Advanced Features
-- [ ] Add jump-to-top button for long lists
-- [ ] Add sticky navigation that appears when navigating up and disappears when navigating down
-- [ ] Implement search within infinite scroll
-- [ ] Add keyboard navigation support
+### Phase 6: Advanced Features ✅ **Completed**
+- [x] Add jump-to-top button for long lists
+- [x] Add sticky navigation that appears when navigating up and disappears when navigating down
+- [x] Implement search within infinite scroll
+- [x] Add keyboard navigation support
 - [ ] Cache management for offline scenarios
+
+#### Jump-to-Top Button
+- Created `hooks/useScrollToTop.ts` hook with 300px visibility threshold
+- Component: `components/ui/ScrollToTopButton.tsx` with smooth scroll behavior
+- Uses Lucide React `ArrowUp` icon with hover animations
+- Integrated into `VideoList` component
+
+#### Sticky Navigation with Scroll Direction
+- Created `hooks/useScrollDirection.ts` using `requestAnimationFrame` for performance
+- 10px scroll threshold prevents jitter from minor scroll movements
+- Navigation hides on scroll down, shows on scroll up
+- Smooth CSS transitions with `translate-y` transform
+
+#### Search Functionality
+- Extended `VideoFilters` interface with `searchQuery` field
+- Created `components/ui/SearchInput.tsx` with 600ms debounce
+- Integrated with existing DRF `SearchFilter` backend (title/description)
+- Real-time search with clear button (X icon)
+- Added to `FilterButtons` component between watch status and tags
+
+#### Keyboard Navigation System
+- **Structure**: Centralized in `components/keyboard/` folder with barrel exports
+- **Files**:
+  - `useKeyboardNavigation.ts` - Hook for keyboard shortcut handling
+  - `KeyboardShortcutsModal.tsx` - Help modal showing available shortcuts
+  - `shortcuts.config.ts` - Video page shortcuts configuration
+  - `index.ts` - Barrel file for exports
+
+**Implemented Shortcuts**:
+- `Home` - Scroll to top of page
+- `/` - Focus search input
+- `1` - Filter unwatched videos
+- `2` - Filter watched videos
+- `3` - Show all videos
+- `r` - Refresh video list
+- `?` - Show keyboard shortcuts modal
+- `Escape` - Close shortcuts modal
+
+**Features**:
+- Ignores shortcuts when typing in inputs/textareas
+- i18n support via translation keys
+- Configurable per-page shortcut definitions
+- Modal displays formatted key combinations (e.g., "Ctrl + K")
 
 ## Performance Considerations
 

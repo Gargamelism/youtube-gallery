@@ -23,7 +23,7 @@ interface VideoListProps {
 
 export function VideoList({ scrollMode }: VideoListProps) {
   const queryClient = useQueryClient();
-  const { filter, selectedTags, tagMode, areFiltersEqual } = useVideoFilters();
+  const { filter, selectedTags, tagMode, searchQuery, areFiltersEqual } = useVideoFilters();
   const { t } = useTranslation('videos');
 
   const handleVideoClick = (url: string) => {
@@ -32,7 +32,7 @@ export function VideoList({ scrollMode }: VideoListProps) {
     }
   };
 
-  const currentFilters = { filter, selectedTags, tagMode };
+  const currentFilters = { filter, selectedTags, tagMode, searchQuery };
 
   const { data, fetchNextPage, hasNextPage, isFetching, isLoading, error, isRestoring } = useInfiniteVideos(
     currentFilters,

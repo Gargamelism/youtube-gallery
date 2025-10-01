@@ -2,22 +2,38 @@
 
 import { VideoList } from './components/VideoList';
 import { FilterButtons } from './components/FilterButtons';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchVideoStats } from '@/services';
 import { ScrollMode, storage } from '@/lib/storage';
 import { Suspense, useState, useEffect } from 'react';
+import { useKeyboardNavigation, KeyboardShortcutsModal, createVideoPageShortcuts } from '@/components/keyboard';
+import { useVideoFilters } from '@/hooks/useVideoFilters';
 
 export default function VideosPage() {
   const { data: statsResponse } = useQuery({
     queryKey: ['videoStats'],
     queryFn: fetchVideoStats,
   });
+  const queryClient = useQueryClient();
+  const { updateFilter } = useVideoFilters();
 
   const [scrollMode, setScrollMode] = useState<ScrollMode>(ScrollMode.AUTO);
+  const [showShortcutsModal, setShowShortcutsModal] = useState(false);
 
   useEffect(() => {
     setScrollMode(storage.getScrollMode());
   }, []);
+
+  const shortcuts = createVideoPageShortcuts({
+    updateFilter,
+    invalidateQueries: () => {
+      queryClient.invalidateQueries({ queryKey: ['videos'] });
+      queryClient.invalidateQueries({ queryKey: ['videoStats'] });
+    },
+    setShowShortcutsModal,
+  });
+
+  useKeyboardNavigation({ shortcuts });
 
   return (
     <main className="min-h-screen p-8">
@@ -34,6 +50,12 @@ export default function VideosPage() {
           <VideoList scrollMode={scrollMode} />
         </Suspense>
       </div>
+
+      <KeyboardShortcutsModal
+        isOpen={showShortcutsModal}
+        onClose={() => setShowShortcutsModal(false)}
+        shortcuts={shortcuts}
+      />
     </main>
   );
 }

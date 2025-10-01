@@ -21,5 +21,16 @@
   "scrollMode": {
     "auto": "Enable Auto scroll",
     "manual": "Enable Manual load"
+  },
+  "searchPlaceholder": "Search videos by title or description...",
+  "clearSearch": "Clear search",
+  "keyboardShortcuts": {
+    "scrollToTop": "Scroll to top",
+    "focusSearch": "Focus search",
+    "showUnwatched": "Show unwatched videos",
+    "showWatched": "Show watched videos",
+    "showAll": "Show all videos",
+    "refreshVideos": "Refresh video list",
+    "showHelp": "Show keyboard shortcuts"
   }
 }

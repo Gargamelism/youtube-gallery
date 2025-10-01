@@ -15,7 +15,8 @@ export default function Home() {
   const filters: VideoFilters = {
     filter: 'unwatched',
     selectedTags: [],
-    tagMode: TagMode.ANY
+    tagMode: TagMode.ANY,
+    searchQuery: '',
   };
 
   const {

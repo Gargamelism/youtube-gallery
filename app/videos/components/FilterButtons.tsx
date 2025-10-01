@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TagFilter } from '@/components/tags/TagFilter';
+import { SearchInput } from '@/components/ui/SearchInput';
 import { useVideoFilters } from '@/hooks/useVideoFilters';
 import { ScrollMode } from '@/lib/storage';
 
@@ -21,7 +22,8 @@ interface Filter {
 
 export function FilterButtons({ totalCount, watchedCount, unwatchedCount, onScrollModeChange }: FilterButtonsProps) {
   const { t } = useTranslation('videos');
-  const { filter, selectedTags, tagMode, updateFilter, updateTags, updateTagMode } = useVideoFilters();
+  const { filter, selectedTags, tagMode, searchQuery, updateFilter, updateTags, updateTagMode, updateSearchQuery } =
+    useVideoFilters();
 
   const filters: Filter[] = [
     { name: 'unwatched', label: t('unwatched'), count: unwatchedCount },
@@ -51,7 +53,11 @@ export function FilterButtons({ totalCount, watchedCount, unwatchedCount, onScro
           );
         })}
       </div>
-      
+
+      <div className="FilterButton__search">
+        <SearchInput value={searchQuery} onChange={updateSearchQuery} />
+      </div>
+
       <div className="FilterButton__tags">
         <TagFilter
           selectedTags={selectedTags}
