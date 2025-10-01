@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { User } from '@/types';
+import { storage } from '@/lib/storage';
 
 interface AuthStore {
   user: User | null;
@@ -46,14 +47,29 @@ export const useAuthStore = create<AuthStore>()(
       },
     }),
     {
-      name: 'youtube-gallery-user',
-      storage: createJSONStorage(() => localStorage),
+      name: 'auth',
+      storage: createJSONStorage(() => ({
+        getItem: () => {
+          const authData = storage.getLocal('auth');
+          return authData ? JSON.stringify({ state: authData }) : null;
+        },
+        setItem: (_key: string, value: string) => {
+          try {
+            const parsed = JSON.parse(value);
+            storage.setLocal('auth', parsed.state);
+          } catch (error) {
+            console.error('Failed to persist auth state:', error);
+          }
+        },
+        removeItem: () => {
+          storage.removeLocal('auth');
+        },
+      })),
       partialize: state => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,
       }),
       onRehydrateStorage: () => state => {
-        // Set loading to false after rehydration
         if (state) {
           state.setLoading(false);
         }

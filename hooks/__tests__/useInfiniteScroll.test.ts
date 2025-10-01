@@ -9,10 +9,13 @@ const mockFilters: VideoFilters = {
 };
 
 const mockFetchNextPage = jest.fn();
+const mockSavePosition = jest.fn();
 
 jest.mock('../useScrollPosition', () => ({
   useScrollPosition: () => ({
-    savePosition: jest.fn(),
+    savePosition: mockSavePosition,
+    getPosition: jest.fn(),
+    clearPosition: jest.fn(),
   }),
 }));
 
@@ -31,11 +34,6 @@ describe('useInfiniteScroll', () => {
   });
 
   it('does not save position on page count change', () => {
-    const mockSavePosition = jest.fn();
-    jest.spyOn(require('../useScrollPosition'), 'useScrollPosition').mockReturnValue({
-      savePosition: mockSavePosition,
-    });
-
     const { rerender } = renderHook(
       ({ currentPageCount }) => useInfiniteScroll(mockFetchNextPage, true, false, currentPageCount, mockFilters),
       { initialProps: { currentPageCount: 1 } }
@@ -49,11 +47,6 @@ describe('useInfiniteScroll', () => {
   });
 
   it('saves position when filters change', () => {
-    const mockSavePosition = jest.fn();
-    jest.spyOn(require('../useScrollPosition'), 'useScrollPosition').mockReturnValue({
-      savePosition: mockSavePosition,
-    });
-
     const newFilters: VideoFilters = {
       filter: 'watched',
       selectedTags: [],

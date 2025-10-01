@@ -2,6 +2,7 @@
 
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
 import { VideoCard } from './VideoCard';
+import { LoadMoreButton } from './LoadMoreButton';
 import { Video } from '@/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateVideoWatchStatus } from '@/services';
@@ -10,10 +11,15 @@ import { useInfiniteVideos } from '@/hooks/useInfiniteVideos';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { queryKeys } from '@/lib/reactQueryConfig';
 import { PAGINATION_CONFIG } from '@/lib/pagination';
+import { ScrollMode } from '@/lib/storage';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 
-export function VideoList() {
+interface VideoListProps {
+  scrollMode: ScrollMode;
+}
+
+export function VideoList({ scrollMode }: VideoListProps) {
   const queryClient = useQueryClient();
   const { filter, selectedTags, tagMode, areFiltersEqual } = useVideoFilters();
   const { t } = useTranslation('videos');
@@ -36,7 +42,8 @@ export function VideoList() {
     hasNextPage || false,
     isFetching,
     data?.pages.length || 0,
-    currentFilters
+    currentFilters,
+    scrollMode
   );
 
   const videos = data?.pages.flatMap(page => page.data?.results || []) || [];
@@ -95,6 +102,10 @@ export function VideoList() {
       </div>
 
       <div ref={loadingRef} className="flex flex-col items-center gap-4 py-8">
+        {scrollMode === ScrollMode.MANUAL && hasNextPage && (
+          <LoadMoreButton onLoadMore={() => fetchNextPage()} isLoading={isFetching} />
+        )}
+
         {!hasNextPage && videos.length > 0 && (
           <div className="text-center">
             <p className="text-gray-500 mb-4">{t('noMoreVideos')}</p>

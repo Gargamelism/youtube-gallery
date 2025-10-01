@@ -9,6 +9,7 @@ import NavigationLogo from './NavigationLogo';
 import NavigationLinks from './NavigationLinks';
 import UserDropdownMenu from './UserDropdownMenu';
 import { useQueryClient } from '@tanstack/react-query';
+import { storage } from '@/lib/storage';
 
 export default function Navigation() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -25,8 +26,9 @@ export default function Navigation() {
       console.error('Logout error:', error);
     } finally {
       logoutStore();
+      storage.clearAll();
       setIsUserMenuOpen(false);
-      queryClient.invalidateQueries();
+      queryClient.clear();
 
       if (isProtectedRoute(pathname)) {
         router.push('/');
@@ -44,7 +46,6 @@ export default function Navigation() {
           </div>
 
           <div className="Navigation__right md:ml-4 md:flex md:items-center">
-            {/* {isAuthenticated && ( */}
             <UserDropdownMenu
               user={user}
               isUserMenuOpen={isUserMenuOpen}
@@ -52,7 +53,6 @@ export default function Navigation() {
               onClose={() => setIsUserMenuOpen(false)}
               onLogout={handleLogout}
             />
-            {/* )} */}
           </div>
         </div>
       </div>

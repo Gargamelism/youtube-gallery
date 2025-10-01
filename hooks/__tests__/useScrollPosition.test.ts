@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react';
 import { useScrollPosition } from '../useScrollPosition';
 import { VideoFilters } from '../useVideoFilters';
+import { storage } from '@/lib/storage';
 
 const mockFilters: VideoFilters = {
   filter: 'all',
@@ -17,7 +18,7 @@ const mockPosition = {
 
 describe('useScrollPosition', () => {
   beforeEach(() => {
-    sessionStorage.clear();
+    storage.clearSession();
     jest.clearAllMocks();
   });
 
@@ -26,9 +27,9 @@ describe('useScrollPosition', () => {
 
     result.current.savePosition(mockPosition);
 
-    const saved = sessionStorage.getItem('scroll_videos');
+    const saved = storage.getScrollPosition('videos');
     expect(saved).toBeTruthy();
-    expect(JSON.parse(saved!)).toEqual(mockPosition);
+    expect(saved).toEqual(mockPosition);
   });
 
   it('retrieves saved scroll position', () => {
@@ -70,7 +71,7 @@ describe('useScrollPosition', () => {
     const retrieved = result.current.getPosition();
 
     expect(retrieved).toBeNull();
-    expect(sessionStorage.getItem('scroll_videos')).toBeNull();
+    expect(storage.getScrollPosition('videos')).toBeNull();
   });
 
   it('uses different keys for different contexts', () => {

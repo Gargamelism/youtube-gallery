@@ -402,23 +402,87 @@ Preserve current filter-based URL state while adding scroll restoration:
 - Pagination state and scroll position managed separately in sessionStorage
 - Filter changes clear saved position and reset pagination
 
-### Session Storage Schema
+### Centralized Storage Architecture
 
 ```typescript
-// Session storage structure
-interface ScrollPositionData {
-  scroll_videos: {
-    scrollY: number;           // Pixel position from top
-    loadedPages: number;       // How many pages were loaded
-    timestamp: number;         // When position was saved
-    filters: {                 // Filter state when position was saved
-      watch_status: string;
-      tags: string[];
-      tag_mode: string;
-    };
+// lib/storage.ts - Centralized type-safe storage utility
+interface LocalStorageData {
+  auth?: {
+    user: User | null;
+    isAuthenticated: boolean;
   };
+  scroll_mode?: ScrollMode;
 }
+
+interface SessionStorageData {
+  scroll_positions?: Record<string, ScrollPosition>;
+}
+
+interface ScrollPosition {
+  scrollY: number;
+  loadedPages: number;
+  timestamp: number;
+  filters: VideoFilters;
+}
+
+class StorageManager {
+  // All app storage nested under 'youtube_gallery' root key
+  private readonly ROOT_KEY = 'youtube_gallery';
+
+  // Type-safe localStorage operations
+  getLocal<K extends keyof LocalStorageData>(key: K): LocalStorageData[K] | null
+  setLocal<K extends keyof LocalStorageData>(key: K, value: LocalStorageData[K]): void
+
+  // Type-safe sessionStorage operations
+  getSession<K extends keyof SessionStorageData>(key: K): SessionStorageData[K] | null
+  setSession<K extends keyof SessionStorageData>(key: K, value: SessionStorageData[K]): void
+
+  // Scroll position helpers
+  getScrollPosition(key: string): ScrollPosition | null
+  setScrollPosition(key: string, position: ScrollPosition): void
+
+  // Scroll mode helpers
+  getScrollMode(): ScrollMode
+  setScrollMode(mode: ScrollMode): void
+}
+
+export const storage = new StorageManager();
 ```
+
+**Benefits:**
+- **Type safety**: All storage keys and values are typed
+- **Centralization**: Single source of truth for app storage
+- **Namespacing**: All data under `youtube_gallery` root prevents conflicts
+- **Consistency**: Unified API for localStorage and sessionStorage
+- **Maintainability**: Easy to add new storage keys with type checking
+
+### Authentication State Persistence Fix
+
+**Issue discovered**: Zustand's `createJSONStorage` adapter interface requires `setItem(key: string, value: string)` but the implementation only had `setItem(value: string)`, causing parameter mismatch and JSON parsing errors.
+
+**Solution**:
+```typescript
+// stores/authStore.ts - Fixed storage adapter
+storage: createJSONStorage(() => ({
+  getItem: () => {
+    const authData = storage.getLocal('auth');
+    return authData ? JSON.stringify({ state: authData }) : null;
+  },
+  setItem: (_key: string, value: string) => {  // Fixed: Added _key parameter
+    try {
+      const parsed = JSON.parse(value);
+      storage.setLocal('auth', parsed.state);
+    } catch (error) {
+      console.error('Failed to persist auth state:', error);
+    }
+  },
+  removeItem: () => {
+    storage.removeLocal('auth');
+  },
+}))
+```
+
+**Impact**: Fixes authentication state persistence, ensuring `isAuthenticated` flag is properly saved/restored, which resolves navigation links visibility issues.
 
 ## Implementation Phases
 
@@ -442,20 +506,31 @@ interface ScrollPositionData {
 - [x] Add 30-minute expiration for saved positions
 - [x] Implement comprehensive test suite for scroll restoration
 
-### Phase 3: Enhanced UX ⭐ **Current**
+### Phase 3: Enhanced UX ✅ **Completed**
 - [x] Add loading states and error handling
 - [x] Add visual feedback during restoration (toast notification)
-- [ ] Implement "Load More" button as fallback for accessibility
-- [ ] Add smooth scroll transitions
-- [ ] Test filter interactions with pagination and position in production
+- [x] Implement manual scroll mode toggle for user control
+- [x] Add "Load More" button as alternative to auto-scroll
+- [x] Create centralized storage utility with type-safe structure
+- [x] Integrate scroll mode persistence with sessionStorage
+- [x] Fix authentication state persistence issues (Zustand storage adapter)
 
-### Phase 4: Performance Optimization
+### Phase 4: Storage Architecture Refactoring ✅ **Completed**
+- [x] Create centralized `StorageManager` class in `lib/storage.ts`
+- [x] Implement type-safe storage with `LocalStorageData` and `SessionStorageData` interfaces
+- [x] Add nested root key structure (`youtube_gallery`) for all app storage
+- [x] Merge `scrollMode.ts` into `storage.ts` to eliminate circular dependencies
+- [x] Add scroll mode helper methods to `StorageManager` class
+- [x] Update all imports across codebase (6 files updated)
+- [x] Fix Zustand persist middleware storage adapter signature (`setItem` parameter order)
+
+### Phase 5: Performance Optimization
 - [ ] Implement virtual scrolling for large datasets (>500 videos)
 - [ ] Add preloading of next page when approaching bottom
 - [ ] Optimize image loading with lazy loading
 - [ ] Performance testing with large video collections
 
-### Phase 5: Advanced Features
+### Phase 6: Advanced Features
 - [ ] Add jump-to-top button for long lists
 - [ ] Implement search within infinite scroll
 - [ ] Add keyboard navigation support

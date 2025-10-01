@@ -4,13 +4,15 @@ import { useEffect, useRef } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import { useScrollPosition } from './useScrollPosition';
 import { VideoFilters } from './useVideoFilters';
+import { ScrollMode, DEFAULT_SCROLL_MODE } from '@/lib/storage';
 
 export function useInfiniteScroll(
   fetchNextPage: () => void,
   hasNextPage: boolean,
   isFetching: boolean,
   currentPageCount: number,
-  filters: VideoFilters
+  filters: VideoFilters,
+  mode: ScrollMode = DEFAULT_SCROLL_MODE
 ) {
   const observerRef = useRef<IntersectionObserver>();
   const loadingRef = useRef<HTMLDivElement>(null);
@@ -46,7 +48,7 @@ export function useInfiniteScroll(
   }, [filters, savePosition]);
 
   useEffect(() => {
-    if (!loadingRef.current) return;
+    if (mode !== ScrollMode.AUTO || !loadingRef.current) return;
 
     observerRef.current = new IntersectionObserver(
       ([entry]) => {
@@ -59,7 +61,7 @@ export function useInfiniteScroll(
 
     observerRef.current.observe(loadingRef.current);
     return () => observerRef.current?.disconnect();
-  }, [fetchNextPage, hasNextPage, isFetching]);
+  }, [fetchNextPage, hasNextPage, isFetching, mode]);
 
   return loadingRef;
 }

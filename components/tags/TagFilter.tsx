@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Filter } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { TagMode, TagModeType } from '@/types';
+import { ScrollMode, storage } from '@/lib/storage';
 import { useChannelTags } from './mutations';
 import { TagBadge } from './TagBadge';
 
@@ -12,14 +13,21 @@ interface TagFilterProps {
   tagMode: TagModeType;
   onTagsChange: (tags: string[]) => void;
   onTagModeChange: (mode: TagModeType) => void;
+  onScrollModeChange?: (mode: ScrollMode) => void;
 }
 
-export function TagFilter({ selectedTags, tagMode, onTagsChange, onTagModeChange }: TagFilterProps) {
+export function TagFilter({ selectedTags, tagMode, onTagsChange, onTagModeChange, onScrollModeChange }: TagFilterProps) {
   const { t } = useTranslation('tags');
+  const { t: tVideos } = useTranslation('videos');
   const [isExpanded, setIsExpanded] = useState(false);
+  const [scrollMode, setLocalScrollMode] = useState<ScrollMode>(ScrollMode.AUTO);
   const { data: allTags } = useChannelTags();
   const selectedTagObjects = allTags?.results.filter(tag => selectedTags.includes(tag.name));
   const availableTags = allTags?.results.filter(tag => !selectedTags.includes(tag.name));
+
+  useEffect(() => {
+    setLocalScrollMode(storage.getScrollMode());
+  }, []);
 
   const handleTagAdd = (tagName: string) => {
     onTagsChange([...selectedTags, tagName]);
@@ -38,6 +46,13 @@ export function TagFilter({ selectedTags, tagMode, onTagsChange, onTagModeChange
     onTagModeChange(newMode);
   };
 
+  const handleScrollModeToggle = () => {
+    const newMode = scrollMode === ScrollMode.AUTO ? ScrollMode.MANUAL : ScrollMode.AUTO;
+    storage.setScrollMode(newMode);
+    setLocalScrollMode(newMode);
+    onScrollModeChange?.(newMode);
+  };
+
   return (
     <div className="TagFilter space-y-3">
       <div className="TagFilter__header flex items-center justify-between">
@@ -54,11 +69,16 @@ export function TagFilter({ selectedTags, tagMode, onTagsChange, onTagModeChange
           )}
         </button>
 
-        {selectedTags.length > 0 && (
-          <button onClick={handleClearAll} className="TagFilter__clear text-xs text-gray-500 hover:text-gray-700">
-            {t('clearAll')}
+        <div className="flex flex-col items-end gap-1">
+          <button onClick={handleScrollModeToggle} className="text-xs text-gray-500 hover:text-gray-700">
+            {scrollMode === ScrollMode.AUTO ? tVideos('scrollMode.manual') : tVideos('scrollMode.auto')}
           </button>
-        )}
+          {selectedTags.length > 0 && (
+            <button onClick={handleClearAll} className="TagFilter__clear text-xs text-gray-500 hover:text-gray-700">
+              {t('clearAll')}
+            </button>
+          )}
+        </div>
       </div>
 
       {selectedTags.length > 0 && (

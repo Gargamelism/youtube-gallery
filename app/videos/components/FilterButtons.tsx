@@ -4,11 +4,13 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TagFilter } from '@/components/tags/TagFilter';
 import { useVideoFilters } from '@/hooks/useVideoFilters';
+import { ScrollMode } from '@/lib/storage';
 
 interface FilterButtonsProps {
   totalCount: number;
   watchedCount: number;
   unwatchedCount: number;
+  onScrollModeChange?: (mode: ScrollMode) => void;
 }
 
 interface Filter {
@@ -17,7 +19,7 @@ interface Filter {
   count: number;
 }
 
-export function FilterButtons({ totalCount, watchedCount, unwatchedCount }: FilterButtonsProps) {
+export function FilterButtons({ totalCount, watchedCount, unwatchedCount, onScrollModeChange }: FilterButtonsProps) {
   const { t } = useTranslation('videos');
   const { filter, selectedTags, tagMode, updateFilter, updateTags, updateTagMode } = useVideoFilters();
 
@@ -56,6 +58,7 @@ export function FilterButtons({ totalCount, watchedCount, unwatchedCount }: Filt
           tagMode={tagMode}
           onTagsChange={updateTags}
           onTagModeChange={updateTagMode}
+          {...(onScrollModeChange && { onScrollModeChange })}
         />
       </div>
     </div>
