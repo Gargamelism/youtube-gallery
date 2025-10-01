@@ -3,6 +3,7 @@
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
 import { VideoCard } from './VideoCard';
 import { LoadMoreButton } from './LoadMoreButton';
+import { ScrollToTopButton } from '@/components/ui/ScrollToTopButton';
 import { Video } from '@/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateVideoWatchStatus } from '@/services';
@@ -88,6 +89,8 @@ export function VideoList({ scrollMode }: VideoListProps) {
 
   return (
     <div className="py-6">
+      <ScrollToTopButton />
+
       {isRestoring && (
         <div className="fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 flex items-center gap-2">
           <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
