@@ -4,18 +4,22 @@
  */
 
 import { User } from '@/types';
-import { VideoFilters } from '@/hooks/useVideoFilters';
+import { VideoFilters } from '@/types';
 
-// Scroll mode types and helpers
+// Root storage key
+const ROOT_KEY = 'youtube_gallery';
+
+// Scroll mode types
 export enum ScrollMode {
   AUTO = 'auto',
   MANUAL = 'manual'
 }
 
-export const DEFAULT_SCROLL_MODE = ScrollMode.AUTO;
+function isScrollMode(value: string): boolean {
+  return Object.values(ScrollMode).includes(value as ScrollMode);
+}
 
-// Root storage key
-const ROOT_KEY = 'youtube_gallery';
+export const DEFAULT_SCROLL_MODE = ScrollMode.AUTO;
 
 // Storage structure types
 interface AuthData {
@@ -137,20 +141,21 @@ class StorageManager {
     }
   }
 
-  // Clear all app storage (for logout)
-  clearAll(): void {
-    this.clearLocal();
-    this.clearSession();
-  }
-
   // Scroll mode helpers
   getScrollMode(): ScrollMode {
     const stored = this.getLocal('scroll_mode');
-    return stored === ScrollMode.MANUAL ? ScrollMode.MANUAL : ScrollMode.AUTO;
+    const mode = isScrollMode(stored ?? '') ? stored as ScrollMode : DEFAULT_SCROLL_MODE;
+    return mode;
   }
 
   setScrollMode(mode: ScrollMode): void {
     this.setLocal('scroll_mode', mode);
+  }
+
+  // Clear all app storage (for logout)
+  clearAll(): void {
+    this.clearLocal();
+    this.clearSession();
   }
 }
 

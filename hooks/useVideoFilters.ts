@@ -1,15 +1,8 @@
 'use client';
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { TagMode, TagModeType } from '@/types';
+import { TagMode, TagModeType, VideoFilters } from '@/types';
 import { navigateWithUpdatedParams } from '@/utils/urlHelpers';
-
-export interface VideoFilters {
-  filter: string;
-  selectedTags: string[];
-  tagMode: TagModeType;
-  searchQuery: string;
-}
 
 export interface VideoFiltersActions {
   updateFilter: (newFilter: string) => void;
@@ -37,40 +30,37 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
     navigateWithUpdatedParams(router, pathname, searchParams, updates);
   };
 
-  const updateFilter = (newFilter: string) => {
-    updateUrl({
-      filter: newFilter,
+  const updateAllFilters = (newFilters: Partial<VideoFilters>) => {
+    const allFilters = {
+      filter,
       tags: selectedTags,
       tag_mode: selectedTags.length > 1 ? tagMode : undefined,
-      search: searchQuery || undefined
+      search: searchQuery || undefined,
+      ...newFilters,
+    };
+
+    updateUrl({
+      filter: allFilters.filter,
+      tags: allFilters.tags,
+      tag_mode: allFilters.tags.length > 1 ? allFilters.tag_mode : undefined,
+      search: allFilters.search,
     });
+  }
+
+  const updateFilter = (newFilter: string) => {
+    updateAllFilters({ filter: newFilter });
   };
 
   const updateTags = (newTags: string[]) => {
-    updateUrl({
-      filter: filter,
-      tags: newTags,
-      tag_mode: newTags.length > 1 ? tagMode : undefined,
-      search: searchQuery || undefined
-    });
+    updateAllFilters({ selectedTags: newTags });
   };
 
   const updateTagMode = (newMode: TagModeType) => {
-    updateUrl({
-      filter: filter,
-      tags: selectedTags,
-      tag_mode: selectedTags.length > 1 ? newMode : undefined,
-      search: searchQuery || undefined
-    });
+    updateAllFilters({ tagMode: newMode });
   };
 
   const updateSearchQuery = (query: string) => {
-    updateUrl({
-      filter: filter,
-      tags: selectedTags,
-      tag_mode: selectedTags.length > 1 ? tagMode : undefined,
-      search: query || undefined
-    });
+    updateAllFilters({ searchQuery: query });
   };
 
   const addTag = (tagName: string) => {
@@ -86,9 +76,12 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
   };
 
   const areFiltersEqual = (otherFilters: VideoFilters): boolean => {
+    const areTagsEqual = selectedTags.length === otherFilters.selectedTags.length &&
+      selectedTags.every(tag => otherFilters.selectedTags.includes(tag));
+
     return (
       filter === otherFilters.filter &&
-      JSON.stringify(selectedTags.sort()) === JSON.stringify(otherFilters.selectedTags.sort()) &&
+      areTagsEqual &&
       tagMode === otherFilters.tagMode &&
       searchQuery === otherFilters.searchQuery
     );

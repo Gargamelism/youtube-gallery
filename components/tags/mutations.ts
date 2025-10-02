@@ -10,7 +10,7 @@ import {
 import { QueryClient, useMutation, useQuery } from '@tanstack/react-query';
 import { ChannelTag, ChannelTagResponse, TagCreateRequest } from '@/types';
 import { TAG_QUERY_CONFIG, VIDEO_QUERY_CONFIG, queryKeys } from '@/lib/reactQueryConfig';
-import { VideoFilters } from '@/hooks/useVideoFilters';
+import { VideoFilters } from '@/types';
 
 export function useChannelTags() {
   return useQuery({

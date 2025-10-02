@@ -44,7 +44,7 @@ export function usePerformanceMonitor({
       performanceMonitor.startMetric(`${category}-restoration`);
     } else if (!isRestoring && restorationStartRef.current !== null) {
       const duration = performanceMonitor.endMetric(`${category}-restoration`);
-      if (duration) {
+      if (duration !== null) {
         performanceMonitor.recordMetric(category, {
           scrollRestorationTime: duration,
         });

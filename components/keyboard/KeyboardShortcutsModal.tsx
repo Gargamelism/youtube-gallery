@@ -31,12 +31,12 @@ export function KeyboardShortcutsModal({ isOpen, onClose, shortcuts }: KeyboardS
   if (!isOpen) return null;
 
   const formatShortcut = (shortcut: KeyboardShortcut) => {
-    const keys = [];
-    if (shortcut.ctrlKey) keys.push('Ctrl');
-    if (shortcut.shiftKey) keys.push('Shift');
-    if (shortcut.altKey) keys.push('Alt');
-    keys.push(shortcut.key);
-    return keys.join(' + ');
+    const labels: string[] = [];
+    if (shortcut.ctrlKey) labels.push(tCommon('key.ctrl'));
+    if (shortcut.shiftKey) labels.push(tCommon('key.shift'));
+    if (shortcut.altKey) labels.push(tCommon('key.alt'));
+    labels.push(shortcut.key);
+    return labels.join(` ${tCommon('key.plus')} `);
   };
 
   return (
@@ -47,9 +47,14 @@ export function KeyboardShortcutsModal({ isOpen, onClose, shortcuts }: KeyboardS
       <div
         className="KeyboardShortcutsModal__content bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-auto"
         onClick={e => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="keyboard-shortcuts-modal-title"
       >
         <div className="KeyboardShortcutsModal__header flex items-center justify-between p-6 border-b">
-          <h2 className="text-2xl font-bold">{tCommon('keyboardShortcuts')}</h2>
+          <h2 id="keyboard-shortcuts-modal-title" className="text-2xl font-bold">
+            {tCommon('keyboardShortcuts')}
+          </h2>
           <button
             onClick={onClose}
             className="KeyboardShortcutsModal__close-button p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -66,7 +71,9 @@ export function KeyboardShortcutsModal({ isOpen, onClose, shortcuts }: KeyboardS
                 key={index}
                 className="KeyboardShortcutsModal__shortcut-item flex items-center justify-between py-2 border-b last:border-b-0"
               >
-                <span className="KeyboardShortcutsModal__description text-gray-700">{tVideos(shortcut.description)}</span>
+                <span className="KeyboardShortcutsModal__description text-gray-700">
+                  {tVideos(shortcut.description)}
+                </span>
                 <kbd className="KeyboardShortcutsModal__keys px-3 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">
                   {formatShortcut(shortcut)}
                 </kbd>

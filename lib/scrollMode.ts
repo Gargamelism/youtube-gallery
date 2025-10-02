@@ -1,17 +1,6 @@
 import { storage } from './storage';
 
-export enum ScrollMode {
-  AUTO = 'auto',
-  MANUAL = 'manual'
-}
+export { ScrollMode, DEFAULT_SCROLL_MODE } from './storage';
 
-export const DEFAULT_SCROLL_MODE = ScrollMode.AUTO;
-
-export function getScrollMode(): ScrollMode {
-  const stored = storage.getLocal('scroll_mode');
-  return stored === ScrollMode.MANUAL ? ScrollMode.MANUAL : ScrollMode.AUTO;
-}
-
-export function setScrollMode(mode: ScrollMode): void {
-  storage.setLocal('scroll_mode', mode);
-}
+export const getScrollMode = () => storage.getScrollMode();
+export const setScrollMode = (mode: Parameters<typeof storage.setScrollMode>[0]) => storage.setScrollMode(mode);

@@ -6,7 +6,7 @@ import { fetchVideos } from '@/services';
 import { VIDEO_QUERY_CONFIG, queryKeys } from '@/lib/reactQueryConfig';
 import { PAGINATION_CONFIG } from '@/lib/pagination';
 import { useScrollPosition } from './useScrollPosition';
-import { VideoFilters } from './useVideoFilters';
+import { VideoFilters } from '@/types';
 
 async function restoreScrollPosition(
   position: { scrollY: number; loadedPages: number },

@@ -2,31 +2,49 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useInfiniteVideos } from '../useInfiniteVideos';
 import * as services from '@/services';
-import { VideoFilters } from '../useVideoFilters';
+import { VideoFilters, TagMode, Video } from '@/types';
 
 const mockFilters: VideoFilters = {
   filter: 'all',
   selectedTags: [],
-  tagMode: 'any',
+  tagMode: TagMode.ANY,
+  searchQuery: '',
 };
+
+const createMockVideo = (uuid: string, title: string): Video => ({
+  uuid,
+  video_id: `vid_${uuid}`,
+  channel_title: 'Test Channel',
+  title,
+  description: null,
+  published_at: '2024-01-01T00:00:00Z',
+  duration: '10:00',
+  view_count: null,
+  like_count: null,
+  comment_count: null,
+  thumbnail_url: `https://example.com/thumb_${uuid}.jpg`,
+  video_url: `https://youtube.com/watch?v=${uuid}`,
+  is_watched: false,
+  watched_at: null,
+  notes: null,
+  channel_tags: [],
+});
 
 const mockVideosPage1 = {
   data: {
-    results: [
-      { uuid: '1', title: 'Video 1', is_watched: false },
-      { uuid: '2', title: 'Video 2', is_watched: false },
-    ],
+    count: 4,
+    results: [createMockVideo('1', 'Video 1'), createMockVideo('2', 'Video 2')],
     next: 'http://localhost:8000/api/videos?page=2',
+    previous: null,
   },
 };
 
 const mockVideosPage2 = {
   data: {
-    results: [
-      { uuid: '3', title: 'Video 3', is_watched: false },
-      { uuid: '4', title: 'Video 4', is_watched: false },
-    ],
+    count: 4,
+    results: [createMockVideo('3', 'Video 3'), createMockVideo('4', 'Video 4')],
     next: null,
+    previous: 'http://localhost:8000/api/videos?page=1',
   },
 };
 
@@ -74,7 +92,8 @@ describe('useInfiniteVideos', () => {
     expect(mockFetchVideos).toHaveBeenCalledWith({
       filter: 'all',
       selectedTags: [],
-      tagMode: 'any',
+      tagMode: TagMode.ANY,
+      searchQuery: '',
       page: 1,
       page_size: 24,
     });
@@ -103,7 +122,8 @@ describe('useInfiniteVideos', () => {
     expect(mockFetchVideos).toHaveBeenLastCalledWith({
       filter: 'all',
       selectedTags: [],
-      tagMode: 'any',
+      tagMode: TagMode.ANY,
+      searchQuery: '',
       page: 2,
       page_size: 24,
     });
@@ -112,8 +132,10 @@ describe('useInfiniteVideos', () => {
   it('sets hasNextPage to false when no next page', async () => {
     mockFetchVideos.mockResolvedValue({
       data: {
-        results: [{ uuid: '1', title: 'Video 1', is_watched: false }],
+        count: 1,
+        results: [createMockVideo('1', 'Video 1')],
         next: null,
+        previous: null,
       },
     });
 

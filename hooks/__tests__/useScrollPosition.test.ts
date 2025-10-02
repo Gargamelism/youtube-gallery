@@ -1,12 +1,13 @@
 import { renderHook } from '@testing-library/react';
 import { useScrollPosition } from '../useScrollPosition';
-import { VideoFilters } from '../useVideoFilters';
+import { VideoFilters, TagMode } from '@/types';
 import { storage } from '@/lib/storage';
 
 const mockFilters: VideoFilters = {
   filter: 'all',
   selectedTags: [],
-  tagMode: 'any',
+  tagMode: TagMode.ANY,
+  searchQuery: '',
 };
 
 const mockPosition = {

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Filter } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { TagMode, TagModeType } from '@/types';
-import { ScrollMode, storage } from '@/lib/storage';
+import { ScrollMode, getScrollMode, setScrollMode } from '@/lib/scrollMode';
 import { useChannelTags } from './mutations';
 import { TagBadge } from './TagBadge';
 
@@ -16,7 +16,13 @@ interface TagFilterProps {
   onScrollModeChange?: (mode: ScrollMode) => void;
 }
 
-export function TagFilter({ selectedTags, tagMode, onTagsChange, onTagModeChange, onScrollModeChange }: TagFilterProps) {
+export function TagFilter({
+  selectedTags,
+  tagMode,
+  onTagsChange,
+  onTagModeChange,
+  onScrollModeChange,
+}: TagFilterProps) {
   const { t } = useTranslation('tags');
   const { t: tVideos } = useTranslation('videos');
   const [isExpanded, setIsExpanded] = useState(false);
@@ -26,7 +32,7 @@ export function TagFilter({ selectedTags, tagMode, onTagsChange, onTagModeChange
   const availableTags = allTags?.results.filter(tag => !selectedTags.includes(tag.name));
 
   useEffect(() => {
-    setLocalScrollMode(storage.getScrollMode());
+    setLocalScrollMode(getScrollMode());
   }, []);
 
   const handleTagAdd = (tagName: string) => {
@@ -48,13 +54,13 @@ export function TagFilter({ selectedTags, tagMode, onTagsChange, onTagModeChange
 
   const handleScrollModeToggle = () => {
     const newMode = scrollMode === ScrollMode.AUTO ? ScrollMode.MANUAL : ScrollMode.AUTO;
-    storage.setScrollMode(newMode);
+    setScrollMode(newMode);
     setLocalScrollMode(newMode);
     onScrollModeChange?.(newMode);
   };
 
   return (
-    <div className="TagFilter space-y-3">
+    <div className="TagFilter__container space-y-3">
       <div className="TagFilter__header flex items-center justify-between">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
@@ -70,7 +76,11 @@ export function TagFilter({ selectedTags, tagMode, onTagsChange, onTagModeChange
         </button>
 
         <div className="flex flex-col items-end gap-1">
-          <button onClick={handleScrollModeToggle} className="text-xs text-gray-500 hover:text-gray-700">
+          <button
+            onClick={handleScrollModeToggle}
+            className="TagFilter__scroll-mode-toggle text-xs text-gray-500 hover:text-gray-700"
+            aria-pressed={scrollMode === ScrollMode.MANUAL}
+          >
             {scrollMode === ScrollMode.AUTO ? tVideos('scrollMode.manual') : tVideos('scrollMode.auto')}
           </button>
           {selectedTags.length > 0 && (

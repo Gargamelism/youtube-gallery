@@ -1,7 +1,6 @@
-import { VideoResponse, VideoStats, UserVideo, TagMode, PaginationParams } from '@/types';
+import { VideoResponse, VideoStats, UserVideo, TagMode, PaginationParams, VideoFilters } from '@/types';
 import { ResponseHandler, ApiResponse } from './ResponseHandler';
 import { API_BASE_URL, getRequestOptions } from './shared';
-import { VideoFilters } from '@/hooks/useVideoFilters';
 
 export interface WatchStatusResponse {
   status: string;
@@ -10,7 +9,7 @@ export interface WatchStatusResponse {
   notes: string | null;
 }
 
-function buildVideoQueryParams(params: VideoFilters & PaginationParams): string {
+export function buildVideoQueryParams(params: VideoFilters & PaginationParams): string {
   const queryParams = new URLSearchParams();
 
   if (params.filter && params.filter !== 'all') {
@@ -26,11 +25,11 @@ function buildVideoQueryParams(params: VideoFilters & PaginationParams): string 
     queryParams.set('search', params.searchQuery);
   }
 
-  if (params.page) {
+  if (typeof params.page === 'number' && params.page > 0) {
     queryParams.set('page', params.page.toString());
   }
 
-  if (params.page_size) {
+  if (typeof params.page_size === 'number' && params.page_size > 0) {
     queryParams.set('page_size', params.page_size.toString());
   }
 

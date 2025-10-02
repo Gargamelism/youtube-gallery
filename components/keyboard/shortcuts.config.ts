@@ -1,3 +1,4 @@
+import { WatchStatus } from '@/types';
 import { KeyboardShortcut } from './useKeyboardNavigation';
 
 interface VideoPageShortcutsParams {
@@ -18,24 +19,24 @@ export function createVideoPageShortcuts(params: VideoPageShortcutsParams): Keyb
     {
       key: '/',
       action: () => {
-        const searchInput = document.querySelector<HTMLInputElement>('input[type="text"]');
+        const searchInput = document.querySelector<HTMLInputElement>('.SearchInput__input');
         searchInput?.focus();
       },
       description: 'keyboardShortcuts.focusSearch',
     },
     {
       key: '1',
-      action: () => updateFilter('unwatched'),
+      action: () => updateFilter(WatchStatus.UNWATCHED),
       description: 'keyboardShortcuts.showUnwatched',
     },
     {
       key: '2',
-      action: () => updateFilter('watched'),
+      action: () => updateFilter(WatchStatus.WATCHED),
       description: 'keyboardShortcuts.showWatched',
     },
     {
       key: '3',
-      action: () => updateFilter('all'),
+      action: () => updateFilter(WatchStatus.ALL),
       description: 'keyboardShortcuts.showAll',
     },
     {

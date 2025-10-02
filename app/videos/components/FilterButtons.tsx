@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { TagFilter } from '@/components/tags/TagFilter';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { useVideoFilters } from '@/hooks/useVideoFilters';
-import { ScrollMode } from '@/lib/storage';
+import { ScrollMode } from '@/lib/scrollMode';
 
 interface FilterButtonsProps {
   totalCount: number;

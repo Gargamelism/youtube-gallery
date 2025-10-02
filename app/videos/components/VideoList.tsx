@@ -13,7 +13,7 @@ import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 import { queryKeys } from '@/lib/reactQueryConfig';
 import { PAGINATION_CONFIG } from '@/lib/pagination';
-import { ScrollMode } from '@/lib/storage';
+import { ScrollMode } from '@/lib/scrollMode';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 
@@ -28,7 +28,7 @@ export function VideoList({ scrollMode }: VideoListProps) {
 
   const handleVideoClick = (url: string) => {
     if (url) {
-      window.open(url, '_blank');
+      window.open(url, '_blank', 'noopener,noreferrer');
     }
   };
 

@@ -10,19 +10,33 @@ class PerformanceMonitor {
   private metrics: Map<string, PerformanceMetrics> = new Map();
   private enabled: boolean = process.env.NODE_ENV === 'development';
 
+  setEnabled(value: boolean) {
+    this.enabled = value;
+  }
+
   startMetric(key: string) {
     if (!this.enabled) return;
+    if (typeof performance === 'undefined' || !performance.mark) return;
     performance.mark(`${key}-start`);
   }
 
   endMetric(key: string): number | null {
     if (!this.enabled) return null;
+    if (typeof performance === 'undefined' || !performance.mark || !performance.measure) return null;
 
     try {
       performance.mark(`${key}-end`);
       performance.measure(key, `${key}-start`, `${key}-end`);
-      const measure = performance.getEntriesByName(key)[0];
-      return measure?.duration || null;
+      const entries = performance.getEntriesByName(key, 'measure');
+      const measure = entries[entries.length - 1] as PerformanceEntry | undefined;
+      const duration = measure?.duration || null;
+
+      // Cleanup to prevent memory growth and name collisions
+      performance.clearMarks(`${key}-start`);
+      performance.clearMarks(`${key}-end`);
+      performance.clearMeasures(key);
+
+      return duration;
     } catch (error) {
       console.warn(`Performance measurement failed for ${key}:`, error);
       return null;
@@ -42,7 +56,8 @@ class PerformanceMonitor {
   }
 
   getMetrics(category: string): PerformanceMetrics | null {
-    return this.metrics.get(category) || null;
+    const metrics = this.metrics.get(category);
+    return metrics ? { ...metrics } : null;
   }
 
   logMetrics(category: string) {

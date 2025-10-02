@@ -2,7 +2,7 @@
  * React Query configuration constants
  */
 
-import { VideoFilters } from "@/hooks/useVideoFilters";
+import { VideoFilters } from '@/types';
 
 // Time constants in milliseconds
 const THIRTY_SECONDS = 30 * 1000;

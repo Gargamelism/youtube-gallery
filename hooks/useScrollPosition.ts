@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import { VideoFilters } from './useVideoFilters';
+import { VideoFilters } from '@/types';
 import { storage } from '@/lib/storage';
 
 interface ScrollPosition {

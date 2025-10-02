@@ -110,7 +110,10 @@ describe('TagManager', () => {
     );
 
     const deleteButtons = screen.getAllByLabelText(/delete/i);
-    fireEvent.click(deleteButtons[0]);
+    const firstDeleteButton = deleteButtons[0];
+    if (!firstDeleteButton) throw new Error('Delete button not found');
+
+    fireEvent.click(firstDeleteButton);
 
     expect(window.confirm).toHaveBeenCalled();
   });

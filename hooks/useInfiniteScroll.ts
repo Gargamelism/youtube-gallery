@@ -3,8 +3,8 @@
 import { useEffect, useRef } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import { useScrollPosition } from './useScrollPosition';
-import { VideoFilters } from './useVideoFilters';
-import { ScrollMode, DEFAULT_SCROLL_MODE } from '@/lib/storage';
+import { VideoFilters } from '@/types';
+import { ScrollMode, DEFAULT_SCROLL_MODE } from '@/lib/scrollMode';
 
 export function useInfiniteScroll(
   fetchNextPage: () => void,
@@ -13,7 +13,7 @@ export function useInfiniteScroll(
   currentPageCount: number,
   filters: VideoFilters,
   mode: ScrollMode = DEFAULT_SCROLL_MODE
-) {
+): React.MutableRefObject<HTMLDivElement | null> {
   const observerRef = useRef<IntersectionObserver>();
   const loadingRef = useRef<HTMLDivElement>(null);
   const { savePosition } = useScrollPosition('videos');
@@ -25,7 +25,7 @@ export function useInfiniteScroll(
       timestamp: Date.now(),
       filters
     });
-  }, 1000);
+  }, 1000, { maxWait: 3000 });
 
   // Save on scroll
   useEffect(() => {

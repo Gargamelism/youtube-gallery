@@ -4,34 +4,39 @@ import { VideoList } from './components/VideoList';
 import { FilterButtons } from './components/FilterButtons';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchVideoStats } from '@/services';
-import { ScrollMode, storage } from '@/lib/storage';
-import { Suspense, useState, useEffect } from 'react';
+import { DEFAULT_SCROLL_MODE, ScrollMode, getScrollMode } from '@/lib/scrollMode';
+import { Suspense, useState, useEffect, useMemo } from 'react';
 import { useKeyboardNavigation, KeyboardShortcutsModal, createVideoPageShortcuts } from '@/components/keyboard';
 import { useVideoFilters } from '@/hooks/useVideoFilters';
+import { queryKeys } from '@/lib/reactQueryConfig';
 
 export default function VideosPage() {
   const { data: statsResponse } = useQuery({
-    queryKey: ['videoStats'],
+    queryKey: queryKeys.videoStats,
     queryFn: fetchVideoStats,
   });
   const queryClient = useQueryClient();
   const { updateFilter } = useVideoFilters();
 
-  const [scrollMode, setScrollMode] = useState<ScrollMode>(ScrollMode.AUTO);
+  const [scrollMode, setScrollMode] = useState<ScrollMode>(DEFAULT_SCROLL_MODE);
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
 
   useEffect(() => {
-    setScrollMode(storage.getScrollMode());
+    setScrollMode(getScrollMode());
   }, []);
 
-  const shortcuts = createVideoPageShortcuts({
-    updateFilter,
-    invalidateQueries: () => {
-      queryClient.invalidateQueries({ queryKey: ['videos'] });
-      queryClient.invalidateQueries({ queryKey: ['videoStats'] });
-    },
-    setShowShortcutsModal,
-  });
+  const shortcuts = useMemo(
+    () =>
+      createVideoPageShortcuts({
+        updateFilter,
+        invalidateQueries: () => {
+          queryClient.invalidateQueries({ queryKey: queryKeys.videos });
+          queryClient.invalidateQueries({ queryKey: queryKeys.videoStats });
+        },
+        setShowShortcutsModal,
+      }),
+    [updateFilter, queryClient, setShowShortcutsModal]
+  );
 
   useKeyboardNavigation({ shortcuts });
 

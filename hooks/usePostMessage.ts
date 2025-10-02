@@ -6,11 +6,11 @@ import { useEffect, useCallback, useRef } from 'react';
 const ALLOWED_ORIGINS = [
   ...(process.env.NODE_ENV === 'development'
     ? [
-        'http://localhost:3000',
-        'http://localhost:3001',
-        'https://localhost:3000',
-        'https://localhost:3001'
-      ]
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'https://localhost:3000',
+      'https://localhost:3001'
+    ]
     : ['https://nogarythmtube.com']
   ),
   window.location.origin
@@ -18,7 +18,6 @@ const ALLOWED_ORIGINS = [
 
 export enum PostMessageType {
   YOUTUBE_AUTH_SUCCESS = 'youtube-auth-success',
-  YOUTUBE_AUTH_ERROR = 'youtube-auth-error',
 }
 
 interface PostMessageOptions {
