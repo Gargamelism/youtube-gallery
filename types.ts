@@ -6,6 +6,12 @@ export interface PaginatedResponse<T> {
   results: T[];
 }
 
+// Pagination Parameters
+export interface PaginationParams {
+  page?: number;
+  page_size?: number;
+}
+
 // User Authentication Types
 export interface User {
   id: string;
@@ -106,6 +112,12 @@ export interface VideoStats {
   unwatched: number;
 }
 
+export enum WatchStatus {
+  WATCHED = 'watched',
+  UNWATCHED = 'unwatched',
+  ALL = 'all',
+}
+
 // Tag Types
 export enum TagMode {
   ALL = 'all',
@@ -113,6 +125,13 @@ export enum TagMode {
 }
 
 export type TagModeType = TagMode.ALL | TagMode.ANY;
+
+export interface VideoFilters {
+  filter: string;
+  selectedTags: string[];
+  tagMode: TagModeType;
+  searchQuery: string;
+}
 
 // Single source of truth - with description always optional
 interface ChannelTagBase {
@@ -138,12 +157,6 @@ export type ChannelTagPreview = Pick<ChannelTagBase, 'name' | 'color'> &
 
 // For partial updates
 export type TagUpdateRequest = Partial<TagCreateRequest>;
-
-export interface TagFilterParams {
-  tags?: string[];
-  tag_mode?: TagModeType;
-  watch_status?: string;
-}
 
 export interface TagAssignmentRequest {
   tag_ids: string[];

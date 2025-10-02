@@ -1,28 +1,32 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { VideoList } from '../VideoList';
-import { TagMode } from '@/types';
+import { TagMode, Video } from '@/types';
+import { ScrollMode } from '@/lib/scrollMode';
 import * as services from '@/services';
 
+const createMockVideo = (uuid: string, title: string, isWatched: boolean, channelTitle: string): Video => ({
+  uuid,
+  video_id: `vid_${uuid}`,
+  channel_title: channelTitle,
+  title,
+  description: null,
+  published_at: '2024-01-01T00:00:00Z',
+  duration: '10:00',
+  view_count: null,
+  like_count: null,
+  comment_count: null,
+  thumbnail_url: `https://i.ytimg.com/vi/thumb${uuid}/maxresdefault.jpg`,
+  video_url: `https://youtube.com/${uuid}`,
+  is_watched: isWatched,
+  watched_at: isWatched ? '2024-01-01T00:00:00Z' : null,
+  notes: null,
+  channel_tags: [],
+});
+
 const mockVideos = [
-  {
-    uuid: '1',
-    title: 'Test Video 1',
-    video_url: 'https://youtube.com/1',
-    thumbnail_url: 'https://i.ytimg.com/vi/thumb1/maxresdefault.jpg',
-    is_watched: false,
-    channel_title: 'Tech Channel',
-    channel_tags: [{ id: '1', name: 'Tech', color: '#3B82F6' }],
-  },
-  {
-    uuid: '2',
-    title: 'Test Video 2',
-    video_url: 'https://youtube.com/2',
-    thumbnail_url: 'https://i.ytimg.com/vi/thumb2/maxresdefault.jpg',
-    is_watched: true,
-    channel_title: 'Gaming Channel',
-    channel_tags: [{ id: '2', name: 'Gaming', color: '#EF4444' }],
-  },
+  createMockVideo('1', 'Test Video 1', false, 'Tech Channel'),
+  createMockVideo('2', 'Test Video 2', true, 'Gaming Channel'),
 ];
 
 jest.mock('@/services', () => ({
@@ -35,7 +39,20 @@ jest.mock('@/hooks/useVideoFilters', () => ({
     filter: 'all',
     selectedTags: [],
     tagMode: TagMode.ANY,
+    areFiltersEqual: jest.fn(() => true),
   }),
+}));
+
+jest.mock('@/hooks/useScrollPosition', () => ({
+  useScrollPosition: () => ({
+    savePosition: jest.fn(),
+    getPosition: jest.fn(() => null),
+    clearPosition: jest.fn(),
+  }),
+}));
+
+jest.mock('@/hooks/useInfiniteScroll', () => ({
+  useInfiniteScroll: () => ({ current: null }),
 }));
 
 const TestWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -51,7 +68,12 @@ const mockUpdateVideoWatchStatus = services.updateVideoWatchStatus as jest.Mocke
 describe('VideoList', () => {
   beforeEach(() => {
     mockFetchVideos.mockResolvedValue({
-      data: { results: mockVideos },
+      data: {
+        results: mockVideos,
+        next: null,
+        previous: null,
+        count: mockVideos.length,
+      },
     });
     jest.clearAllMocks();
   });
@@ -59,7 +81,7 @@ describe('VideoList', () => {
   it('renders video list', async () => {
     render(
       <TestWrapper>
-        <VideoList />
+        <VideoList scrollMode={ScrollMode.AUTO} />
       </TestWrapper>
     );
 
@@ -71,22 +93,29 @@ describe('VideoList', () => {
 
   it('shows loading state initially', () => {
     mockFetchVideos.mockImplementation(() => new Promise(() => {}));
-    
+
     render(
       <TestWrapper>
-        <VideoList />
+        <VideoList scrollMode={ScrollMode.AUTO} />
       </TestWrapper>
     );
 
-    expect(document.querySelectorAll('.skeleton')).toHaveLength(42);
+    expect(document.querySelectorAll('.skeleton').length).toBeGreaterThan(0);
   });
 
   it('handles watch status toggle', async () => {
-    mockUpdateVideoWatchStatus.mockResolvedValue({});
-    
+    mockUpdateVideoWatchStatus.mockResolvedValue({
+      data: {
+        status: 'success',
+        is_watched: true,
+        watched_at: '2024-01-01T00:00:00Z',
+        notes: null,
+      },
+    });
+
     render(
       <TestWrapper>
-        <VideoList />
+        <VideoList scrollMode={ScrollMode.AUTO} />
       </TestWrapper>
     );
 

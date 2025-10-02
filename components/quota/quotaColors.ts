@@ -26,7 +26,7 @@ const QUOTA_COLOR_MAP: Record<UserQuotaInfo['status'], QuotaColorConfig> = {
     text: 'text-yellow-600',
     progress: 'bg-yellow-500',
   },
-  low: {
+  normal: {
     background: 'bg-green-50 border-green-200',
     stroke: 'stroke-green-600',
     text: 'text-green-600',
@@ -35,17 +35,17 @@ const QUOTA_COLOR_MAP: Record<UserQuotaInfo['status'], QuotaColorConfig> = {
 } as const;
 
 export const getQuotaStatusClasses = (status: UserQuotaInfo['status']) => {
-  return QUOTA_COLOR_MAP[status]?.background ?? QUOTA_COLOR_MAP.low.background;
+  return QUOTA_COLOR_MAP[status]?.background ?? QUOTA_COLOR_MAP.normal.background;
 };
 
 export const getQuotaStrokeClasses = (status: UserQuotaInfo['status']) => {
-  return QUOTA_COLOR_MAP[status]?.stroke ?? QUOTA_COLOR_MAP.low.stroke;
+  return QUOTA_COLOR_MAP[status]?.stroke ?? QUOTA_COLOR_MAP.normal.stroke;
 };
 
 export const getQuotaTextClasses = (status: UserQuotaInfo['status']) => {
-  return QUOTA_COLOR_MAP[status]?.text ?? QUOTA_COLOR_MAP.low.text;
+  return QUOTA_COLOR_MAP[status]?.text ?? QUOTA_COLOR_MAP.normal.text;
 };
 
 export const getQuotaProgressClasses = (status: UserQuotaInfo['status']) => {
-  return QUOTA_COLOR_MAP[status]?.progress ?? QUOTA_COLOR_MAP.low.progress;
+  return QUOTA_COLOR_MAP[status]?.progress ?? QUOTA_COLOR_MAP.normal.progress;
 };

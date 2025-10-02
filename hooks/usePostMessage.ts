@@ -6,15 +6,19 @@ import { useEffect, useCallback, useRef } from 'react';
 const ALLOWED_ORIGINS = [
   ...(process.env.NODE_ENV === 'development'
     ? [
-        'http://localhost:3000',
-        'http://localhost:3001',
-        'https://localhost:3000',
-        'https://localhost:3001'
-      ]
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'https://localhost:3000',
+      'https://localhost:3001'
+    ]
     : ['https://nogarythmtube.com']
   ),
   window.location.origin
 ];
+
+export enum PostMessageType {
+  YOUTUBE_AUTH_SUCCESS = 'youtube-auth-success',
+}
 
 interface PostMessageOptions {
   targetOrigin?: string;
@@ -23,7 +27,7 @@ interface PostMessageOptions {
 }
 
 interface UsePostMessageReturn {
-  sendMessage: (message: any, targetWindow?: Window) => void;
+  sendMessage: (message: PostMessageType, targetWindow?: Window) => void;
 }
 
 export function usePostMessage(
@@ -56,7 +60,7 @@ export function usePostMessage(
     onMessageRef.current(event);
   }, [validateOrigin, allowedOrigins]);
 
-  const sendMessage = useCallback((message: any, targetWindow: Window = window.parent) => {
+  const sendMessage = useCallback((message: PostMessageType, targetWindow: Window = window.parent) => {
     try {
       targetWindow.postMessage(message, targetOrigin);
     } catch (error) {

@@ -1,4 +1,4 @@
-import { VideoResponse, VideoStats, UserVideo, TagFilterParams, TagMode } from '@/types';
+import { VideoResponse, VideoStats, UserVideo, TagMode, PaginationParams, VideoFilters } from '@/types';
 import { ResponseHandler, ApiResponse } from './ResponseHandler';
 import { API_BASE_URL, getRequestOptions } from './shared';
 
@@ -9,23 +9,35 @@ export interface WatchStatusResponse {
   notes: string | null;
 }
 
-function buildVideoQueryParams(params: TagFilterParams): string {
+export function buildVideoQueryParams(params: VideoFilters & PaginationParams): string {
   const queryParams = new URLSearchParams();
 
-  if (params.watch_status && params.watch_status !== 'all') {
-    queryParams.set('watch_status', params.watch_status);
+  if (params.filter && params.filter !== 'all') {
+    queryParams.set('watch_status', params.filter);
   }
 
-  if (params.tags && params.tags.length > 0) {
-    queryParams.set('tags', params.tags.join(','));
-    queryParams.set('tag_mode', params.tag_mode || TagMode.ANY);
+  if (params.selectedTags && params.selectedTags.length > 0) {
+    queryParams.set('tags', params.selectedTags.join(','));
+    queryParams.set('tag_mode', params.tagMode || TagMode.ANY);
+  }
+
+  if (params.searchQuery) {
+    queryParams.set('search', params.searchQuery);
+  }
+
+  if (typeof params.page === 'number' && params.page > 0) {
+    queryParams.set('page', params.page.toString());
+  }
+
+  if (typeof params.page_size === 'number' && params.page_size > 0) {
+    queryParams.set('page_size', params.page_size.toString());
   }
 
   return queryParams.toString();
 }
 
-export async function fetchVideos(params?: TagFilterParams): Promise<ApiResponse<VideoResponse>> {
-  const queryString = buildVideoQueryParams(params || {});
+export async function fetchVideos(params: VideoFilters & PaginationParams): Promise<ApiResponse<VideoResponse>> {
+  const queryString = buildVideoQueryParams(params);
   let url = `${API_BASE_URL}/videos`;
   if (queryString) {
     url += `?${queryString}`;

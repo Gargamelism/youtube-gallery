@@ -5,18 +5,28 @@ import { fetchVideos } from '@/services';
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
+import { VideoFilters } from '@/types';
+import { TagMode, WatchStatus } from '@/types';
+import { queryKeys } from '@/lib/reactQueryConfig';
 
 export default function Home() {
   const router = useRouter();
   const pathname = usePathname();
+
+  const filters: VideoFilters = {
+    filter: WatchStatus.UNWATCHED,
+    selectedTags: [],
+    tagMode: TagMode.ANY,
+    searchQuery: '',
+  };
 
   const {
     isSuccess,
     isError,
     data: videosResponse,
   } = useQuery({
-    queryFn: () => fetchVideos({ watch_status: 'unwatched' }),
-    queryKey: ['videos', ''],
+    queryFn: () => fetchVideos(filters),
+    queryKey: queryKeys.videosWithFilter(filters),
   });
 
   useEffect(() => {

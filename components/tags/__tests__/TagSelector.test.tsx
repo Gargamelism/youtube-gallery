@@ -2,12 +2,11 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TagSelector } from '../TagSelector';
 
-const mockTags = [
-  { id: '1', name: 'Tech', color: '#3B82F6', description: '', channel_count: 5, created_at: '2023-01-01T00:00:00Z' },
-  { id: '2', name: 'Gaming', color: '#EF4444', description: '', channel_count: 3, created_at: '2023-01-01T00:00:00Z' },
-];
+const mockTag1 = { id: '1', name: 'Tech', color: '#3B82F6', description: '', channel_count: 5, created_at: '2023-01-01T00:00:00Z' };
+const mockTag2 = { id: '2', name: 'Gaming', color: '#EF4444', description: '', channel_count: 3, created_at: '2023-01-01T00:00:00Z' };
 
-const mockSelectedTags = [mockTags[0]];
+const mockTags = [mockTag1, mockTag2];
+const mockSelectedTags = [mockTag1];
 
 jest.mock('../mutations', () => ({
   useChannelTags: () => ({

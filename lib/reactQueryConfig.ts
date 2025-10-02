@@ -2,6 +2,8 @@
  * React Query configuration constants
  */
 
+import { VideoFilters } from '@/types';
+
 // Time constants in milliseconds
 const THIRTY_SECONDS = 30 * 1000;
 const NINETY_SECONDS = 90 * 1000;
@@ -78,7 +80,7 @@ export const queryKeys = {
   channelTagsById: (channelId: string) => ['channelTags', channelId] as const,
 
   videos: ['videos'] as const,
-  videosWithFilter: (params: { watch_status?: string; tags?: string[]; tag_mode?: string }) => ['videos', 'filtered', params] as const,
+  videosWithFilter: (params: VideoFilters) => ['videos', 'filtered', params] as const,
   videoStats: ['videos', 'stats'] as const,
 
   channels: ['channels'] as const,
