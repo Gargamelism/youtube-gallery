@@ -1,6 +1,9 @@
 This file is to remind me of little tasks todo without breaking my flow or claude related feature-creep
 
 1. channels page pagination
+1. code quality
+    1. checkout pyscn/integrate maybe github actions?
+    1. find similar code quality analyzer for FE
 1. add sidebar filtering videos by channels
 1. add "not interested" option - and filtering based on it
 1. keep filters state when moving between pages
@@ -22,6 +25,7 @@ This file is to remind me of little tasks todo without breaking my flow or claud
 1. sso login with google
 1. email verification
 1. otp login
+1. videos page filter appears when mouse gets near navbar
 1. add profile page
 1. review settings page
 1. tag management / assigning pagination
