@@ -574,7 +574,7 @@ export interface SubscribedChannelUrlState {
 
 export interface AvailableChannelUrlState {
   as: string;        // search
-  asts: string[];    // selected tags (reserved for future use)
+  ats: string[];     // selected tags (reserved for future use)
   atm: TagModeType;  // tag mode (reserved for future use)
   ap: number;        // page
 }
@@ -611,7 +611,7 @@ import { ChannelFilters, ChannelApiParams, TagMode, TagModeType, ChannelType } f
  *
  * @param filters - Component filter state with semantic names
  * @param type - Channel type ('subscribed' or 'available')
- * @returns URL parameters with shortened names (ss/as, sts/asts, stm/atm, sp/ap)
+ * @returns URL parameters with shortened names (ss/as, sts/ats, stm/atm, sp/ap)
  */
 export function filtersToUrlParams(
   filters: Partial<ChannelFilters>,
@@ -1050,7 +1050,7 @@ URLs use shortened parameter names to keep URLs compact and shareable. Both subs
 | | `stm` | `tagMode` | `tag_mode` | Tag matching mode (any/all) |
 | | `sp` | `page` | `page` | Page number |
 | **Available** | `as` | `search` | `search` | Search query |
-| | `asts` | `selectedTags` | `tags` | Reserved for future use |
+| | `ats` | `selectedTags` | `tags` | Reserved for future use |
 | | `atm` | `tagMode` | `tag_mode` | Reserved for future use |
 | | `ap` | `page` | `page` | Page number |
 
@@ -1202,49 +1202,70 @@ The frontend translates these shortened params to backend-compatible names:
 - ✅ Proper error responses via Pydantic validation
 - ✅ GIN indexes ready for fuzzy search (trigram similarity)
 
-### Phase 2: Frontend State Management (Test-First)
+### Phase 2: Frontend State Management (Test-First) ✅ **Completed**
 
-**2.1: TypeScript Types**
-- Add `ChannelFilters`, `ChannelApiParams`, `ChannelUrlState` interfaces to `types.ts`
-- Add `ChannelType` discriminator type
-- Update query keys in `lib/reactQueryConfig.ts`
-- Write type tests (if not installed, install ts-jest)
+**2.1: TypeScript Types** ✅
+- ✅ Added `ChannelFilters`, `ChannelApiParams`, `SubscribedChannelUrlState`, `AvailableChannelUrlState` interfaces to `types.ts`
+- ✅ Added `ChannelType` discriminator type (`'subscribed' | 'available'`)
+- ✅ Added `ChannelStats` interface for channel counts
+- ✅ Updated query keys in `lib/reactQueryConfig.ts`:
+  - `userChannels` and `userChannelsWithFilter(filters)`
+  - `availableChannels` and `availableChannelsWithFilter(filters)`
+- ✅ Fixed redundant import alias (`QuotaExceededErrorType as QuotaExceededErrorType` → `QuotaExceededErrorType`)
 
-**2.2: URL Helper Utility**
-- Create `utils/channelUrlHelpers.ts`
-- Implement `filtersToUrlParams()` - converts semantic names to shortened URL params
-- Implement `urlParamsToFilters()` - parses URL params to semantic filter state
-- Implement `filtersToApiParams()` - translates semantic names to backend API params
-- Write unit tests for all translation functions:
-  - Test subscribed channel parameter mapping (ss, sts, stm, sp)
-  - Test available channel parameter mapping (as, asts, atm, ap)
-  - Test edge cases (empty values, undefined, null)
-  - Test round-trip conversion (URL → Filters → URL)
+**2.2: URL Helper Utility** ✅
+- ✅ Created `utils/channelUrlHelpers.ts` with three translation functions
+- ✅ Implemented `filtersToUrlParams()` - converts semantic names to shortened URL params (ss/as, sts/ats, stm/atm, sp/ap)
+- ✅ Implemented `urlParamsToFilters()` - parses URL params to semantic filter state
+- ✅ Implemented `filtersToApiParams()` - translates semantic names to backend API params
+- ✅ Wrote 300+ lines of comprehensive unit tests in `utils/__tests__/channelUrlHelpers.test.ts`:
+  - ✅ Subscribed channel parameter mapping (ss, sts, stm, sp)
+  - ✅ Available channel parameter mapping (as, ats, atm, ap)
+  - ✅ Edge cases (empty values, undefined, special characters)
+  - ✅ Round-trip conversion tests (URL → Filters → URL)
+  - ✅ Integration tests for coexisting filters
+- ✅ **Note**: Corrected URL parameter naming from design doc - available tags use `ats` (not `asts`) to maintain consistent prefix pattern
 
-**2.3: Channel Filters Hook**
-- Create `hooks/useChannelFilters.ts`
-- Accept `ChannelType` parameter ('subscribed' | 'available')
-- Use helper utilities for parameter translation
-- Write tests for URL state synchronization:
-  - Test subscribed channel filters sync (ss, sts, stm, sp)
-  - Test available channel filters sync (as, ap)
-  - Test both filter types coexisting in URL
-  - Test filter updates and resets
-  - Test page navigation
+**2.3: Channel Filters Hook** ✅
+- ✅ Created `hooks/useChannelFilters.ts` following `useVideoFilters` pattern
+- ✅ Accepts `ChannelType` parameter for subscribed/available distinction
+- ✅ Uses helper utilities for parameter translation (no hardcoded param names)
+- ✅ Provides comprehensive actions:
+  - `updateSearch()` - resets page to 1
+  - `updateTags()` - resets page to 1
+  - `updateTagMode()` - resets page to 1
+  - `updatePage()` - preserves other filters
+  - `addTag()` / `removeTag()` - convenience methods
+  - `resetFilters()` - clears all filters
+- ✅ Wrote 250+ lines of tests in `hooks/__tests__/useChannelFilters.test.ts`:
+  - ✅ Subscribed channel filters sync (ss, sts, stm, sp)
+  - ✅ Available channel filters sync (as, ats, atm, ap)
+  - ✅ Both filter types coexisting in same URL
+  - ✅ Filter updates and page resets
+  - ✅ Edge cases (special characters, empty values)
 
-**2.4: API Service Updates**
-- Update `fetchUserChannels` in `services/api.ts`
-- Create `fetchAvailableChannels` function
-- Use `filtersToApiParams()` helper for translation
-- Both functions share common implementation
-- Write API service tests (mock responses)
+**2.4: API Service Updates** ✅
+- ✅ Updated `fetchUserChannels()` in `services/channels.ts` to accept optional `filters` parameter
+- ✅ Created `fetchAvailableChannels()` function with same filter support
+- ✅ Both functions use `filtersToApiParams()` helper for translation
+- ✅ Proper URLSearchParams construction with conditional parameters
+- ✅ Wrote 400+ lines of tests in `services/__tests__/channels.test.ts`:
+  - ✅ URL building with all filter combinations
+  - ✅ Search, tags, tag_mode, and page parameters
+  - ✅ Special character encoding
+  - ✅ Parameter order independence
+  - ✅ Mock fetch responses
+- ✅ Fixed `ChannelSubscriptions.tsx` to wrap `fetchUserChannels()` call in arrow function for React Query compatibility
 
-**Acceptance Criteria**:
-- Helper utilities correctly translate between all three representations (URL, component, API)
-- Hook correctly syncs with URL parameters using shortened names
-- API services build correct query strings with backend-compatible names
-- Type safety enforced throughout
-- No hardcoded parameter names in components (all use utilities)
+**Acceptance Criteria**: ✅ **All Met**
+- ✅ Helper utilities correctly translate between all three representations (URL, component, API)
+- ✅ Hook correctly syncs with URL parameters using shortened names
+- ✅ API services build correct query strings with backend-compatible names
+- ✅ Type safety enforced throughout (strict TypeScript mode)
+- ✅ No hardcoded parameter names in components (all use utilities)
+- ✅ All 950+ lines of tests pass
+- ✅ Consistent naming pattern: prefix + suffix (e.g., `s` + `ts` = `sts`, `a` + `ts` = `ats`)
+- ✅ Feature design document updated with correct parameter names
 
 ### Phase 3: UI Components (Test-First)
 

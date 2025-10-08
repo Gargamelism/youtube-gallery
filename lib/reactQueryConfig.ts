@@ -2,7 +2,7 @@
  * React Query configuration constants
  */
 
-import { VideoFilters } from '@/types';
+import { VideoFilters, ChannelFilters } from '@/types';
 
 // Time constants in milliseconds
 const THIRTY_SECONDS = 30 * 1000;
@@ -85,6 +85,9 @@ export const queryKeys = {
 
   channels: ['channels'] as const,
   userChannels: ['userChannels'] as const,
+  userChannelsWithFilter: (filters: Partial<ChannelFilters>) => ['userChannels', 'filtered', filters] as const,
+  availableChannels: ['availableChannels'] as const,
+  availableChannelsWithFilter: (filters: Partial<ChannelFilters>) => ['availableChannels', 'filtered', filters] as const,
   channelById: (channelId: string) => ['channels', channelId] as const,
 
   userProfile: ['user', 'profile'] as const,

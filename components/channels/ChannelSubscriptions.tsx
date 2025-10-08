@@ -25,7 +25,7 @@ export default function ChannelSubscriptions() {
 
   const { data: userChannels, isLoading: isLoadingUserChannels } = useQuery({
     queryKey: ['userChannels'],
-    queryFn: fetchUserChannels,
+    queryFn: () => fetchUserChannels(),
     select: response => response.data || { results: [] },
   });
 

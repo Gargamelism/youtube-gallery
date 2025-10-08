@@ -133,6 +133,42 @@ export interface VideoFilters {
   searchQuery: string;
 }
 
+// Channel Filter Types
+export type ChannelType = 'subscribed' | 'available';
+
+export interface ChannelFilters {
+  search: string;
+  selectedTags: string[];
+  tagMode: TagModeType;
+  page: number;
+}
+
+export interface SubscribedChannelUrlState {
+  ss: string;
+  sts: string[];
+  stm: TagModeType;
+  sp: number;
+}
+
+export interface AvailableChannelUrlState {
+  as: string;
+  ats: string[];
+  atm: TagModeType;
+  ap: number;
+}
+
+export interface ChannelApiParams {
+  search?: string;
+  tags?: string[];
+  tag_mode?: TagModeType;
+  page?: number;
+}
+
+export interface ChannelStats {
+  subscribed: number;
+  available: number;
+}
+
 // Single source of truth - with description always optional
 interface ChannelTagBase {
   id: string;
