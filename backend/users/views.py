@@ -25,7 +25,10 @@ from .serializers import (
     UserSerializer,
     UserVideoSerializer,
 )
-from videos.validators import TagAssignmentParams
+from .services.channel_search import ChannelSearchService
+from videos.validators import ChannelSearchParams, TagAssignmentParams
+from videos.models import Channel
+from videos.serializers import ChannelSerializer
 
 
 def _is_safe_url(url, request):
@@ -176,15 +179,33 @@ class UserChannelViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return (
-            UserChannel.objects.filter(user=self.request.user)
-            .select_related("channel")
-            .prefetch_related("channel_tags__tag")
-            .order_by("channel__title")
+        search_params = ChannelSearchParams.from_request(self.request)
+        search_service = ChannelSearchService(self.request.user)
+        return search_service.search_user_channels(
+            tag_names=search_params.tags,
+            tag_mode=search_params.tag_mode,
+            search_query=search_params.search_query,
         )
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    @action(detail=False, methods=["get"], url_path="available")
+    def available_channels(self, request):
+        """Get paginated list of available (non-subscribed) channels"""
+        search_params = ChannelSearchParams.from_request(request)
+        search_service = ChannelSearchService(request.user)
+        channels = search_service.search_available_channels(
+            search_query=search_params.search_query,
+        )
+
+        page = self.paginate_queryset(channels)
+        if page is not None:
+            serializer = ChannelSerializer(page, many=True, context={"request": request})
+            return self.get_paginated_response(serializer.data)
+
+        serializer = ChannelSerializer(channels, many=True, context={"request": request})
+        return Response(serializer.data)
 
     @action(detail=True, methods=["get", "put"], url_path="tags")
     def channel_tags(self, request, pk=None):
@@ -192,24 +213,16 @@ class UserChannelViewSet(viewsets.ModelViewSet):
         user_channel = self.get_object()
 
         if request.method == "GET":
-            # Get tags assigned to a channel
             tags = ChannelTag.objects.filter(channel_assignments__user_channel=user_channel)
             serializer = ChannelTagSerializer(tags, many=True)
             return Response(serializer.data)
 
         elif request.method == "PUT":
-            # Assign tags to a channel using Pydantic validation
             params = TagAssignmentParams.from_request(request)
-
-            # Remove existing tag assignments
             UserChannelTag.objects.filter(user_channel=user_channel).delete()
-
-            # Create new tag assignments
             tags = ChannelTag.objects.filter(user=request.user, id__in=params.tag_ids)
             tag_assignments = [UserChannelTag(user_channel=user_channel, tag=tag) for tag in tags]
             UserChannelTag.objects.bulk_create(tag_assignments)
-
-            # Return updated channel data
             serializer = self.get_serializer(user_channel)
             return Response(serializer.data)
 

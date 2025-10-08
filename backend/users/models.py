@@ -5,6 +5,7 @@ from cryptography.fernet import Fernet
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models import Prefetch
 from django.utils import timezone as dj_tz
 from google.oauth2.credentials import Credentials
 from videos.services.youtube import YOUTUBE_SCOPES, YouTubeService
@@ -30,6 +31,19 @@ class User(AbstractUser, TimestampMixin):
         db_table = "users"
 
 
+class UserChannelQuerySet(models.QuerySet):
+    def with_user_tags(self, user):
+        """Prefetch channel tags filtered by user"""
+        from users.models import UserChannelTag
+
+        return self.prefetch_related(
+            Prefetch(
+                "channel_tags",
+                queryset=UserChannelTag.objects.select_related("tag").filter(tag__user=user),
+            )
+        )
+
+
 class UserChannel(TimestampMixin):
     """Many-to-many relationship between users and channels they follow"""
 
@@ -39,9 +53,17 @@ class UserChannel(TimestampMixin):
     subscribed_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
 
+    objects = UserChannelQuerySet.as_manager()
+
     class Meta:
         db_table = "user_channels"
         unique_together = ("user", "channel")
+        indexes = [
+            models.Index(
+                fields=["user", "is_active", "channel"],
+                name="idx_uc_user_active_channel",
+            ),
+        ]
 
 
 class UserVideo(TimestampMixin):

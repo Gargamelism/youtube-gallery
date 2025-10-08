@@ -46,3 +46,5 @@ This file is to remind me of little tasks todo without breaking my flow or claud
     1. monitoring!
     1. admin system
     1. choose hosting for db/fe/be
+        1. Maybe self hosting with https://www.hetzner.com/cloud + Coolify?
+1. row level permissions in db

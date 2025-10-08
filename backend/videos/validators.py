@@ -7,15 +7,34 @@ from rest_framework.exceptions import ValidationError as DRFValidationError
 from users.models import User, ChannelTag
 
 
+MAX_SEARCH_QUERY_LENGTH = 50
+
+
 class TagMode(str, Enum):
     ANY = "any"
     ALL = "all"
+
+    @classmethod
+    def from_param(cls, value):
+        """Parse tag mode from parameter with fallback to ANY"""
+        try:
+            return cls(value)
+        except (ValueError, TypeError):
+            return cls.ANY
 
 
 class WatchStatus(str, Enum):
     WATCHED = "watched"
     UNWATCHED = "unwatched"
     ALL = "all"
+
+    @classmethod
+    def from_param(cls, value):
+        """Parse watch status from parameter with fallback to None"""
+        try:
+            return cls(value)
+        except (ValueError, TypeError):
+            return None
 
 
 class VideoSearchParams(BaseModel):
@@ -49,20 +68,8 @@ class VideoSearchParams(BaseModel):
         if tags_param:
             tags = [tag.strip() for tag in tags_param.split(",") if tag.strip()]
 
-        # Use enum values as fallbacks for invalid inputs
-        tag_mode_param = request.query_params.get("tag_mode", TagMode.ANY)
-        try:
-            tag_mode = TagMode(tag_mode_param)
-        except ValueError:
-            tag_mode = TagMode.ANY  # Fallback to default enum value
-
-        watch_status_param = request.query_params.get("watch_status")
-        watch_status = None
-        if watch_status_param:
-            try:
-                watch_status = WatchStatus(watch_status_param)
-            except ValueError:
-                watch_status = None  # Fallback to None for invalid values
+        tag_mode = TagMode.from_param(request.query_params.get("tag_mode"))
+        watch_status = WatchStatus.from_param(request.query_params.get("watch_status"))
 
         try:
             return cls.model_validate(
@@ -70,6 +77,69 @@ class VideoSearchParams(BaseModel):
                     "tags": tags,
                     "tag_mode": tag_mode,
                     "watch_status": watch_status,
+                    "user": request.user,
+                },
+                context={"user": request.user},
+            )
+        except Exception as e:
+            raise DRFValidationError({"query_params": str(e)})
+
+
+class ChannelSearchParams(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    tags: Optional[List[str]] = None
+    tag_mode: TagMode = TagMode.ANY
+    search_query: Optional[str] = None
+    user: User
+
+    @field_validator("tags")
+    @classmethod
+    def validate_tags_belong_to_user(cls, tags, info):
+        if not tags:
+            return tags
+
+        user = info.data.get("user")
+        if not user:
+            raise ValueError("User is required for tag validation")
+
+        user_tag_names = set(ChannelTag.objects.filter(user=user).values_list("name", flat=True))
+
+        invalid_tags = set(tags) - user_tag_names
+        if invalid_tags:
+            raise ValueError(f"Invalid tags not owned by user: {list(invalid_tags)}")
+
+        return tags
+
+    @field_validator("search_query")
+    @classmethod
+    def validate_search_query_length(cls, search_query):
+        if not search_query:
+            return None
+
+        search_query = search_query.strip()
+        if len(search_query) > MAX_SEARCH_QUERY_LENGTH:
+            raise ValueError(f"Search query must be less than {MAX_SEARCH_QUERY_LENGTH} characters")
+
+        return search_query
+
+    @classmethod
+    def from_request(cls, request):
+        """Create ChannelSearchParams from Django request with proper error handling"""
+        tags_param = request.query_params.get("tags")
+        tags = None
+        if tags_param:
+            tags = [tag.strip() for tag in tags_param.split(",") if tag.strip()]
+
+        tag_mode = TagMode.from_param(request.query_params.get("tag_mode"))
+        search_query = request.query_params.get("search")
+
+        try:
+            return cls.model_validate(
+                {
+                    "tags": tags,
+                    "tag_mode": tag_mode,
+                    "search_query": search_query,
                     "user": request.user,
                 },
                 context={"user": request.user},

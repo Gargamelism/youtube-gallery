@@ -1,6 +1,8 @@
 import uuid
 
+from django.contrib.postgres.indexes import GinIndex
 from django.db import models
+from django.db.models import Q
 from django.utils import timezone
 from dirtyfields import DirtyFieldsMixin
 
@@ -63,6 +65,13 @@ class Channel(DirtyFieldsMixin, TimestampMixin):
             models.Index(
                 fields=['is_deleted', 'is_available'],
                 name='channel_status_idx'
+            ),
+            GinIndex(fields=['title'], name='idx_ch_title_trgm', opclasses=['gin_trgm_ops']),
+            GinIndex(fields=['description'], name='idx_ch_desc_trgm', opclasses=['gin_trgm_ops']),
+            models.Index(
+                fields=['is_available', 'is_deleted'],
+                name='idx_ch_avail_del',
+                condition=Q(is_available=True, is_deleted=False)
             ),
         ]
 
