@@ -2,8 +2,7 @@
 
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { TagFilter } from '@/components/tags/TagFilter';
-import { SearchInput } from '@/components/ui/SearchInput';
+import { SearchAndTagFilter } from '@/components/ui/SearchAndTagFilter';
 import { useVideoFilters } from '@/hooks/useVideoFilters';
 import { ScrollMode } from '@/lib/scrollMode';
 
@@ -54,19 +53,15 @@ export function FilterButtons({ totalCount, watchedCount, unwatchedCount, onScro
         })}
       </div>
 
-      <div className="FilterButton__search">
-        <SearchInput value={searchQuery} onChange={updateSearchQuery} />
-      </div>
-
-      <div className="FilterButton__tags">
-        <TagFilter
-          selectedTags={selectedTags}
-          tagMode={tagMode}
-          onTagsChange={updateTags}
-          onTagModeChange={updateTagMode}
-          {...(onScrollModeChange && { onScrollModeChange })}
-        />
-      </div>
+      <SearchAndTagFilter
+        searchValue={searchQuery}
+        onSearchChange={updateSearchQuery}
+        selectedTags={selectedTags}
+        tagMode={tagMode}
+        onTagsChange={updateTags}
+        onTagModeChange={updateTagMode}
+        {...(onScrollModeChange && { onScrollModeChange })}
+      />
     </div>
   );
 }

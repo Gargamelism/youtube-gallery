@@ -268,13 +268,15 @@ def youtube_auth_url(request):
     request.session["oauth_redirect_uri"] = redirect_uri
     state = secrets.token_urlsafe(32)
     request.session["oauth_state"] = state
+    request.session.save()
 
     try:
-        service = YouTubeService(redirect_uri=redirect_uri)
-    except YouTubeAuthenticationError as e:
-        if hasattr(e, "auth_url") and e.auth_url:
-            return Response({"auth_url": e.auth_url, "authenticated": False})
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        auth_url = YouTubeService._generate_oauth_url(redirect_uri=redirect_uri, state=state)
+        if not auth_url:
+            return Response(
+                {"error": "Failed to generate authentication URL"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        return Response({"auth_url": auth_url, "authenticated": False})
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -285,8 +287,8 @@ def youtube_auth_callback(request):
     """Handle OAuth callback and store credentials in database"""
     # Validate state parameter for CSRF protection
     state = request.GET.get("state")
-    expected_stat = request.session.get("oauth_state", None)
-    if not state or not expected_stat or state != expected_stat:
+    expected_state = request.session.get("oauth_state", None)
+    if not state or not expected_state or state != expected_state:
         return HttpResponse("Invalid state parameter", status=status.HTTP_400_BAD_REQUEST)
 
     authorization_code = request.GET.get("code")

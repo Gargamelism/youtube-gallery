@@ -188,6 +188,13 @@ REDIS_USER = config("REDIS_USER", default="youtube_app")
 # Authentication cookie settings
 AUTH_COOKIE_NAME = "youtube-gallery-auth"
 
+# Session settings
+SESSION_COOKIE_NAME = "youtube-gallery-session"
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SECURE = not DEBUG
+SESSION_SAVE_EVERY_REQUEST = False
+
 # Celery Configuration
 CELERY_BROKER_URL = f"redis://{REDIS_USER}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
 CELERY_RESULT_BACKEND = f"redis://{REDIS_USER}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"

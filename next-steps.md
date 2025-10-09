@@ -1,6 +1,9 @@
 This file is to remind me of little tasks todo without breaking my flow or claude related feature-creep
 
+1. investigate why import doesn't work well (actual ID is not saved/retrieved)
 1. channels page pagination
+    1. verify search and filters are from the same component in videos/channels
+    1. verify old search and filter components are removed
 1. code quality
     1. checkout pyscn/integrate maybe github actions?
     1. find similar code quality analyzer for FE
@@ -48,3 +51,5 @@ This file is to remind me of little tasks todo without breaking my flow or claud
     1. choose hosting for db/fe/be
         1. Maybe self hosting with https://www.hetzner.com/cloud + Coolify?
 1. row level permissions in db
+1. import subscriptions from youtube
+1. move tags to bottom of channel/video card so the shape will be consistent

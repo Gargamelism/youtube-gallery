@@ -19,5 +19,12 @@
   "no": "No",
   "ok": "OK",
   "scrollToTop": "Scroll to top",
-  "keyboardShortcuts": "Keyboard Shortcuts"
+  "keyboardShortcuts": "Keyboard Shortcuts",
+  "pagination": {
+    "showing": "Showing",
+    "to": "to",
+    "of": "of",
+    "results": "results",
+    "page": "Page"
+  }
 }

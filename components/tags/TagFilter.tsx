@@ -13,6 +13,7 @@ interface TagFilterProps {
   tagMode: TagModeType;
   onTagsChange: (tags: string[]) => void;
   onTagModeChange: (mode: TagModeType) => void;
+  showScrollMode?: boolean;
   onScrollModeChange?: (mode: ScrollMode) => void;
 }
 
@@ -21,6 +22,7 @@ export function TagFilter({
   tagMode,
   onTagsChange,
   onTagModeChange,
+  showScrollMode = true,
   onScrollModeChange,
 }: TagFilterProps) {
   const { t } = useTranslation('tags');
@@ -76,13 +78,15 @@ export function TagFilter({
         </button>
 
         <div className="flex flex-col items-end gap-1">
-          <button
-            onClick={handleScrollModeToggle}
-            className="TagFilter__scroll-mode-toggle text-xs text-gray-500 hover:text-gray-700"
-            aria-pressed={scrollMode === ScrollMode.MANUAL}
-          >
-            {scrollMode === ScrollMode.AUTO ? tVideos('scrollMode.manual') : tVideos('scrollMode.auto')}
-          </button>
+          {showScrollMode && (
+            <button
+              onClick={handleScrollModeToggle}
+              className="TagFilter__scroll-mode-toggle text-xs text-gray-500 hover:text-gray-700"
+              aria-pressed={scrollMode === ScrollMode.MANUAL}
+            >
+              {scrollMode === ScrollMode.AUTO ? tVideos('scrollMode.manual') : tVideos('scrollMode.auto')}
+            </button>
+          )}
           {selectedTags.length > 0 && (
             <button onClick={handleClearAll} className="TagFilter__clear text-xs text-gray-500 hover:text-gray-700">
               {t('clearAll')}

@@ -11,7 +11,7 @@ export function filtersToUrlParams(
   filters: Partial<ChannelFilters>,
   type: ChannelType
 ): Record<string, string | undefined> {
-  const prefix = type === 'subscribed' ? 's' : 'a';
+  const prefix = type === ChannelType.SUBSCRIBED ? 's' : 'a';
 
   return {
     [`${prefix}s`]: filters.search || undefined,
@@ -30,7 +30,7 @@ export function filtersToUrlParams(
  * @returns Component filter state with semantic names
  */
 export function urlParamsToFilters(searchParams: URLSearchParams, type: ChannelType): ChannelFilters {
-  const prefix = type === 'subscribed' ? 's' : 'a';
+  const prefix = type === ChannelType.SUBSCRIBED ? 's' : 'a';
 
   return {
     search: searchParams.get(`${prefix}s`) || '',

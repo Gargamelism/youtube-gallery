@@ -134,7 +134,10 @@ export interface VideoFilters {
 }
 
 // Channel Filter Types
-export type ChannelType = 'subscribed' | 'available';
+export enum ChannelType {
+  SUBSCRIBED = 'subscribed',
+  AVAILABLE = 'available',
+}
 
 export interface ChannelFilters {
   search: string;

@@ -1298,14 +1298,6 @@ The frontend translates these shortened params to backend-compatible names:
 
 ### Phase 4: Integration and Performance (Test-First)
 
-**4.1: End-to-End Testing**
-- Write E2E tests for complete user flows:
-  - Search for channels
-  - Filter by tags
-  - Navigate pages
-  - Subscribe/unsubscribe
-- Test URL sharing and bookmarking
-
 **4.2: Performance Optimization**
 - Run database query analysis with EXPLAIN ANALYZE
 - Verify GIN index usage for text search
@@ -1319,7 +1311,6 @@ The frontend translates these shortened params to backend-compatible names:
 - Fix any a11y issues
 
 **Acceptance Criteria**:
-- E2E tests pass
 - Database queries use GIN indexes for text search
 - Page loads < 500ms with 1000 channels
 - WCAG 2.1 AA compliance

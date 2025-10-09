@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Plus, Search, Users, Trash2, Loader2, ExternalLink, Tags } from 'lucide-react';
+import { Plus, Users, Trash2, Loader2, ExternalLink, Tags } from 'lucide-react';
 import { fetchUserChannels, fetchChannels, fetchUserQuotaUsage } from '@/services';
-import { UserChannel, Channel } from '@/types';
+import { UserChannel, Channel, ChannelType } from '@/types';
 import AvailableChannelCard from './AvailableChannelCard';
 import { ImportChannelModal } from './ImportChannelModal';
 import { useChannelUnsubscribe, useChannelSubscribe } from './mutations';
@@ -13,15 +13,18 @@ import { TagSelector } from '@/components/tags/TagSelector';
 import { TagManager } from '@/components/tags/TagManager';
 import { QuotaIndicatorCompact } from '@/components/quota';
 import { USER_QUOTA_CONFIG, queryKeys } from '@/lib/reactQueryConfig';
+import { ChannelFilterBar } from './ChannelFilterBar';
+import { useChannelFilters } from '@/hooks/useChannelFilters';
 
 export default function ChannelSubscriptions() {
   const { t } = useTranslation('channels');
   const [isAddChannelModalOpen, setIsAddChannelModalOpen] = useState(false);
   const [isTagManagerOpen, setIsTagManagerOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const queryClient = useQueryClient();
   const unsubscribeMutation = useChannelUnsubscribe(queryClient);
   const subscribeMutation = useChannelSubscribe(queryClient);
+
+  const availableFilters = useChannelFilters(ChannelType.AVAILABLE);
 
   const { data: userChannels, isLoading: isLoadingUserChannels } = useQuery({
     queryKey: ['userChannels'],
@@ -52,8 +55,8 @@ export default function ChannelSubscriptions() {
 
   const filteredChannels = allChannels?.filter(
     (channel: Channel) =>
-      channel.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      channel.channel_id.toLowerCase().includes(searchQuery.toLowerCase())
+      channel.title.toLowerCase().includes(availableFilters.search.toLowerCase()) ||
+      channel.channel_id.toLowerCase().includes(availableFilters.search.toLowerCase())
   );
 
   const subscribedChannelIds = new Set(
@@ -171,16 +174,15 @@ export default function ChannelSubscriptions() {
           {t('availableChannels')}
         </h2>
 
-        <div className="ChannelSubscriptions__search relative mb-6">
-          <Search className="ChannelSubscriptions__search-icon absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder={t('searchChannels')}
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="ChannelSubscriptions__search-input pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+        <ChannelFilterBar
+          search={availableFilters.search}
+          selectedTags={availableFilters.selectedTags}
+          tagMode={availableFilters.tagMode}
+          onSearchChange={availableFilters.updateSearch}
+          onTagsChange={availableFilters.updateTags}
+          onTagModeChange={availableFilters.updateTagMode}
+          showTagFilter={false}
+        />
 
         {isLoadingAllChannels ? (
           <div className="ChannelSubscriptions__loading flex items-center justify-center py-12">

@@ -52,7 +52,7 @@ export function ImportChannelModal({ isOpen, onClose }: ImportChannelModalProps)
             setImportError(error.message);
             setQuotaInfo(error.quotaInfo.quota_info);
           } else {
-            setImportError(t('importError'));
+            setImportError(t('import.error'));
           }
           console.error('Import error:', error);
         } finally {
@@ -96,14 +96,14 @@ export function ImportChannelModal({ isOpen, onClose }: ImportChannelModalProps)
       const response = await getYouTubeAuthUrl(redirectUri, window.location.href);
 
       if (response.error) {
-        setImportError(`${t('authenticationFailed')} ${response.error}`);
+        setImportError(`${t('import.authenticationFailed')} ${response.error}`);
       } else if (response.data.auth_url) {
         window.location.href = response.data.auth_url;
       } else {
-        setImportError(t('failedToGetAuthUrl'));
+        setImportError(t('import.failedToGetAuthUrl'));
       }
     } catch {
-      setImportError(t('failedToStartAuth'));
+      setImportError(t('import.failedToStartAuth'));
     }
   };
 
@@ -135,7 +135,7 @@ export function ImportChannelModal({ isOpen, onClose }: ImportChannelModalProps)
         setImportError(error.message);
         setQuotaInfo(error.quotaInfo.quota_info);
       } else {
-        setImportError(t('importError'));
+        setImportError(t('import.error'));
       }
       console.error('Import error:', error);
     } finally {
@@ -158,11 +158,9 @@ export function ImportChannelModal({ isOpen, onClose }: ImportChannelModalProps)
 
         <div className="ChannelSubscriptions__modal-content inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
           <div className="ChannelSubscriptions__modal-header mb-4">
-            <h3 className="ChannelSubscriptions__modal-title text-lg font-medium text-gray-900">
-              {t('importYoutubeChannel')}
-            </h3>
+            <h3 className="ChannelSubscriptions__modal-title text-lg font-medium text-gray-900">{t('import.title')}</h3>
             <p className="ChannelSubscriptions__modal-description text-sm text-gray-500 mt-1">
-              {t('importChannelDescription')}
+              {t('import.description')}
             </p>
           </div>
 
@@ -174,7 +172,7 @@ export function ImportChannelModal({ isOpen, onClose }: ImportChannelModalProps)
                   onClick={handleYoutubeAuth}
                   className="mt-2 inline-flex items-center px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700"
                 >
-                  {t('authenticateWithYoutube')}
+                  {t('import.authenticateWithYoutube')}
                 </button>
               )}
             </div>
@@ -191,17 +189,17 @@ export function ImportChannelModal({ isOpen, onClose }: ImportChannelModalProps)
               htmlFor="channelId"
               className="ChannelSubscriptions__form-label block text-sm font-medium text-gray-700 mb-2"
             >
-              {t('youtubeChannelId')}
+              {t('import.channelId')}
             </label>
             <input
               type="text"
               id="channelId"
               value={newChannelId}
               onChange={e => setNewChannelId(e.target.value)}
-              placeholder={t('channelIdPlaceholder')}
+              placeholder={t('import.channelIdPlaceholder')}
               className="ChannelSubscriptions__form-input w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <p className="ChannelSubscriptions__form-help text-xs text-gray-500 mt-1">{t('channelIdHelp')}</p>
+            <p className="ChannelSubscriptions__form-help text-xs text-gray-500 mt-1">{t('import.channelIdHelp')}</p>
           </div>
 
           <div className="ChannelSubscriptions__modal-actions flex justify-end space-x-3 mt-6">
@@ -220,10 +218,10 @@ export function ImportChannelModal({ isOpen, onClose }: ImportChannelModalProps)
               {isImporting ? (
                 <>
                   <Loader2 className="ChannelSubscriptions__import-spinner h-4 w-4 mr-2 animate-spin" />
-                  {t('importing')}
+                  {t('import.importing')}
                 </>
               ) : (
-                t('importSubscribe')
+                t('import.importSubscribe')
               )}
             </button>
           </div>

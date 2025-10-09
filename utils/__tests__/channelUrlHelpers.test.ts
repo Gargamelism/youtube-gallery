@@ -1,5 +1,5 @@
 import { filtersToUrlParams, urlParamsToFilters, filtersToApiParams } from '../channelUrlHelpers';
-import { TagMode, ChannelFilters } from '@/types';
+import { TagMode, ChannelFilters, ChannelType } from '@/types';
 
 describe('filtersToUrlParams', () => {
   describe('subscribed channel parameters', () => {
@@ -11,7 +11,7 @@ describe('filtersToUrlParams', () => {
         page: 2,
       };
 
-      const result = filtersToUrlParams(filters, 'subscribed');
+      const result = filtersToUrlParams(filters, ChannelType.SUBSCRIBED);
 
       expect(result).toEqual({
         ss: 'tech',
@@ -29,7 +29,7 @@ describe('filtersToUrlParams', () => {
         page: 1,
       };
 
-      const result = filtersToUrlParams(filters, 'subscribed');
+      const result = filtersToUrlParams(filters, ChannelType.SUBSCRIBED);
 
       expect(result).toEqual({
         ss: 'react',
@@ -47,7 +47,7 @@ describe('filtersToUrlParams', () => {
         page: 1,
       };
 
-      const result = filtersToUrlParams(filters, 'subscribed');
+      const result = filtersToUrlParams(filters, ChannelType.SUBSCRIBED);
 
       expect(result).toEqual({
         ss: 'python',
@@ -65,7 +65,7 @@ describe('filtersToUrlParams', () => {
         page: 1,
       };
 
-      const result = filtersToUrlParams(filters, 'subscribed');
+      const result = filtersToUrlParams(filters, ChannelType.SUBSCRIBED);
 
       expect(result).toEqual({
         ss: undefined,
@@ -85,7 +85,7 @@ describe('filtersToUrlParams', () => {
         page: 3,
       };
 
-      const result = filtersToUrlParams(filters, 'available');
+      const result = filtersToUrlParams(filters, ChannelType.AVAILABLE);
 
       expect(result).toEqual({
         as: 'javascript',
@@ -103,7 +103,7 @@ describe('filtersToUrlParams', () => {
         page: 1,
       };
 
-      const result = filtersToUrlParams(filters, 'available');
+      const result = filtersToUrlParams(filters, ChannelType.AVAILABLE);
 
       expect(result).toEqual({
         as: undefined,
@@ -116,7 +116,7 @@ describe('filtersToUrlParams', () => {
 
   describe('edge cases', () => {
     it('handles empty filters object', () => {
-      const result = filtersToUrlParams({}, 'subscribed');
+      const result = filtersToUrlParams({}, ChannelType.SUBSCRIBED);
 
       expect(result).toEqual({
         ss: undefined,
@@ -134,7 +134,7 @@ describe('filtersToUrlParams', () => {
         page: 1,
       };
 
-      const result = filtersToUrlParams(filters, 'subscribed');
+      const result = filtersToUrlParams(filters, ChannelType.SUBSCRIBED);
 
       expect(result.ss).toBe('hello & world!');
     });
@@ -147,7 +147,7 @@ describe('filtersToUrlParams', () => {
         page: 1,
       };
 
-      const result = filtersToUrlParams(filters, 'subscribed');
+      const result = filtersToUrlParams(filters, ChannelType.SUBSCRIBED);
 
       expect(result.sts).toBe('C++,C#,F#');
       expect(result.stm).toBe(TagMode.ALL);
@@ -160,7 +160,7 @@ describe('urlParamsToFilters', () => {
     it('parses subscribed URL params to filters', () => {
       const searchParams = new URLSearchParams('ss=tech&sts=programming,tutorial&stm=all&sp=2');
 
-      const result = urlParamsToFilters(searchParams, 'subscribed');
+      const result = urlParamsToFilters(searchParams, ChannelType.SUBSCRIBED);
 
       expect(result).toEqual({
         search: 'tech',
@@ -173,7 +173,7 @@ describe('urlParamsToFilters', () => {
     it('returns default values when params are missing', () => {
       const searchParams = new URLSearchParams('');
 
-      const result = urlParamsToFilters(searchParams, 'subscribed');
+      const result = urlParamsToFilters(searchParams, ChannelType.SUBSCRIBED);
 
       expect(result).toEqual({
         search: '',
@@ -186,7 +186,7 @@ describe('urlParamsToFilters', () => {
     it('defaults to TagMode.ANY when tag mode is not specified', () => {
       const searchParams = new URLSearchParams('ss=react&sts=javascript');
 
-      const result = urlParamsToFilters(searchParams, 'subscribed');
+      const result = urlParamsToFilters(searchParams, ChannelType.SUBSCRIBED);
 
       expect(result.tagMode).toBe(TagMode.ANY);
     });
@@ -194,7 +194,7 @@ describe('urlParamsToFilters', () => {
     it('handles single tag correctly', () => {
       const searchParams = new URLSearchParams('ss=vue&sts=frontend');
 
-      const result = urlParamsToFilters(searchParams, 'subscribed');
+      const result = urlParamsToFilters(searchParams, ChannelType.SUBSCRIBED);
 
       expect(result.selectedTags).toEqual(['frontend']);
     });
@@ -204,7 +204,7 @@ describe('urlParamsToFilters', () => {
     it('parses available URL params to filters', () => {
       const searchParams = new URLSearchParams('as=python&ap=5');
 
-      const result = urlParamsToFilters(searchParams, 'available');
+      const result = urlParamsToFilters(searchParams, ChannelType.AVAILABLE);
 
       expect(result).toEqual({
         search: 'python',
@@ -217,7 +217,7 @@ describe('urlParamsToFilters', () => {
     it('handles available channel tag filtering', () => {
       const searchParams = new URLSearchParams('as=&ats=data,science&atm=all&ap=1');
 
-      const result = urlParamsToFilters(searchParams, 'available');
+      const result = urlParamsToFilters(searchParams, ChannelType.AVAILABLE);
 
       expect(result).toEqual({
         search: '',
@@ -232,7 +232,7 @@ describe('urlParamsToFilters', () => {
     it('filters out empty tag strings from comma-separated values', () => {
       const searchParams = new URLSearchParams('ss=&sts=react,,vue,');
 
-      const result = urlParamsToFilters(searchParams, 'subscribed');
+      const result = urlParamsToFilters(searchParams, ChannelType.SUBSCRIBED);
 
       expect(result.selectedTags).toEqual(['react', 'vue']);
     });
@@ -240,7 +240,7 @@ describe('urlParamsToFilters', () => {
     it('handles invalid page numbers by defaulting to 1', () => {
       const searchParams = new URLSearchParams('ss=test&sp=abc');
 
-      const result = urlParamsToFilters(searchParams, 'subscribed');
+      const result = urlParamsToFilters(searchParams, ChannelType.SUBSCRIBED);
 
       expect(result.page).toBe(NaN);
     });
@@ -248,7 +248,7 @@ describe('urlParamsToFilters', () => {
     it('handles negative page numbers', () => {
       const searchParams = new URLSearchParams('ss=test&sp=-5');
 
-      const result = urlParamsToFilters(searchParams, 'subscribed');
+      const result = urlParamsToFilters(searchParams, ChannelType.SUBSCRIBED);
 
       expect(result.page).toBe(-5);
     });
@@ -256,7 +256,7 @@ describe('urlParamsToFilters', () => {
     it('handles invalid tag mode by defaulting to ANY', () => {
       const searchParams = new URLSearchParams('ss=test&sts=tag1,tag2&stm=invalid');
 
-      const result = urlParamsToFilters(searchParams, 'subscribed');
+      const result = urlParamsToFilters(searchParams, ChannelType.SUBSCRIBED);
 
       expect(result.tagMode).toBe('invalid');
     });
@@ -264,7 +264,7 @@ describe('urlParamsToFilters', () => {
     it('handles special characters in search', () => {
       const searchParams = new URLSearchParams('ss=hello+%26+world%21');
 
-      const result = urlParamsToFilters(searchParams, 'subscribed');
+      const result = urlParamsToFilters(searchParams, ChannelType.SUBSCRIBED);
 
       expect(result.search).toBe('hello & world!');
     });
@@ -411,7 +411,7 @@ describe('integration tests - round trip conversions', () => {
       page: 3,
     };
 
-    const urlParams = filtersToUrlParams(originalFilters, 'subscribed');
+    const urlParams = filtersToUrlParams(originalFilters, ChannelType.SUBSCRIBED);
     const searchParams = new URLSearchParams();
     Object.entries(urlParams).forEach(([key, value]) => {
       if (value !== undefined) {
@@ -419,7 +419,7 @@ describe('integration tests - round trip conversions', () => {
       }
     });
 
-    const parsedFilters = urlParamsToFilters(searchParams, 'subscribed');
+    const parsedFilters = urlParamsToFilters(searchParams, ChannelType.SUBSCRIBED);
 
     expect(parsedFilters).toEqual(originalFilters);
   });
@@ -432,7 +432,7 @@ describe('integration tests - round trip conversions', () => {
       page: 1,
     };
 
-    const urlParams = filtersToUrlParams(originalFilters, 'available');
+    const urlParams = filtersToUrlParams(originalFilters, ChannelType.AVAILABLE);
     const searchParams = new URLSearchParams();
     Object.entries(urlParams).forEach(([key, value]) => {
       if (value !== undefined) {
@@ -440,7 +440,7 @@ describe('integration tests - round trip conversions', () => {
       }
     });
 
-    const parsedFilters = urlParamsToFilters(searchParams, 'available');
+    const parsedFilters = urlParamsToFilters(searchParams, ChannelType.AVAILABLE);
 
     expect(parsedFilters).toEqual(originalFilters);
   });
@@ -478,8 +478,8 @@ describe('integration tests - round trip conversions', () => {
       page: 1,
     };
 
-    const subscribedParams = filtersToUrlParams(subscribedFilters, 'subscribed');
-    const availableParams = filtersToUrlParams(availableFilters, 'available');
+    const subscribedParams = filtersToUrlParams(subscribedFilters, ChannelType.SUBSCRIBED);
+    const availableParams = filtersToUrlParams(availableFilters, ChannelType.AVAILABLE);
 
     const allParams = { ...subscribedParams, ...availableParams };
 
@@ -501,8 +501,8 @@ describe('integration tests - round trip conversions', () => {
       }
     });
 
-    const parsedSubscribed = urlParamsToFilters(searchParams, 'subscribed');
-    const parsedAvailable = urlParamsToFilters(searchParams, 'available');
+    const parsedSubscribed = urlParamsToFilters(searchParams, ChannelType.SUBSCRIBED);
+    const parsedAvailable = urlParamsToFilters(searchParams, ChannelType.AVAILABLE);
 
     expect(parsedSubscribed).toEqual(subscribedFilters);
     expect(parsedAvailable).toEqual(availableFilters);

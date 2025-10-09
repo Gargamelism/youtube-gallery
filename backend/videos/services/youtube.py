@@ -58,7 +58,7 @@ class YouTubeService:
             self.auth_type = "api_key"
         else:
             # Neither provided - require OAuth
-            auth_url = self._generate_oauth_url(redirect_uri)
+            auth_url = YouTubeService._generate_oauth_url(redirect_uri)
             raise YouTubeAuthenticationError("YouTube credentials are required", auth_url=auth_url)
 
     @staticmethod
@@ -76,7 +76,8 @@ class YouTubeService:
 
         return client_info
 
-    def _generate_oauth_url(self, redirect_uri=None):
+    @staticmethod
+    def _generate_oauth_url(redirect_uri=None, state=None):
         """Generate OAuth 2.0 authorization URL"""
         try:
             base_dir = Path(os.getenv("YOUTUBE_CREDENTIALS_DIR", "/app/config/credentials"))
@@ -91,9 +92,11 @@ class YouTubeService:
                 raise Exception("redirect_uri is required for OAuth flow")
             flow.redirect_uri = redirect_uri
 
-            authorization_url, _ = flow.authorization_url(
-                access_type="offline", include_granted_scopes="true", prompt="consent"
-            )
+            auth_params = {"access_type": "offline", "include_granted_scopes": "true", "prompt": "consent"}
+            if state:
+                auth_params["state"] = state
+
+            authorization_url, _ = flow.authorization_url(**auth_params)
 
             return authorization_url
         except Exception as e:

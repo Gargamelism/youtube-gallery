@@ -13,7 +13,7 @@ const ALLOWED_ORIGINS = [
     ]
     : ['https://nogarythmtube.com']
   ),
-  window.location.origin
+  ...(typeof window !== 'undefined' ? [window.location.origin] : [])
 ];
 
 export enum PostMessageType {
@@ -35,7 +35,7 @@ export function usePostMessage(
   options: PostMessageOptions = {}
 ): UsePostMessageReturn {
   const {
-    targetOrigin = window.location.origin,
+    targetOrigin = typeof window !== 'undefined' ? window.location.origin : '',
     validateOrigin = true,
     allowedOrigins = ALLOWED_ORIGINS
   } = options;
