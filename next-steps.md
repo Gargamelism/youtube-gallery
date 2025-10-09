@@ -53,3 +53,6 @@ This file is to remind me of little tasks todo without breaking my flow or claud
 1. row level permissions in db
 1. import subscriptions from youtube
 1. move tags to bottom of channel/video card so the shape will be consistent
+1. turn validation query does not pass validation to a decorator
+1. turn quota tracking operations to an enum
+1. fix backend dev hot reload

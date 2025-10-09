@@ -14,6 +14,7 @@ from videos.services.quota_tracker import QuotaTracker
 from videos.utils.dateutils import timezone_aware_datetime
 
 YOUTUBE_SCOPES = ["https://www.googleapis.com/auth/youtube.readonly"]
+MAX_SEARCH_RESULTS = 50  # Max results for searching channel by handle
 
 
 class YouTubeClientConfig(TypedDict):
@@ -149,7 +150,7 @@ class YouTubeService:
             expiry=expiry,
         )
 
-    def _get_channel_by_id(self, channel_id: str) -> Optional[Dict[str, Any]]:
+    def _get_channels_by_ids(self, channel_id: str) -> Optional[Dict[str, Any]]:
         """Get channel details using channel ID"""
         if not self.quota_tracker.can_make_request("channels.list"):
             raise Exception("Insufficient quota for channels.list API call")
@@ -161,7 +162,7 @@ class YouTubeService:
         if not response["items"]:
             return None
 
-        return response["items"][0]
+        return response["items"]
 
     def _get_channel_by_handle(self, handle: str) -> Optional[Dict[str, Any]]:
         """Get channel details using username (without @ symbol)"""
@@ -177,19 +178,61 @@ class YouTubeService:
 
         return response["items"][0]
 
-    def _search_channel_by_handle(self, handle: str) -> Optional[str]:
+    def _search_channel_by_handle(self, handle: str) -> Optional[Dict[str, Any]]:
         """Search for channel ID using handle via search API"""
         if not self.quota_tracker.can_make_request("search.list"):
             raise Exception("Insufficient quota for search.list API call")
 
-        request = self.youtube.search().list(part="snippet", q=handle, type="channel", maxResults=1)
+        stripped_handle = handle.lstrip("@")
+
+        request = self.youtube.search().list(
+            part="snippet", q=stripped_handle, type="channel", maxResults=MAX_SEARCH_RESULTS
+        )
         response = request.execute()
         self.quota_tracker.record_usage("search.list")
-
         if not response["items"]:
             return None
 
-        return response["items"][0]["snippet"]["channelId"]
+        desired_channel = None
+        desired_channel = self._find_channel_by_handle(handle, response["items"])
+        if desired_channel:
+            return desired_channel
+
+        while "nextPageToken" in response and not desired_channel:
+            if not self.quota_tracker.can_make_request("search.list"):
+                raise Exception("Insufficient quota for search.list API call")
+
+            next_page_token = response["nextPageToken"]
+            request = self.youtube.search().list(
+                part="snippet",
+                q=stripped_handle,
+                type="channel",
+                maxResults=MAX_SEARCH_RESULTS,
+                pageToken=next_page_token,
+            )
+            response = request.execute()
+            self.quota_tracker.record_usage("search.list")
+            if not response["items"]:
+                break
+
+            desired_channel = self._find_channel_by_handle(handle, response["items"])
+            if desired_channel:
+                return desired_channel
+
+        return None
+
+    def _find_channel_by_handle(self, handle: str, items: List) -> Optional[Dict[str, Any]]:
+        channel_ids = [item["snippet"]["channelId"] for item in items]
+        channels_info = self._get_channels_by_ids(",".join(channel_ids))
+
+        if channels_info is None:
+            return None
+
+        for channel in channels_info:
+            if channel["snippet"]["customUrl"] and channel["snippet"]["customUrl"].lower() == handle.lower():
+                return channel
+
+        return None
 
     def _format_channel_response(self, channel_info: Dict[str, Any]) -> Dict[str, Any]:
         """Format channel API response into standardized structure"""
@@ -210,18 +253,15 @@ class YouTubeService:
 
                 if not channel_info:
                     # Fall back to search API
-                    channel_id = self._search_channel_by_handle(channel_identifier)
-                    if not channel_id:
-                        return None
-
-                    channel_info = self._get_channel_by_id(channel_id)
+                    channel_info = self._search_channel_by_handle(channel_identifier)
                     if not channel_info:
                         return None
             else:
                 # Handle regular channel ID
-                channel_info = self._get_channel_by_id(channel_identifier)
+                channel_info = self._get_channels_by_ids(channel_identifier)
                 if not channel_info:
                     return None
+                channel_info = channel_info[0]
 
             return self._format_channel_response(channel_info)
 
@@ -318,22 +358,15 @@ class YouTubeService:
         return channel
 
     def import_or_create_channel(self, channel_identifier: str) -> Channel:
-        """Import channel from YouTube or create basic entry if API fails"""
+        """Import channel from YouTube - fails if channel cannot be verified"""
         existing_channel = Channel.objects.filter(channel_id=channel_identifier).first()
         if existing_channel:
             return existing_channel
 
-        try:
-            channel = self.fetch_channel(channel_identifier)
-            if channel:
-                return channel
-        except YouTubeAuthenticationError:
-            raise
-        except Exception as e:
-            # YouTube API error - fall through to create basic channel
-            pass
-
-        return self._create_basic_channel(channel_identifier)
+        channel = self.fetch_channel(channel_identifier)
+        if not channel:
+            raise Exception(f"Channel not found on YouTube: {channel_identifier}")
+        return channel
 
     def _create_basic_channel(self, channel_identifier: str) -> Channel:
         """Create basic channel entry without YouTube API"""
