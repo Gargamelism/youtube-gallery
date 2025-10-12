@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Plus, Users, Loader2, Tags } from 'lucide-react';
+import { Plus, Users, Tags } from 'lucide-react';
 import { fetchUserChannels, fetchAvailableChannels, fetchUserQuotaUsage } from '@/services';
 import { UserChannel, ChannelType } from '@/types';
 import AvailableChannels from './AvailableChannels';
@@ -16,6 +16,7 @@ import { ChannelFilterBar } from './ChannelFilterBar';
 import { ChannelPagination } from './ChannelPagination';
 import { useChannelFilters } from '@/hooks/useChannelFilters';
 import SubscribedChannels from './SubscribedChannels';
+import { SkeletonGrid, SubscribedChannelCardSkeleton, AvailableChannelCardSkeleton } from '@/components/ui';
 
 const INVALID_PAGE_ERROR = 'Invalid page.';
 
@@ -157,12 +158,17 @@ export default function ChannelSubscriptions() {
         />
 
         {isLoadingUserChannels ? (
-          <div className="ChannelSubscriptions__loading flex items-center justify-center py-12">
-            <Loader2 className="ChannelSubscriptions__loading-spinner h-8 w-8 animate-spin text-blue-600" />
+          <div
+            className="ChannelSubscriptions__loading grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            role="status"
+            aria-live="polite"
+            aria-label="Loading subscribed channels"
+          >
+            <SkeletonGrid count={SUBSCRIBED_CHANNELS_PER_PAGE} cardSkeleton={<SubscribedChannelCardSkeleton />} />
           </div>
         ) : userChannels.length === 0 ? (
-          <div className="ChannelSubscriptions__empty bg-gray-50 rounded-lg p-8 text-center">
-            <Users className="ChannelSubscriptions__empty-icon h-12 w-12 mx-auto text-gray-400 mb-4" />
+          <div className="ChannelSubscriptions__empty bg-gray-50 rounded-lg p-8 text-center" role="status">
+            <Users className="ChannelSubscriptions__empty-icon h-12 w-12 mx-auto text-gray-400 mb-4" aria-hidden="true" />
             <h3 className="ChannelSubscriptions__empty-title text-lg font-medium text-gray-900 mb-2">
               {subscribedChannelsFilters.search || subscribedChannelsFilters.selectedTags.length > 0
                 ? t('search.noResults')
@@ -211,12 +217,17 @@ export default function ChannelSubscriptions() {
         />
 
         {isLoadingAvailableChannels ? (
-          <div className="ChannelSubscriptions__loading flex items-center justify-center py-12">
-            <Loader2 className="ChannelSubscriptions__loading-spinner h-8 w-8 animate-spin text-blue-600" />
+          <div
+            className="ChannelSubscriptions__loading grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            role="status"
+            aria-live="polite"
+            aria-label="Loading available channels"
+          >
+            <SkeletonGrid count={AVAILABLE_CHANNELS_PER_PAGE} cardSkeleton={<AvailableChannelCardSkeleton />} />
           </div>
         ) : availableChannels.length === 0 ? (
-          <div className="ChannelSubscriptions__empty bg-gray-50 rounded-lg p-8 text-center">
-            <Users className="ChannelSubscriptions__empty-icon h-12 w-12 mx-auto text-gray-400 mb-4" />
+          <div className="ChannelSubscriptions__empty bg-gray-50 rounded-lg p-8 text-center" role="status">
+            <Users className="ChannelSubscriptions__empty-icon h-12 w-12 mx-auto text-gray-400 mb-4" aria-hidden="true" />
             <h3 className="ChannelSubscriptions__empty-title text-lg font-medium text-gray-900 mb-2">
               {t('search.noResults')}
             </h3>

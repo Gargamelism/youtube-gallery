@@ -1,6 +1,6 @@
 'use client';
 
-import SkeletonLoader from '@/components/ui/SkeletonLoader';
+import { SkeletonGrid, VideoCardSkeleton } from '@/components/ui';
 import { VideoCard } from './VideoCard';
 import { LoadMoreButton } from './LoadMoreButton';
 import { ScrollToTopButton } from '@/components/ui/ScrollToTopButton';
@@ -71,9 +71,7 @@ export function VideoList({ scrollMode }: VideoListProps) {
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {[...Array(PAGINATION_CONFIG.VIDEOS_PAGE_SIZE)].map((_, i) => (
-          <SkeletonLoader key={i} />
-        ))}
+        <SkeletonGrid count={PAGINATION_CONFIG.VIDEOS_PAGE_SIZE} cardSkeleton={<VideoCardSkeleton />} />
       </div>
     );
   }
@@ -108,8 +106,7 @@ export function VideoList({ scrollMode }: VideoListProps) {
           />
         ))}
 
-        {isFetching &&
-          [...Array(PAGINATION_CONFIG.VIDEOS_PAGE_SIZE)].map((_, i) => <SkeletonLoader key={`loading-${i}`} />)}
+        {isFetching && <SkeletonGrid count={PAGINATION_CONFIG.VIDEOS_PAGE_SIZE} cardSkeleton={<VideoCardSkeleton />} />}
       </div>
 
       <div ref={loadingRef} className="flex flex-col items-center gap-4 py-8">

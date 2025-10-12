@@ -94,13 +94,17 @@ describe('VideoList', () => {
   it('shows loading state initially', () => {
     mockFetchVideos.mockImplementation(() => new Promise(() => {}));
 
-    render(
+    const { container } = render(
       <TestWrapper>
         <VideoList scrollMode={ScrollMode.AUTO} />
       </TestWrapper>
     );
 
-    expect(document.querySelectorAll('.skeleton').length).toBeGreaterThan(0);
+    const skeletonCards = container.querySelectorAll('[role="status"][aria-label="Loading channel"]');
+    expect(skeletonCards.length).toBeGreaterThan(0);
+
+    const animatedSkeletons = container.querySelectorAll('.animate-pulse');
+    expect(animatedSkeletons.length).toBeGreaterThan(0);
   });
 
   it('handles watch status toggle', async () => {

@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchVideos } from '@/services';
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import SkeletonLoader from '@/components/ui/SkeletonLoader';
+import { SkeletonGrid, VideoCardSkeleton } from '@/components/ui';
 import { VideoFilters } from '@/types';
 import { TagMode, WatchStatus } from '@/types';
 import { queryKeys } from '@/lib/reactQueryConfig';
@@ -44,9 +44,7 @@ export default function Home() {
     <main className="min-h-screen p-8">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {[...Array(8)].map((_, i) => (
-            <SkeletonLoader key={i} />
-          ))}
+          <SkeletonGrid count={8} cardSkeleton={<VideoCardSkeleton />} />
         </div>
       </div>
     </main>

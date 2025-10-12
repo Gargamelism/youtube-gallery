@@ -1,6 +1,5 @@
 'use client';
 
-import { useTranslation } from 'react-i18next';
 import { TagModeType } from '@/types';
 import { SearchAndTagFilter } from '@/components/ui/SearchAndTagFilter';
 
