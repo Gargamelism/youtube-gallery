@@ -56,7 +56,7 @@ export default function AvailableChannelCard({
         {/* this is a UX dsiction whether to show the channel "subscribed" or hide it completely */}
         {isSubscribed ? (
           <span className="ChannelSubscriptions__subscribed-badge px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
-            Subscribed
+            {t('subscribed')}
           </span>
         ) : (
           <button

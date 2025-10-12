@@ -35,7 +35,7 @@ export function usePostMessage(
   options: PostMessageOptions = {}
 ): UsePostMessageReturn {
   const {
-    targetOrigin = typeof window !== 'undefined' ? window.location.origin : '',
+    targetOrigin = typeof window !== 'undefined' ? window.location.origin : '*',
     validateOrigin = true,
     allowedOrigins = ALLOWED_ORIGINS
   } = options;

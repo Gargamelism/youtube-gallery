@@ -39,7 +39,10 @@ export default function ChannelSubscriptions() {
     queryFn: async () => {
       const response = await fetchUserChannels({
         pageSize: SUBSCRIBED_CHANNELS_PER_PAGE,
-        ...subscribedChannelsFilters,
+        search: subscribedChannelsFilters.search,
+        selectedTags: subscribedChannelsFilters.selectedTags,
+        tagMode: subscribedChannelsFilters.tagMode,
+        page: subscribedChannelsFilters.page,
       });
       return response;
     },
@@ -48,7 +51,13 @@ export default function ChannelSubscriptions() {
 
   const { data: availableChannelsResponse, isLoading: isLoadingAvailableChannels } = useQuery({
     queryKey: queryKeys.availableChannelsWithFilter(availableChannelsFilters),
-    queryFn: () => fetchAvailableChannels(availableChannelsFilters),
+    queryFn: () =>
+      fetchAvailableChannels({
+        search: availableChannelsFilters.search,
+        selectedTags: availableChannelsFilters.selectedTags,
+        tagMode: availableChannelsFilters.tagMode,
+        page: availableChannelsFilters.page,
+      }),
     ...CHANNEL_QUERY_CONFIG,
   });
 
@@ -168,7 +177,10 @@ export default function ChannelSubscriptions() {
           </div>
         ) : userChannels.length === 0 ? (
           <div className="ChannelSubscriptions__empty bg-gray-50 rounded-lg p-8 text-center" role="status">
-            <Users className="ChannelSubscriptions__empty-icon h-12 w-12 mx-auto text-gray-400 mb-4" aria-hidden="true" />
+            <Users
+              className="ChannelSubscriptions__empty-icon h-12 w-12 mx-auto text-gray-400 mb-4"
+              aria-hidden="true"
+            />
             <h3 className="ChannelSubscriptions__empty-title text-lg font-medium text-gray-900 mb-2">
               {subscribedChannelsFilters.search || subscribedChannelsFilters.selectedTags.length > 0
                 ? t('search.noResults')
@@ -217,17 +229,12 @@ export default function ChannelSubscriptions() {
         />
 
         {isLoadingAvailableChannels ? (
-          <div
-            className="ChannelSubscriptions__loading grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-            role="status"
-            aria-live="polite"
-            aria-label="Loading available channels"
-          >
+          <div className="ChannelSubscriptions__loading grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <SkeletonGrid count={AVAILABLE_CHANNELS_PER_PAGE} cardSkeleton={<AvailableChannelCardSkeleton />} />
           </div>
         ) : availableChannels.length === 0 ? (
-          <div className="ChannelSubscriptions__empty bg-gray-50 rounded-lg p-8 text-center" role="status">
-            <Users className="ChannelSubscriptions__empty-icon h-12 w-12 mx-auto text-gray-400 mb-4" aria-hidden="true" />
+          <div className="ChannelSubscriptions__empty bg-gray-50 rounded-lg p-8 text-center">
+            <Users className="ChannelSubscriptions__empty-icon h-12 w-12 mx-auto text-gray-400 mb-4" />
             <h3 className="ChannelSubscriptions__empty-title text-lg font-medium text-gray-900 mb-2">
               {t('search.noResults')}
             </h3>

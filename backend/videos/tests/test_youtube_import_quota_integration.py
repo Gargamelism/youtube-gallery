@@ -72,7 +72,7 @@ class YouTubeImportQuotaIntegrationTests(TestCase):
 
             result = youtube_service._get_channels_by_ids("UC123456")
 
-            self.assertEqual(result["id"], "UC123456")
+            self.assertEqual(result[0]["id"], "UC123456")
             self.quota_tracker.record_usage.assert_called_with("channels.list")
 
     def test_get_channel_by_handle_checks_quota(self):

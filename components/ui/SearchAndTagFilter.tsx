@@ -44,7 +44,7 @@ export function SearchAndTagFilter({
             onTagsChange={onTagsChange}
             onTagModeChange={onTagModeChange}
             showScrollMode={showScrollMode}
-            {...(onScrollModeChange && { onScrollModeChange })}
+            onScrollModeChange={onScrollModeChange}
           />
         </div>
       )}

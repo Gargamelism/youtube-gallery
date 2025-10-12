@@ -14,7 +14,7 @@ interface TagFilterProps {
   onTagsChange: (tags: string[]) => void;
   onTagModeChange: (mode: TagModeType) => void;
   showScrollMode?: boolean;
-  onScrollModeChange?: (mode: ScrollMode) => void;
+  onScrollModeChange?: ((mode: ScrollMode) => void) | undefined;
 }
 
 export function TagFilter({
@@ -23,7 +23,7 @@ export function TagFilter({
   onTagsChange,
   onTagModeChange,
   showScrollMode = true,
-  onScrollModeChange,
+  onScrollModeChange = undefined,
 }: TagFilterProps) {
   const { t } = useTranslation('tags');
   const { t: tVideos } = useTranslation('videos');

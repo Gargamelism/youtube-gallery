@@ -32,11 +32,20 @@ export function filtersToUrlParams(
 export function urlParamsToFilters(searchParams: URLSearchParams, type: ChannelType): ChannelFilters {
   const prefix = type === ChannelType.SUBSCRIBED ? 's' : 'a';
 
+  const rawTagMode = searchParams.get(`${prefix}tm`);
+  const tagMode: TagModeType =
+    rawTagMode && Object.values(TagMode).includes(rawTagMode as TagModeType)
+      ? (rawTagMode as TagModeType)
+      : TagMode.ANY;
+
+  const rawPage = parseInt(searchParams.get(`${prefix}p`) ?? '', 10);
+  const page = Number.isNaN(rawPage) || rawPage < 1 ? 1 : rawPage;
+
   return {
     search: searchParams.get(`${prefix}s`) || '',
     selectedTags: searchParams.get(`${prefix}ts`)?.split(',').filter(Boolean) || [],
-    tagMode: (searchParams.get(`${prefix}tm`) as TagModeType) || TagMode.ANY,
-    page: parseInt(searchParams.get(`${prefix}p`) || '1', 10),
+    tagMode,
+    page,
   };
 }
 

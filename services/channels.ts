@@ -43,14 +43,18 @@ export async function importChannelFromYoutube(channelId: string): Promise<ApiRe
 export async function fetchUserChannels(filters?: Partial<ChannelFilters>): Promise<ApiResponse<UserChannelResponse>> {
   let url = `${API_BASE_URL}/auth/channels`;
 
-  const apiParams = filters ? filtersToApiParams(filters) : {};
   const params = new URLSearchParams();
 
   if (filters?.pageSize) params.append('page_size', filters.pageSize.toString());
-  if (apiParams.page) params.append('page', apiParams.page.toString());
-  if (apiParams.search) params.append('search', apiParams.search);
-  if (apiParams.tags?.length) params.append('tags', apiParams.tags.join(','));
-  if (apiParams.tag_mode) params.append('tag_mode', apiParams.tag_mode);
+
+  const apiParams = filters ? filtersToApiParams(filters) : {};
+  Object.entries(apiParams).forEach(([key, value]) => {
+    if (Array.isArray(value)) {
+      params.append(key, value.join(','));
+    } else if (value !== undefined) {
+      params.append(key, value.toString());
+    }
+  });
 
   const queryString = params.toString();
   if (queryString) {

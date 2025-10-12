@@ -11,7 +11,7 @@
     1. cannot import @TheAdamConover
     1. import should start on "enter"
     1. import should continue after authentication flow
-    1. tag cheveron out of box
+    1. tag chevron out of box
     1. continue importing in the background
 1. tag limits
 1. bottom subscribed channels page separator looks weird

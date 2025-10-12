@@ -79,6 +79,8 @@ export function ChannelPagination({
                       ? 'z-10 bg-blue-600 text-white'
                       : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50'
                   }`}
+                  aria-label={`${t('pagination.page')} ${pageNum}${pageNum === currentPage ? ' (current)' : ''}`}
+                  aria-current={pageNum === currentPage ? 'page' : undefined}
                 >
                   {pageNum}
                 </button>

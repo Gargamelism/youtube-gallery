@@ -229,7 +229,8 @@ class YouTubeService:
             return None
 
         for channel in channels_info:
-            if channel["snippet"]["customUrl"] and channel["snippet"]["customUrl"].lower() == handle.lower():
+            custom_url = channel["snippet"].get("customUrl")
+            if custom_url and custom_url.lower() == handle.lstrip("@").lower():
                 return channel
 
         return None
