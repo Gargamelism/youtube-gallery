@@ -144,6 +144,7 @@ export interface ChannelFilters {
   selectedTags: string[];
   tagMode: TagModeType;
   page: number;
+  pageSize?: number;
 }
 
 export interface SubscribedChannelUrlState {

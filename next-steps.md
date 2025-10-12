@@ -1,9 +1,6 @@
-This file is to remind me of little tasks todo without breaking my flow or claude related feature-creep
+## This file is to remind me of little tasks todo without breaking my flow or claude related feature-creep
 
-1. investigate why import doesn't work well (actual ID is not saved/retrieved)
-1. channels page pagination
-    1. verify search and filters are from the same component in videos/channels
-    1. verify old search and filter components are removed
+
 1. code quality
     1. checkout pyscn/integrate maybe github actions?
     1. find similar code quality analyzer for FE
@@ -11,10 +8,13 @@ This file is to remind me of little tasks todo without breaking my flow or claud
 1. add "not interested" option - and filtering based on it
 1. keep filters state when moving between pages
 1. import flow:
-  1. import should start on "enter"
-  1. import should continue after authentication flow
-  1. GUI issue in tag system
-  1. continue importing in the background
+    1. cannot import @TheAdamConover
+    1. import should start on "enter"
+    1. import should continue after authentication flow
+    1. tag cheveron out of box
+    1. continue importing in the background
+1. tag limits
+1. bottom subscribed channels page separator looks weird
 1. Create design system: 
     1. use Dribbble.com for insparation 
     1. work with chatgpt/claude to decide on what needs to be defined and how for the design system
@@ -56,3 +56,4 @@ This file is to remind me of little tasks todo without breaking my flow or claud
 1. turn validation query does not pass validation to a decorator
 1. turn quota tracking operations to an enum
 1. fix backend dev hot reload
+1. make navigation clickable with middle click

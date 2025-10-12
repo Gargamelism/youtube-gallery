@@ -158,7 +158,7 @@ SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
 # REST Framework settings
 REST_FRAMEWORK = {
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "DEFAULT_PAGINATION_CLASS": "videos.pagination.FlexiblePageNumberPagination",
     "PAGE_SIZE": 20,
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "users.authentication.CookieTokenAuthentication",

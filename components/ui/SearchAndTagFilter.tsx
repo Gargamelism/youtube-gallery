@@ -8,7 +8,7 @@ import { ScrollMode } from '@/lib/scrollMode';
 interface SearchAndTagFilterProps {
   searchValue: string;
   onSearchChange: (value: string) => void;
-  searchPlaceholder?: string;
+  namespace: string;
   selectedTags: string[];
   tagMode: TagModeType;
   onTagsChange: (tags: string[]) => void;
@@ -21,7 +21,7 @@ interface SearchAndTagFilterProps {
 export function SearchAndTagFilter({
   searchValue,
   onSearchChange,
-  searchPlaceholder,
+  namespace,
   selectedTags,
   tagMode,
   onTagsChange,
@@ -33,11 +33,7 @@ export function SearchAndTagFilter({
   return (
     <div className="SearchAndTagFilter space-y-4">
       <div className="SearchAndTagFilter__search">
-        <SearchInput
-          value={searchValue}
-          onChange={onSearchChange}
-          {...(searchPlaceholder && { placeholder: searchPlaceholder })}
-        />
+        <SearchInput value={searchValue} onChange={onSearchChange} namespace={namespace} />
       </div>
 
       {showTagFilter && (

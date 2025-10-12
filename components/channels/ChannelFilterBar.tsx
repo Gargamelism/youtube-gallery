@@ -23,14 +23,12 @@ export function ChannelFilterBar({
   onTagModeChange,
   showTagFilter = true,
 }: ChannelFilterBarProps) {
-  const { t } = useTranslation('channels');
-
   return (
     <div className="ChannelFilterBar mb-6">
       <SearchAndTagFilter
         searchValue={search}
         onSearchChange={onSearchChange}
-        searchPlaceholder={t('search.placeholder')}
+        namespace="channels"
         selectedTags={selectedTags}
         tagMode={tagMode}
         onTagsChange={onTagsChange}

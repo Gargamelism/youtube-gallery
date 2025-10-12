@@ -1,4 +1,4 @@
-import { buildVideoQueryParams } from '../videos';
+import { buildVideoQueryParams } from '@services/videos';
 import { TagMode } from '@/types';
 
 describe('buildVideoQueryParams', () => {

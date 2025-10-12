@@ -22,8 +22,10 @@
     "auto": "Enable Auto scroll",
     "manual": "Enable Manual load"
   },
-  "searchPlaceholder": "Search videos by title or description...",
-  "clearSearch": "Clear search",
+  "search": {
+    "placeholder": "Search videos by title or description...",
+    "clear": "Clear search"
+  },
   "keyboardShortcuts": {
     "scrollToTop": "Scroll to top",
     "focusSearch": "Focus search",

@@ -89,8 +89,7 @@ export class ResponseHandler {
     try {
       const errorData = await response.json();
       const youtubeAuthRequired = errorData.youtube_auth_required === true;
-      const message =
-        typeof errorData === 'object' ? errorData.message || errorData.error || JSON.stringify(errorData) : errorData;
+      const message = errorData.message || errorData.error || errorData.detail || errorData;
 
       return { message, youtubeAuthRequired };
     } catch {

@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.utils import timezone
 from django.utils import timezone as dj_tz
-from rest_framework import generics, permissions, status, viewsets
+from rest_framework import permissions, status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
@@ -16,7 +16,7 @@ from videos.services.user_quota_tracker import UserQuotaTracker
 from datetime import timedelta
 
 from .authentication import CookieTokenAuthentication
-from .models import User, UserChannel, UserVideo, ChannelTag, UserChannelTag, UserYouTubeCredentials
+from .models import UserVideo, ChannelTag, UserChannelTag, UserYouTubeCredentials
 from .serializers import (
     ChannelTagSerializer,
     UserChannelSerializer,

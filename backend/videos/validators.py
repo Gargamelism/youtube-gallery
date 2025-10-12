@@ -1,7 +1,7 @@
 import uuid
 from typing import List, Optional
 from enum import Enum
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 from rest_framework.exceptions import ValidationError as DRFValidationError
 
 from users.models import User, ChannelTag
@@ -93,23 +93,18 @@ class ChannelSearchParams(BaseModel):
     search_query: Optional[str] = None
     user: User
 
-    @field_validator("tags")
-    @classmethod
-    def validate_tags_belong_to_user(cls, tags, info):
-        if not tags:
-            return tags
+    @model_validator(mode='after')
+    def validate_tags_belong_to_user(self):
+        if not self.tags:
+            return self
 
-        user = info.data.get("user")
-        if not user:
-            raise ValueError("User is required for tag validation")
+        user_tag_names = set(ChannelTag.objects.filter(user=self.user).values_list("name", flat=True))
 
-        user_tag_names = set(ChannelTag.objects.filter(user=user).values_list("name", flat=True))
-
-        invalid_tags = set(tags) - user_tag_names
+        invalid_tags = set(self.tags) - user_tag_names
         if invalid_tags:
             raise ValueError(f"Invalid tags not owned by user: {list(invalid_tags)}")
 
-        return tags
+        return self
 
     @field_validator("search_query")
     @classmethod

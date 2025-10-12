@@ -8,15 +8,15 @@ import { useDebouncedCallback } from 'use-debounce';
 interface SearchInputProps {
   value: string;
   onChange: (value: string) => void;
-  placeholder?: string;
+  namespace: string;
   debounceMs?: number;
 }
 
 const DEFAULT_DEBOUNCE_MS = 600;
 
-export function SearchInput({ value, onChange, placeholder, debounceMs = DEFAULT_DEBOUNCE_MS }: SearchInputProps) {
-  const { t } = useTranslation('videos');
+export function SearchInput({ value, onChange, namespace, debounceMs = DEFAULT_DEBOUNCE_MS }: SearchInputProps) {
   const [localValue, setLocalValue] = useState(value);
+  const { t } = useTranslation(namespace);
 
   const debouncedOnChange = useDebouncedCallback((newValue: string) => {
     onChange(newValue);
@@ -47,7 +47,7 @@ export function SearchInput({ value, onChange, placeholder, debounceMs = DEFAULT
         type="text"
         value={localValue}
         onChange={e => handleChange(e.target.value)}
-        placeholder={placeholder || t('searchPlaceholder')}
+        placeholder={t('search.placeholder')}
         className="SearchInput__input block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
       />
       {localValue && (
@@ -55,7 +55,7 @@ export function SearchInput({ value, onChange, placeholder, debounceMs = DEFAULT
           type="button"
           onClick={handleClear}
           className="SearchInput__clear-search absolute inset-y-0 right-0 pr-3 flex items-center hover:text-gray-700"
-          aria-label={t('clearSearch')}
+          aria-label={t('search.clear')}
         >
           <X className="h-5 w-5 text-gray-400" />
         </button>

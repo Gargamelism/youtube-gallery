@@ -10,10 +10,13 @@
   "subscribedOn": "Subscribed",
   "viewOnYoutube": "View on YouTube",
   "unsubscribe": "Unsubscribe",
+  "subscribe": "Subscribe",
+  "channelVideosCount": "{{count}} videos",
   "search": {
     "placeholder": "Search channels...",
     "noResults": "No channels found",
-    "tryDifferentFilters": "Try adjusting your search or filters"
+    "tryDifferentFilters": "Try adjusting your search or filters",
+    "clear": "Clear search"
   },
   "filters": {
     "filterByTags": "Filter by tags",

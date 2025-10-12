@@ -1,20 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Plus, Users, Trash2, Loader2, ExternalLink, Tags } from 'lucide-react';
-import { fetchUserChannels, fetchChannels, fetchUserQuotaUsage } from '@/services';
-import { UserChannel, Channel, ChannelType } from '@/types';
-import AvailableChannelCard from './AvailableChannelCard';
+import { Plus, Users, Loader2, Tags } from 'lucide-react';
+import { fetchUserChannels, fetchAvailableChannels, fetchUserQuotaUsage } from '@/services';
+import { UserChannel, ChannelType } from '@/types';
+import AvailableChannels from './AvailableChannels';
 import { ImportChannelModal } from './ImportChannelModal';
 import { useChannelUnsubscribe, useChannelSubscribe } from './mutations';
-import { TagSelector } from '@/components/tags/TagSelector';
 import { TagManager } from '@/components/tags/TagManager';
 import { QuotaIndicatorCompact } from '@/components/quota';
-import { USER_QUOTA_CONFIG, queryKeys } from '@/lib/reactQueryConfig';
+import { USER_QUOTA_CONFIG, queryKeys, CHANNEL_QUERY_CONFIG } from '@/lib/reactQueryConfig';
 import { ChannelFilterBar } from './ChannelFilterBar';
+import { ChannelPagination } from './ChannelPagination';
 import { useChannelFilters } from '@/hooks/useChannelFilters';
+import SubscribedChannels from './SubscribedChannels';
+
+const INVALID_PAGE_ERROR = 'Invalid page.';
+
+const SUBSCRIBED_CHANNELS_PER_PAGE = 6;
+const AVAILABLE_CHANNELS_PER_PAGE = 21;
 
 export default function ChannelSubscriptions() {
   const { t } = useTranslation('channels');
@@ -24,19 +30,29 @@ export default function ChannelSubscriptions() {
   const unsubscribeMutation = useChannelUnsubscribe(queryClient);
   const subscribeMutation = useChannelSubscribe(queryClient);
 
-  const availableFilters = useChannelFilters(ChannelType.AVAILABLE);
+  const subscribedChannelsFilters = useChannelFilters(ChannelType.SUBSCRIBED);
+  const availableChannelsFilters = useChannelFilters(ChannelType.AVAILABLE);
 
-  const { data: userChannels, isLoading: isLoadingUserChannels } = useQuery({
-    queryKey: ['userChannels'],
-    queryFn: () => fetchUserChannels(),
-    select: response => response.data || { results: [] },
+  const { data: subscribedChannelsResponse, isLoading: isLoadingUserChannels } = useQuery({
+    queryKey: queryKeys.userChannelsWithFilter(subscribedChannelsFilters),
+    queryFn: async () => {
+      const response = await fetchUserChannels({
+        pageSize: SUBSCRIBED_CHANNELS_PER_PAGE,
+        ...subscribedChannelsFilters,
+      });
+      return response;
+    },
+    ...CHANNEL_QUERY_CONFIG,
   });
 
-  const { data: allChannels, isLoading: isLoadingAllChannels } = useQuery({
-    queryKey: ['allChannels'],
-    queryFn: fetchChannels,
-    select: response => response.data?.results || [],
+  const { data: availableChannelsResponse, isLoading: isLoadingAvailableChannels } = useQuery({
+    queryKey: queryKeys.availableChannelsWithFilter(availableChannelsFilters),
+    queryFn: () => fetchAvailableChannels(availableChannelsFilters),
+    ...CHANNEL_QUERY_CONFIG,
   });
+
+  const userChannelsData = subscribedChannelsResponse?.data;
+  const availableChannelsData = availableChannelsResponse?.data;
 
   const { data: userQuotaInfo } = useQuery({
     queryKey: queryKeys.userQuota,
@@ -53,17 +69,46 @@ export default function ChannelSubscriptions() {
     return await subscribeMutation.mutateAsync(channelId);
   };
 
-  const filteredChannels = allChannels?.filter(
-    (channel: Channel) =>
-      channel.title.toLowerCase().includes(availableFilters.search.toLowerCase()) ||
-      channel.channel_id.toLowerCase().includes(availableFilters.search.toLowerCase())
-  );
+  const onTagsChange = () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.userChannels });
+  };
 
-  const subscribedChannelIds = new Set(
-    userChannels?.results
-      ?.filter((userChannel: UserChannel) => userChannel.is_active)
-      ?.map((userChannel: UserChannel) => userChannel.channel) || []
-  );
+  const userChannels = userChannelsData?.results || [];
+  const availableChannels = availableChannelsData?.results || [];
+
+  const subscribedTotalPages = userChannelsData?.count
+    ? Math.ceil(userChannelsData.count / SUBSCRIBED_CHANNELS_PER_PAGE)
+    : 0;
+  const availableTotalPages = availableChannelsData?.count
+    ? Math.ceil(availableChannelsData.count / AVAILABLE_CHANNELS_PER_PAGE)
+    : 0;
+
+  const subscribedChannelIds = new Set(userChannels.map((userChannel: UserChannel) => userChannel.channel));
+
+  // Auto-navigate to valid page if current page exceeds total pages
+  useEffect(() => {
+    if (
+      !isLoadingUserChannels &&
+      subscribedChannelsFilters.page > 0 &&
+      subscribedChannelsResponse?.error === INVALID_PAGE_ERROR
+    ) {
+      subscribedChannelsFilters.updatePage(subscribedChannelsFilters.page - 1);
+    }
+    if (
+      !isLoadingAvailableChannels &&
+      availableChannelsFilters.page > 0 &&
+      availableChannelsResponse?.error === INVALID_PAGE_ERROR
+    ) {
+      availableChannelsFilters.updatePage(availableChannelsFilters.page - 1);
+    }
+  }, [
+    isLoadingUserChannels,
+    subscribedTotalPages,
+    subscribedChannelsFilters,
+    isLoadingAvailableChannels,
+    availableTotalPages,
+    availableChannelsFilters,
+  ]);
 
   return (
     <div className="ChannelSubscriptions max-w-6xl mx-auto p-6">
@@ -98,115 +143,109 @@ export default function ChannelSubscriptions() {
       <div className="ChannelSubscriptions__subscribed-section mb-12">
         <h2 className="ChannelSubscriptions__subscribed-title text-xl font-semibold text-gray-900 mb-6 flex items-center">
           <Users className="ChannelSubscriptions__subscribed-icon h-5 w-5 mr-2" />
-          {t('yourSubscriptions')} (
-          {userChannels?.results?.filter((userChannel: UserChannel) => userChannel.is_active)?.length || 0})
+          {t('yourSubscriptions')} ({userChannelsData?.count || 0})
         </h2>
+
+        <ChannelFilterBar
+          search={subscribedChannelsFilters.search}
+          selectedTags={subscribedChannelsFilters.selectedTags}
+          tagMode={subscribedChannelsFilters.tagMode}
+          onSearchChange={subscribedChannelsFilters.updateSearch}
+          onTagsChange={subscribedChannelsFilters.updateTags}
+          onTagModeChange={subscribedChannelsFilters.updateTagMode}
+          showTagFilter={true}
+        />
 
         {isLoadingUserChannels ? (
           <div className="ChannelSubscriptions__loading flex items-center justify-center py-12">
             <Loader2 className="ChannelSubscriptions__loading-spinner h-8 w-8 animate-spin text-blue-600" />
           </div>
-        ) : userChannels?.results?.filter((userChannel: UserChannel) => userChannel.is_active)?.length === 0 ? (
+        ) : userChannels.length === 0 ? (
           <div className="ChannelSubscriptions__empty bg-gray-50 rounded-lg p-8 text-center">
             <Users className="ChannelSubscriptions__empty-icon h-12 w-12 mx-auto text-gray-400 mb-4" />
             <h3 className="ChannelSubscriptions__empty-title text-lg font-medium text-gray-900 mb-2">
-              {t('noSubscriptionsYet')}
+              {subscribedChannelsFilters.search || subscribedChannelsFilters.selectedTags.length > 0
+                ? t('search.noResults')
+                : t('noSubscriptionsYet')}
             </h3>
-            <p className="ChannelSubscriptions__empty-description text-gray-600">{t('noSubscriptionsDescription')}</p>
+            <p className="ChannelSubscriptions__empty-description text-gray-600">
+              {subscribedChannelsFilters.search || subscribedChannelsFilters.selectedTags.length > 0
+                ? t('search.tryDifferentFilters')
+                : t('noSubscriptionsDescription')}
+            </p>
           </div>
         ) : (
-          <div className="ChannelSubscriptions__grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {userChannels?.results
-              ?.filter((userChannel: UserChannel) => userChannel.is_active)
-              .map((userChannel: UserChannel) => (
-                <div
-                  key={userChannel.id}
-                  className="ChannelSubscriptions__card bg-white rounded-lg shadow-md p-6 border hover:shadow-lg transition-shadow"
-                >
-                  <div className="ChannelSubscriptions__card-header flex items-start justify-between mb-4">
-                    <div className="ChannelSubscriptions__card-info flex-1">
-                      <h3 className="ChannelSubscriptions__card-title text-lg font-semibold text-gray-900 mb-1">
-                        {userChannel.channel_title}
-                      </h3>
-                      <p className="ChannelSubscriptions__card-id text-sm text-gray-500">{userChannel.channel_id}</p>
-                    </div>
-                    <button
-                      onClick={() => handleChannelUnsubscribe(userChannel.id)}
-                      disabled={unsubscribeMutation.isPending}
-                      className="ChannelSubscriptions__unsubscribe-button p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
-                      title={t('unsubscribe')}
-                    >
-                      <Trash2 className="ChannelSubscriptions__unsubscribe-icon h-4 w-4" />
-                    </button>
-                  </div>
+          <>
+            <SubscribedChannels
+              userChannels={userChannels}
+              canUnsubscribe={unsubscribeMutation.isPending}
+              handleChannelUnsubscribe={handleChannelUnsubscribe}
+              onTagsChange={onTagsChange}
+            />
 
-                  <div className="ChannelSubscriptions__card-meta text-sm text-gray-500 mb-4">
-                    {t('subscribedOn')} {new Date(userChannel.subscribed_at).toLocaleDateString()}
-                  </div>
-
-                  <div className="ChannelSubscriptions__card-tag-selector mb-4">
-                    <TagSelector
-                      channelId={userChannel.id}
-                      selectedTags={userChannel.tags || []}
-                      onTagsChange={() => {
-                        queryClient.invalidateQueries({ queryKey: ['userChannels'] });
-                      }}
-                    />
-                  </div>
-
-                  <a
-                    href={`https://youtube.com/channel/${userChannel.channel_id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="ChannelSubscriptions__card-link inline-flex items-center text-blue-600 hover:text-blue-800 text-sm"
-                  >
-                    <ExternalLink className="ChannelSubscriptions__card-link-icon h-4 w-4 mr-1" />
-                    {t('viewOnYoutube')}
-                  </a>
-                </div>
-              ))}
-          </div>
+            <ChannelPagination
+              currentPage={subscribedChannelsFilters.page}
+              totalPages={subscribedTotalPages}
+              totalCount={userChannelsData?.count || 0}
+              onPageChange={subscribedChannelsFilters.updatePage}
+              paginationName="subscribed"
+              pageSize={SUBSCRIBED_CHANNELS_PER_PAGE}
+            />
+          </>
         )}
       </div>
 
       <div className="ChannelSubscriptions__available-section">
         <h2 className="ChannelSubscriptions__available-title text-xl font-semibold text-gray-900 mb-6">
-          {t('availableChannels')}
+          {t('availableChannels')} ({availableChannelsData?.count || 0})
         </h2>
 
         <ChannelFilterBar
-          search={availableFilters.search}
-          selectedTags={availableFilters.selectedTags}
-          tagMode={availableFilters.tagMode}
-          onSearchChange={availableFilters.updateSearch}
-          onTagsChange={availableFilters.updateTags}
-          onTagModeChange={availableFilters.updateTagMode}
+          search={availableChannelsFilters.search}
+          selectedTags={availableChannelsFilters.selectedTags}
+          tagMode={availableChannelsFilters.tagMode}
+          onSearchChange={availableChannelsFilters.updateSearch}
+          onTagsChange={availableChannelsFilters.updateTags}
+          onTagModeChange={availableChannelsFilters.updateTagMode}
           showTagFilter={false}
         />
 
-        {isLoadingAllChannels ? (
+        {isLoadingAvailableChannels ? (
           <div className="ChannelSubscriptions__loading flex items-center justify-center py-12">
             <Loader2 className="ChannelSubscriptions__loading-spinner h-8 w-8 animate-spin text-blue-600" />
           </div>
+        ) : availableChannels.length === 0 ? (
+          <div className="ChannelSubscriptions__empty bg-gray-50 rounded-lg p-8 text-center">
+            <Users className="ChannelSubscriptions__empty-icon h-12 w-12 mx-auto text-gray-400 mb-4" />
+            <h3 className="ChannelSubscriptions__empty-title text-lg font-medium text-gray-900 mb-2">
+              {t('search.noResults')}
+            </h3>
+            <p className="ChannelSubscriptions__empty-description text-gray-600">{t('search.tryDifferentFilters')}</p>
+          </div>
         ) : (
-          <AvailableChannelCard
-            subscribedChannelIds={subscribedChannelIds}
-            filteredChannels={filteredChannels}
-            handleSubscribe={(channelId: string) => handleChannelSubscribe(channelId)}
-            canSubscribe={subscribeMutation.isPending}
-          />
+          <>
+            <AvailableChannels
+              subscribedChannelIds={subscribedChannelIds}
+              filteredChannels={availableChannels}
+              handleSubscribe={(channelId: string) => handleChannelSubscribe(channelId)}
+              canSubscribe={subscribeMutation.isPending}
+            />
+
+            <ChannelPagination
+              currentPage={availableChannelsFilters.page}
+              totalPages={availableTotalPages}
+              totalCount={availableChannelsData?.count || 0}
+              onPageChange={availableChannelsFilters.updatePage}
+              paginationName="available"
+              pageSize={AVAILABLE_CHANNELS_PER_PAGE}
+            />
+          </>
         )}
       </div>
 
       <ImportChannelModal isOpen={isAddChannelModalOpen} onClose={() => setIsAddChannelModalOpen(false)} />
 
-      <TagManager
-        isOpen={isTagManagerOpen}
-        onClose={() => setIsTagManagerOpen(false)}
-        onTagsChange={() => {
-          queryClient.invalidateQueries({ queryKey: ['userChannels'] });
-        }}
-      />
+      <TagManager isOpen={isTagManagerOpen} onClose={() => setIsTagManagerOpen(false)} onTagsChange={onTagsChange} />
     </div>
   );
 }

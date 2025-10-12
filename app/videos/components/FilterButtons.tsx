@@ -56,6 +56,7 @@ export function FilterButtons({ totalCount, watchedCount, unwatchedCount, onScro
       <SearchAndTagFilter
         searchValue={searchQuery}
         onSearchChange={updateSearchQuery}
+        namespace="videos"
         selectedTags={selectedTags}
         tagMode={tagMode}
         onTagsChange={updateTags}

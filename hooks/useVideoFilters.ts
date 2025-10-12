@@ -33,17 +33,16 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
   const updateAllFilters = (newFilters: Partial<VideoFilters>) => {
     const allFilters = {
       filter,
-      tags: selectedTags,
+      selectedTags,
       tag_mode: selectedTags.length > 1 ? tagMode : undefined,
-      search: searchQuery || undefined,
       ...newFilters,
     };
 
     updateUrl({
       filter: allFilters.filter,
-      tags: allFilters.tags,
-      tag_mode: allFilters.tags.length > 1 ? allFilters.tag_mode : undefined,
-      search: allFilters.search,
+      tags: allFilters.selectedTags,
+      tag_mode: allFilters.selectedTags.length > 1 ? allFilters.tag_mode : undefined,
+      search: allFilters.searchQuery,
     });
   }
 
