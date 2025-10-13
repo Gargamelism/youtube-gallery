@@ -1367,25 +1367,46 @@ The frontend translates these shortened params to backend-compatible names:
 - Page loads < 500ms with 1000 channels
 - WCAG 2.1 AA compliance
 
-### Phase 5: Polish and Documentation
+### Phase 5: Polish and Documentation 🔄 **In Progress**
 
-**5.1: Error Handling**
-- Add error boundaries
-- Implement retry logic
-- Add user-friendly error messages
-- Test all error scenarios
+**5.1: Error Handling** ✅
+- ✅ Created `ErrorBoundary` component (`components/ui/ErrorBoundary.tsx`)
+  - Class-based component using React error boundary pattern
+  - Catches and displays component rendering errors
+  - Provides "Try again" button to reset error state
+  - Supports custom fallback rendering
+  - Includes onError callback for error logging
+- ✅ Created `ErrorDisplay` component (`components/ui/ErrorDisplay.tsx`)
+  - Displays query/mutation errors with user-friendly messages
+  - Includes optional retry button for failed operations
+  - Accessible with `role="alert"` and `aria-live="assertive"`
+  - Consistent red error styling across app
+- ✅ Integrated ErrorBoundary at app level (`app/providers.tsx`)
+  - Wraps entire app below QueryClientProvider
+  - Catches all component errors globally
+  - Follows same pattern as AuthProvider
+- ✅ Added query error handling to ChannelSubscriptions
+  - Extracts `isError`, `error`, and `refetch` from useQuery
+  - Shows ErrorDisplay with retry button for failed queries
+  - Separate error states for subscribed and available channels
+- ✅ Mutation error handling already implemented
+  - Import modal handles YouTube API errors and quota exceeded errors
+  - Subscribe/unsubscribe mutations use React Query's built-in error handling
 
-**5.2: Documentation**
+**5.2: Documentation** 🔄
 - Update API documentation
 - Add code comments for complex logic
 
-**5.3: Code Review and Refinement**
+**5.3: Code Review and Refinement** 🔄
 - Internal code review
 - Address feedback
 - Refactor as needed
 
 **Acceptance Criteria**:
-- All error cases handled gracefully
+- ✅ All error cases handled gracefully with user-friendly messages
+- ✅ Error boundary catches runtime errors at app level
+- ✅ Query failures show retry buttons
+- ✅ Accessible error messages with proper ARIA attributes
 - Code is well-documented
 - Passes code review
 

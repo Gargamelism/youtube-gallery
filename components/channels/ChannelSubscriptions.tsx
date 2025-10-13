@@ -16,7 +16,12 @@ import { ChannelFilterBar } from './ChannelFilterBar';
 import { ChannelPagination } from './ChannelPagination';
 import { useChannelFilters } from '@/hooks/useChannelFilters';
 import SubscribedChannels from './SubscribedChannels';
-import { SkeletonGrid, SubscribedChannelCardSkeleton, AvailableChannelCardSkeleton } from '@/components/ui';
+import {
+  SkeletonGrid,
+  SubscribedChannelCardSkeleton,
+  AvailableChannelCardSkeleton,
+  ErrorDisplay,
+} from '@/components/ui';
 
 const INVALID_PAGE_ERROR = 'Invalid page.';
 
@@ -34,7 +39,13 @@ export default function ChannelSubscriptions() {
   const subscribedChannelsFilters = useChannelFilters(ChannelType.SUBSCRIBED);
   const availableChannelsFilters = useChannelFilters(ChannelType.AVAILABLE);
 
-  const { data: subscribedChannelsResponse, isLoading: isLoadingUserChannels } = useQuery({
+  const {
+    data: subscribedChannelsResponse,
+    isLoading: isLoadingUserChannels,
+    isError: isErrorUserChannels,
+    error: userChannelsError,
+    refetch: refetchUserChannels,
+  } = useQuery({
     queryKey: queryKeys.userChannelsWithFilter(subscribedChannelsFilters),
     queryFn: async () => {
       const response = await fetchUserChannels({
@@ -49,7 +60,13 @@ export default function ChannelSubscriptions() {
     ...CHANNEL_QUERY_CONFIG,
   });
 
-  const { data: availableChannelsResponse, isLoading: isLoadingAvailableChannels } = useQuery({
+  const {
+    data: availableChannelsResponse,
+    isLoading: isLoadingAvailableChannels,
+    isError: isErrorAvailableChannels,
+    error: availableChannelsError,
+    refetch: refetchAvailableChannels,
+  } = useQuery({
     queryKey: queryKeys.availableChannelsWithFilter(availableChannelsFilters),
     queryFn: () =>
       fetchAvailableChannels({
@@ -166,7 +183,9 @@ export default function ChannelSubscriptions() {
           showTagFilter={true}
         />
 
-        {isLoadingUserChannels ? (
+        {isErrorUserChannels ? (
+          <ErrorDisplay error={userChannelsError} onRetry={() => refetchUserChannels()} className="mb-6" />
+        ) : isLoadingUserChannels ? (
           <div
             className="ChannelSubscriptions__loading grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
             role="status"
@@ -228,7 +247,9 @@ export default function ChannelSubscriptions() {
           showTagFilter={false}
         />
 
-        {isLoadingAvailableChannels ? (
+        {isErrorAvailableChannels ? (
+          <ErrorDisplay error={availableChannelsError} onRetry={() => refetchAvailableChannels()} />
+        ) : isLoadingAvailableChannels ? (
           <div className="ChannelSubscriptions__loading grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <SkeletonGrid count={AVAILABLE_CHANNELS_PER_PAGE} cardSkeleton={<AvailableChannelCardSkeleton />} />
           </div>
