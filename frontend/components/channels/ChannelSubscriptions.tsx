@@ -190,7 +190,7 @@ export default function ChannelSubscriptions() {
             className="ChannelSubscriptions__loading grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
             role="status"
             aria-live="polite"
-            aria-label="Loading subscribed channels"
+            aria-label={t('loading.subscribed')}
           >
             <SkeletonGrid count={SUBSCRIBED_CHANNELS_PER_PAGE} cardSkeleton={<SubscribedChannelCardSkeleton />} />
           </div>
@@ -250,7 +250,12 @@ export default function ChannelSubscriptions() {
         {isErrorAvailableChannels ? (
           <ErrorDisplay error={availableChannelsError} onRetry={() => refetchAvailableChannels()} />
         ) : isLoadingAvailableChannels ? (
-          <div className="ChannelSubscriptions__loading grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div
+            className="ChannelSubscriptions__loading grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            role="status"
+            aria-live="polite"
+            aria-label={t('loading.available')}
+          >
             <SkeletonGrid count={AVAILABLE_CHANNELS_PER_PAGE} cardSkeleton={<AvailableChannelCardSkeleton />} />
           </div>
         ) : availableChannels.length === 0 ? (

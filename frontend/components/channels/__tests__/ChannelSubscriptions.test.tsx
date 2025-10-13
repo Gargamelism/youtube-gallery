@@ -147,8 +147,8 @@ describe('ChannelSubscriptions', () => {
         </TestWrapper>
       );
 
-      const subscribedLoading = screen.getByLabelText('Loading subscribed channels');
-      const availableLoading = screen.getByLabelText('Loading available channels');
+      const subscribedLoading = screen.getByLabelText('loading.subscribed');
+      const availableLoading = screen.getByLabelText('loading.available');
 
       expect(subscribedLoading).toBeInTheDocument();
       expect(availableLoading).toBeInTheDocument();

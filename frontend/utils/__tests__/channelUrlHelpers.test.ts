@@ -242,7 +242,7 @@ describe('urlParamsToFilters', () => {
 
       const result = urlParamsToFilters(searchParams, ChannelType.SUBSCRIBED);
 
-      expect(result.page).toBe(NaN);
+      expect(result.page).toBe(1);
     });
 
     it('handles negative page numbers', () => {
@@ -250,7 +250,7 @@ describe('urlParamsToFilters', () => {
 
       const result = urlParamsToFilters(searchParams, ChannelType.SUBSCRIBED);
 
-      expect(result.page).toBe(-5);
+      expect(result.page).toBe(1);
     });
 
     it('handles invalid tag mode by defaulting to ANY', () => {
@@ -258,7 +258,7 @@ describe('urlParamsToFilters', () => {
 
       const result = urlParamsToFilters(searchParams, ChannelType.SUBSCRIBED);
 
-      expect(result.tagMode).toBe('invalid');
+      expect(result.tagMode).toBe(TagMode.ANY);
     });
 
     it('handles special characters in search', () => {

@@ -110,7 +110,7 @@ describe('ChannelPagination', () => {
       />
     );
 
-    const pageButton = screen.getByRole('button', { name: '3' });
+    const pageButton = screen.getByRole('button', { name: /pagination\.page 3/ });
     fireEvent.click(pageButton);
 
     expect(mockOnPageChange).toHaveBeenCalledWith(3);
@@ -127,7 +127,7 @@ describe('ChannelPagination', () => {
       />
     );
 
-    const currentPageButton = screen.getByRole('button', { name: '3' });
+    const currentPageButton = screen.getByRole('button', { name: /pagination\.page 3 \(current\)/ });
     expect(currentPageButton).toHaveClass('bg-blue-600');
     expect(currentPageButton).toHaveClass('text-white');
   });
@@ -218,11 +218,11 @@ describe('ChannelPagination', () => {
       />
     );
 
-    expect(screen.getByRole('button', { name: '3' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '4' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '5' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '6' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '7' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /pagination\.page 3$/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /pagination\.page 4$/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /pagination\.page 5 \(current\)/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /pagination\.page 6$/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /pagination\.page 7$/ })).toBeInTheDocument();
   });
 
   it('renders first 5 pages when on page 1', () => {
@@ -236,10 +236,10 @@ describe('ChannelPagination', () => {
       />
     );
 
-    expect(screen.getByRole('button', { name: '1' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '2' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '3' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '4' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '5' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /pagination\.page 1 \(current\)/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /pagination\.page 2$/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /pagination\.page 3$/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /pagination\.page 4$/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /pagination\.page 5$/ })).toBeInTheDocument();
   });
 });

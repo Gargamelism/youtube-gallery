@@ -16,6 +16,10 @@
   "subscribeTo": "Subscribe to {{channel}}",
   "subscribedTo": "Subscribed to {{channel}}",
   "channelVideosCount": "{{count}} videos",
+  "loading": {
+    "subscribed": "Loading subscribed channels",
+    "available": "Loading available channels"
+  },
   "search": {
     "placeholder": "Search channels...",
     "noResults": "No channels found",
