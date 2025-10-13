@@ -40,8 +40,10 @@ export const VIDEO_QUERY_CONFIG = {
 } as const;
 
 export const CHANNEL_QUERY_CONFIG = {
-  ...STABLE_DATA_CONFIG,
-  staleTime: TEN_MINUTES,
+  staleTime: FIVE_MINUTES,
+  gcTime: TEN_MINUTES,
+  refetchOnWindowFocus: false,
+  retry: 2,
 } as const;
 
 export const USER_DATA_CONFIG = {
@@ -61,6 +63,7 @@ export const USER_QUOTA_CONFIG = {
   ...USER_DATA_CONFIG,
   staleTime: THIRTY_SECONDS,
   refetchInterval: THIRTY_SECONDS,
+  refetchOnWindowFocus: true,
 } as const;
 
 export const DEFAULT_QUERY_CONFIG = {

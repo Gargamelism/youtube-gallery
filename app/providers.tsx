@@ -5,9 +5,15 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState, useEffect, Suspense } from 'react';
 import AuthProvider from './auth/components/AuthProvider';
 import '@/lib/i18n';
+import { DEFAULT_QUERY_CONFIG } from '@/lib/reactQueryConfig';
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient());
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: DEFAULT_QUERY_CONFIG,
+      })
+  );
 
   useEffect(() => {
     const handleClearCache = () => {

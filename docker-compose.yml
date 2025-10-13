@@ -27,6 +27,17 @@ x-test-env: &test-env
   DB_USER: postgres
   DB_PASSWORD: postgres
   DB_PORT: 5432
+  REDIS_HOST: redis
+  REDIS_PORT: 6379
+  REDIS_DB: 0
+  REDIS_PASSWORD: ${REDIS_PASSWORD:-default_dev_password}
+  REDIS_USER: ${REDIS_USER:-youtube_app}
+  YOUTUBE_CREDENTIALS_DIR: /app/config/credentials
+  YOUTUBE_CLIENT_SECRET_FILE: client_secret.json
+  YOUTUBE_API_KEY: ${YOUTUBE_API_KEY:-test_api_key}
+  YOUTUBE_ENCRYPTION_TOKEN: ${YOUTUBE_ENCRYPTION_TOKEN:-test_encryption_key_32_characters}
+  RECAPTCHA_PRIVATE_KEY: ${RECAPTCHA_PRIVATE_KEY:-test_recaptcha_key}
+  FRONTEND_URL: http://localhost:3000
 
 services:
   # Redis Stack Server with JSON support

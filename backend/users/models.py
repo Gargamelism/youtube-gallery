@@ -58,12 +58,6 @@ class UserChannel(TimestampMixin):
     class Meta:
         db_table = "user_channels"
         unique_together = ("user", "channel")
-        indexes = [
-            models.Index(
-                fields=["user", "is_active", "channel"],
-                name="idx_uc_user_active_channel",
-            ),
-        ]
 
 
 class UserVideo(TimestampMixin):

@@ -9,7 +9,7 @@ from unittest.mock import patch, Mock
 from videos.models import Channel, Video
 from videos.services.search import VideoSearchService
 from videos.validators import TagMode, WatchStatus
-from .models import ChannelTag, UserChannel, UserChannelTag, UserVideo
+from ..models import ChannelTag, UserChannel, UserChannelTag, UserVideo
 
 User = get_user_model()
 
@@ -661,8 +661,8 @@ class SearchServiceIntegrationTests(TestCase):
         for tags, tag_mode, watch_status, expected_count in test_cases:
             with self.subTest(tags=tags, tag_mode=tag_mode, watch_status=watch_status):
                 # Convert string representations to actual enum values
-                tag_mode_enum = getattr(TagMode, tag_mode.split('.')[1])
-                watch_status_enum = getattr(WatchStatus, watch_status.split('.')[1])
+                tag_mode_enum = getattr(TagMode, tag_mode.split(".")[1])
+                watch_status_enum = getattr(WatchStatus, watch_status.split(".")[1])
 
                 results = service.search_videos(tag_names=tags, tag_mode=tag_mode_enum, watch_status=watch_status_enum)
                 self.assertEqual(len(list(results)), expected_count)

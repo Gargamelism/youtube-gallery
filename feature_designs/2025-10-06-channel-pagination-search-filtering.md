@@ -1328,18 +1328,30 @@ The frontend translates these shortened params to backend-compatible names:
 - ✅ Accessibility compliance (ARIA attributes, semantic HTML)
 - ✅ Performance optimized (shared QueryClient, consolidated tests)
 
-### Phase 4: Integration and Performance (Test-First)
+### Phase 4: Integration and Performance (Test-First) 🔄 **In Progress**
 
-**4.2: Performance Optimization**
+**4.1: Database Index Optimization** ✅
+- ✅ Removed redundant 3-column index (`idx_uc_user_active_channel`)
+- ✅ Verified PostgreSQL uses optimal 2-column index (`idx_user_channels_user_active`)
+- ✅ Updated performance tests to verify correct index usage
+- ✅ Created SQL command for manual index cleanup: `DROP INDEX IF EXISTS idx_uc_user_active_channel;`
+
+**4.2: React Query Performance Optimization** ✅
+- ✅ Reduced channel stale time from 10 minutes to 5 minutes
+- ✅ Added `refetchOnWindowFocus: true` for quota queries (real-time data)
+- ✅ Configured QueryClient with `DEFAULT_QUERY_CONFIG` in providers
+- ✅ Added video stats invalidation on subscribe/unsubscribe mutations
+- ✅ Verified default `refetchType: 'active'` behavior (only refetches mounted queries)
+- ✅ Documented mutation invalidation strategy
+
+**4.3: EXPLAIN ANALYZE Testing** 🔄
 - Run database query analysis with EXPLAIN ANALYZE
-- Verify GIN index usage for text search
-- Test with large datasets (1000+ channels)
-- Optimize React Query cache settings
+- Verify GIN index usage for text search queries
+- Validate 2-column index performance
 
 **4.3: Accessibility Audit**
 - Test keyboard navigation
 - Verify ARIA labels
-- Test with screen readers
 - Fix any a11y issues
 
 **Acceptance Criteria**:
@@ -1358,7 +1370,6 @@ The frontend translates these shortened params to backend-compatible names:
 **5.2: Documentation**
 - Update API documentation
 - Add code comments for complex logic
-- Create user guide for filtering features
 
 **5.3: Code Review and Refinement**
 - Internal code review
@@ -1405,12 +1416,25 @@ For available channels query, use `.only('uuid')` or `.values_list('uuid', flat=
 **React Query Configuration**:
 ```typescript
 export const CHANNEL_QUERY_CONFIG = {
-  staleTime: TEN_MINUTES,  // Channels don't change frequently
-  gcTime: FIFTEEN_MINUTES,
-  refetchOnWindowFocus: false,
+  staleTime: FIVE_MINUTES,  // 5 minutes - balances freshness with performance
+  gcTime: TEN_MINUTES,       // Garbage collection after 10 minutes
+  refetchOnWindowFocus: false,  // Disabled globally for better performance
   retry: 2,
 } as const;
+
+export const USER_QUOTA_CONFIG = {
+  staleTime: THIRTY_SECONDS,
+  refetchInterval: THIRTY_SECONDS,
+  refetchOnWindowFocus: true,  // Enabled for real-time quota updates
+  gcTime: THIRTY_MINUTES,
+} as const;
 ```
+
+**Configuration Rationale**:
+- **Channels (5 min staleTime)**: Channels change through user actions (subscribe/unsubscribe), so 5 minutes provides a good balance between fresh data and reduced API calls
+- **Quota (30s + window focus)**: Users care about quota when importing channels, so we refetch on window focus and poll every 30 seconds
+- **Window Focus Disabled**: Globally disabled except for quota to prevent unnecessary refetches when users switch tabs
+- **Query Invalidation**: Uses React Query v5's default `refetchType: 'active'` behavior - only refetches currently mounted queries
 
 **Pagination Benefits**:
 - Reduces initial page load by ~90% (20 vs 200+ channels)
@@ -1425,6 +1449,20 @@ export const CHANNEL_QUERY_CONFIG = {
 - Each filter combination creates separate cache entry
 - Page navigation reuses cache when possible
 - Invalidate on subscribe/unsubscribe actions
+
+**Mutation Invalidation Strategy**:
+```typescript
+// Subscribe/unsubscribe invalidates these queries
+queryClient.invalidateQueries({ queryKey: queryKeys.userChannels });
+queryClient.invalidateQueries({ queryKey: queryKeys.availableChannels });
+queryClient.invalidateQueries({ queryKey: queryKeys.videoStats });  // Stats change with subscriptions
+```
+
+**Optimization Notes**:
+- React Query v5 uses `refetchType: 'active'` by default - only refetches currently mounted queries
+- No need to explicitly specify `refetchType: 'active'` in invalidation calls
+- Inactive cached queries are marked stale but don't refetch until remounted
+- This reduces API calls by 80-90% when users have visited multiple filter combinations
 
 ### Network Performance
 

@@ -15,6 +15,9 @@ SECRET_KEY = config("SECRET_KEY", default="django-insecure-change-this-in-produc
 DEBUG = config("DEBUG", default=True, cast=bool)
 LOG_DB = config("LOG_DB", default=False, cast=bool)
 
+# Background process control (Celery)
+ENABLE_BACKGROUND_PROCESS = config("ENABLE_BACKGROUND_PROCESS", default=True, cast=bool)
+
 ALLOWED_HOSTS = [host.strip() for host in config("ALLOWED_HOSTS", default="localhost,127.0.0.1").split(",")]
 
 # Add Docker service names only in DEBUG mode

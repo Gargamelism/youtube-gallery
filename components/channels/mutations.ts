@@ -8,6 +8,7 @@ export function useChannelSubscribe(queryClient: QueryClient) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.userChannels });
       queryClient.invalidateQueries({ queryKey: queryKeys.availableChannels });
+      queryClient.invalidateQueries({ queryKey: queryKeys.videoStats });
     },
   });
 }
@@ -18,6 +19,7 @@ export function useChannelUnsubscribe(queryClient: QueryClient) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.userChannels });
       queryClient.invalidateQueries({ queryKey: queryKeys.availableChannels });
+      queryClient.invalidateQueries({ queryKey: queryKeys.videoStats });
     },
   });
 }
