@@ -18,14 +18,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - uses: reviewdog/action-setup@d8edfce3dd5e1ec6978745e801f9c50b5ef80252 # v1.4.0
+        with:
+          reviewdog_version: latest
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
-
-      - name: Install Reviewdog
-        run: |
-          curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh | sh -s -- -b . reviewdog
 
       - run: npm ci
 
@@ -66,6 +66,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - uses: reviewdog/action-setup@d8edfce3dd5e1ec6978745e801f9c50b5ef80252 # v1.4.0
+        with:
+          reviewdog_version: latest
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -75,10 +79,6 @@ jobs:
 
       - name: Install Dependencies
         run: pip install -r requirements-dev.txt
-
-      - name: Install Reviewdog
-        run: |
-          curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh | sh -s -- -b . reviewdog
 
       - name: Format Check (black)
         run: black --check .
