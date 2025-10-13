@@ -55,7 +55,11 @@ export default function AvailableChannelCard({
 
         {/* this is a UX dsiction whether to show the channel "subscribed" or hide it completely */}
         {isSubscribed ? (
-          <span className="ChannelSubscriptions__subscribed-badge px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
+          <span
+            className="ChannelSubscriptions__subscribed-badge px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full"
+            role="status"
+            aria-label={t('subscribedTo', { channel: channel.title })}
+          >
             {t('subscribed')}
           </span>
         ) : (
@@ -63,6 +67,7 @@ export default function AvailableChannelCard({
             onClick={() => handleSubscribe(channel.uuid)}
             disabled={canSubscribe}
             className="ChannelSubscriptions__subscribe-button px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            aria-label={t('subscribeTo', { channel: channel.title })}
           >
             {t('subscribe')}
           </button>

@@ -25,6 +25,9 @@
     "to": "to",
     "of": "of",
     "results": "results",
-    "page": "Page"
+    "page": "Page",
+    "navigation": "Pagination navigation",
+    "previousPage": "Go to previous page",
+    "nextPage": "Go to next page"
   }
 }

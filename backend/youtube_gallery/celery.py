@@ -1,6 +1,9 @@
 import os
 from celery import Celery
 from celery.schedules import crontab
+
+# this must be set before importing settings
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "youtube_gallery.settings")
 from django.conf import settings
 
 CELERY_ENABLED = settings.ENABLE_BACKGROUND_PROCESS
@@ -8,8 +11,6 @@ if not CELERY_ENABLED:
     print("Celery is disabled via settings. Exiting celery.py.")
 
 if CELERY_ENABLED:
-    # Set the default Django settings module for the 'celery' program.
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "youtube_gallery.settings")
 
     app = Celery("youtube_gallery")
 

@@ -11,7 +11,10 @@
   "subscribed": "Subscribed",
   "viewOnYoutube": "View on YouTube",
   "unsubscribe": "Unsubscribe",
+  "unsubscribeFrom": "Unsubscribe from {{channel}}",
   "subscribe": "Subscribe",
+  "subscribeTo": "Subscribe to {{channel}}",
+  "subscribedTo": "Subscribed to {{channel}}",
   "channelVideosCount": "{{count}} videos",
   "search": {
     "placeholder": "Search channels...",

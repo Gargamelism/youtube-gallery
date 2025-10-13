@@ -34,9 +34,9 @@ export default function SubscribedChannel({
           onClick={() => handleChannelUnsubscribe(userChannel.id)}
           disabled={canUnsubscribe}
           className="ChannelSubscriptions__unsubscribe-button p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
-          title={t('unsubscribe')}
+          aria-label={t('unsubscribeFrom', { channel: userChannel.channel_title })}
         >
-          <Trash2 className="ChannelSubscriptions__unsubscribe-icon h-4 w-4" />
+          <Trash2 className="ChannelSubscriptions__unsubscribe-icon h-4 w-4" aria-hidden="true" />
         </button>
       </div>
 

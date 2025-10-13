@@ -59,13 +59,14 @@ export function ChannelPagination({
           </p>
         </div>
         <div>
-          <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm">
+          <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label={t('pagination.navigation')}>
             <button
               onClick={() => onPageChange(currentPage - 1)}
               disabled={currentPage === 1}
               className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label={t('pagination.previousPage')}
             >
-              <ChevronLeft className="h-5 w-5" />
+              <ChevronLeft className="h-5 w-5" aria-hidden="true" />
             </button>
 
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -91,8 +92,9 @@ export function ChannelPagination({
               onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
               className={`${paginationName}Pagination__last-page-button relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed`}
+              aria-label={t('pagination.nextPage')}
             >
-              <ChevronRight className="h-5 w-5" />
+              <ChevronRight className="h-5 w-5" aria-hidden="true" />
             </button>
           </nav>
         </div>
