@@ -43,7 +43,7 @@ services:
   # React Frontend (Production)
   frontend:
     build:
-      context: .
+      context: ./frontend
       dockerfile: frontend.Dockerfile.prod
     ports:
       - '3000:80'

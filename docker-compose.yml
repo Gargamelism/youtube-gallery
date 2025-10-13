@@ -172,12 +172,12 @@ services:
   # Next.js Frontend (Development with hot reload)
   frontend:
     build:
-      context: .
+      context: ./frontend
       dockerfile: frontend.Dockerfile
     ports:
       - '3000:3000'
     volumes:
-      - .:/app
+      - ./frontend:/app
       - /app/node_modules
       - /app/.next
     environment:
