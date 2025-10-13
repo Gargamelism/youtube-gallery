@@ -41,7 +41,6 @@
 1. add logo - talk with victoria
 1. user dropdown - change links to configuration, and that links work
 1. responsive channels page
-1. move frontend to frontend folder
 1. implement centralized logging:
     1. frontend
     1. backend

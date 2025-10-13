@@ -3,3 +3,11 @@ debugpy==1.8.0
 django-extensions==3.2.3
 pytest==8.4.2
 faker==33.1.0
+
+# Code quality
+black
+ruff
+mypy
+bandit
+safety
+pyscn

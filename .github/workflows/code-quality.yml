@@ -1,0 +1,109 @@
+name: Code Quality CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  frontend:
+    name: Frontend Quality (Next.js)
+    permissions:
+      contents: read
+      pull-requests: write
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Reviewdog
+        run: |
+          curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh | sh -s -- -b . reviewdog
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint --silent | ./reviewdog -f=eslint -name="eslint" -reporter=github-pr-review -fail-on-error=true
+
+      - name: Type Check
+        run: npm run type-check
+
+      - name: Unit Tests
+        run: npm run test
+
+      - name: Check for Circular Deps (madge)
+        run: npx madge --circular src/
+
+      - name: Check Import Rules (depcruise)
+        run: npx dependency-cruiser --validate .dependency-cruiser.json src/
+
+      - name: Check Unused Exports (ts-prune)
+        run: |
+          npx ts-prune | tee ts-prune-report.txt
+          if [ -s ts-prune-report.txt ]; then
+            echo "Unused exports found" && exit 1
+          fi
+
+      - name: NPM Audit
+        run: npm audit --audit-level=moderate
+
+  backend:
+    name: Backend Quality (Django)
+    permissions:
+      contents: read
+      pull-requests: write
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - run: python -m pip install --upgrade pip
+
+      - name: Install Dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Install Reviewdog
+        run: |
+          curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh | sh -s -- -b . reviewdog
+
+      - name: Format Check (black)
+        run: black --check .
+
+      - name: Lint (ruff)
+        run: ruff check . | reviewdog -f=ruff -name="ruff" -reporter=github-pr-review -fail-on-error=true
+
+      - name: Type Check (mypy)
+        run: mypy . | reviewdog -f=mypy -name="mypy" -reporter=github-pr-review -fail-on-error=true
+
+      - name: Security Scan (bandit + review dog)
+        run: |
+          bandit -r . -f json -o bandit.json
+          python scripts/parse_bandit_for_reviewdog.py bandit.json | ./reviewdog -f=checkstyle -name="bandit" -reporter=github-pr-review -fail-on-error=true
+
+      - name: Vulnerabilities (safety)
+        run: safety check || true  # log but don't fail
+
+      - name: Django System Checks
+        run: python manage.py check
+
+      - name: PySCN Structural Analysis
+        run: |
+          pip install pyscn
+          pyscn check .
+
+      - name: Unit Tests (pytest)
+        run: pytest
