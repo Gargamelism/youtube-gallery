@@ -30,7 +30,7 @@ jobs:
       - run: npm ci
 
       - name: Lint
-        run: npm run lint --silent | ./reviewdog -f=eslint -name="eslint" -reporter=github-pr-review -fail-on-error=true
+        run: npm run lint --silent | reviewdog -f=eslint -name="eslint" -reporter=github-pr-review -fail-on-error=true
 
       - name: Type Check
         run: npm run type-check
@@ -92,7 +92,7 @@ jobs:
       - name: Security Scan (bandit + review dog)
         run: |
           bandit -r . -f json -o bandit.json
-          python scripts/parse_bandit_for_reviewdog.py bandit.json | ./reviewdog -f=checkstyle -name="bandit" -reporter=github-pr-review -fail-on-error=true
+          python scripts/parse_bandit_for_reviewdog.py bandit.json | reviewdog -f=checkstyle -name="bandit" -reporter=github-pr-review -fail-on-error=true
 
       - name: Vulnerabilities (safety)
         run: safety check || true  # log but don't fail
