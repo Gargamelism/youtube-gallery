@@ -20,34 +20,20 @@ class ChannelUpdatingServiceTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         """Create test data once for the entire test class"""
-        cls.user1 = User.objects.create_user(
-            username="testuser1",
-            email="test1@example.com",
-            password="testpass123"
-        )
-        cls.user2 = User.objects.create_user(
-            username="testuser2",
-            email="test2@example.com",
-            password="testpass123"
-        )
+        cls.user1 = User.objects.create_user(username="testuser1", email="test1@example.com", password="testpass123")
+        cls.user2 = User.objects.create_user(username="testuser2", email="test2@example.com", password="testpass123")
 
         # Create channels with different states
         cls.active_channel = Channel.objects.create(
-            channel_id="UC_active",
-            title="Active Channel",
-            description="An active channel"
+            channel_id="UC_active", title="Active Channel", description="An active channel"
         )
 
         cls.outdated_channel = Channel.objects.create(
-            channel_id="UC_outdated",
-            title="Outdated Channel",
-            description="An outdated channel"
+            channel_id="UC_outdated", title="Outdated Channel", description="An outdated channel"
         )
 
         cls.orphaned_channel = Channel.objects.create(
-            channel_id="UC_orphaned",
-            title="Orphaned Channel",
-            description="A channel with no subscribers"
+            channel_id="UC_orphaned", title="Orphaned Channel", description="A channel with no subscribers"
         )
 
         # Create user subscriptions
@@ -57,16 +43,8 @@ class ChannelUpdatingServiceTests(TestCase):
         # Note: orphaned_channel has no user subscriptions
 
         # Create videos for channels
-        cls.video1 = Video.objects.create(
-            channel=cls.active_channel,
-            video_id="video1",
-            title="Active Video 1"
-        )
-        cls.video2 = Video.objects.create(
-            channel=cls.outdated_channel,
-            video_id="video2",
-            title="Outdated Video 1"
-        )
+        cls.video1 = Video.objects.create(channel=cls.active_channel, video_id="video1", title="Active Video 1")
+        cls.video2 = Video.objects.create(channel=cls.outdated_channel, video_id="video2", title="Outdated Video 1")
 
     def test_identify_channels_needing_update(self):
         """Test identifying channels that need metadata updates"""
@@ -76,9 +54,7 @@ class ChannelUpdatingServiceTests(TestCase):
     def test_identify_orphaned_channels(self):
         """Test identifying channels with no active subscriptions"""
         # Mock the service method to identify orphaned channels
-        orphaned_channels = Channel.objects.filter(
-            user_channels__isnull=True
-        ).distinct()
+        orphaned_channels = Channel.objects.filter(user_channels__isnull=True).distinct()
 
         self.assertEqual(orphaned_channels.count(), 1)
         self.assertEqual(orphaned_channels.first(), self.orphaned_channel)
@@ -96,9 +72,7 @@ class ChannelUpdatingServiceTests(TestCase):
     def test_channel_removal_safety_checks(self):
         """Test safety checks before removing channels"""
         # Ensure channels with subscriptions are not removed
-        channels_with_users = Channel.objects.filter(
-            user_channels__isnull=False
-        ).distinct()
+        channels_with_users = Channel.objects.filter(user_channels__isnull=False).distinct()
 
         self.assertIn(self.active_channel, channels_with_users)
         self.assertIn(self.outdated_channel, channels_with_users)
@@ -110,17 +84,9 @@ class ChannelMetadataUpdateTests(TestCase):
 
     def setUp(self):
         """Set up test data for each test"""
-        self.user = User.objects.create_user(
-            username="testuser",
-            email="test@example.com",
-            password="testpass123"
-        )
+        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
 
-        self.channel = Channel.objects.create(
-            channel_id="UC_test",
-            title="Old Title",
-            description="Old Description"
-        )
+        self.channel = Channel.objects.create(channel_id="UC_test", title="Old Title", description="Old Description")
 
         UserChannel.objects.create(user=self.user, channel=self.channel)
 
@@ -150,24 +116,14 @@ class ChannelRemovalTests(TestCase):
 
     def setUp(self):
         """Set up test data for each test"""
-        self.user = User.objects.create_user(
-            username="testuser",
-            email="test@example.com",
-            password="testpass123"
-        )
+        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
 
         # Channel with subscription
-        self.subscribed_channel = Channel.objects.create(
-            channel_id="UC_subscribed",
-            title="Subscribed Channel"
-        )
+        self.subscribed_channel = Channel.objects.create(channel_id="UC_subscribed", title="Subscribed Channel")
         UserChannel.objects.create(user=self.user, channel=self.subscribed_channel)
 
         # Channel without subscription
-        self.unsubscribed_channel = Channel.objects.create(
-            channel_id="UC_unsubscribed",
-            title="Unsubscribed Channel"
-        )
+        self.unsubscribed_channel = Channel.objects.create(channel_id="UC_unsubscribed", title="Unsubscribed Channel")
 
     def test_remove_orphaned_channels(self):
         """Test removal of channels with no active subscriptions"""
@@ -193,18 +149,11 @@ class ChannelUpdateAPITests(APITestCase):
 
     def setUp(self):
         """Set up test data for each test"""
-        self.user = User.objects.create_user(
-            username="testuser",
-            email="test@example.com",
-            password="testpass123"
-        )
+        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
         self.token = Token.objects.create(user=self.user)
-        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
 
-        self.channel = Channel.objects.create(
-            channel_id="UC_test",
-            title="Test Channel"
-        )
+        self.channel = Channel.objects.create(channel_id="UC_test", title="Test Channel")
         UserChannel.objects.create(user=self.user, channel=self.channel)
 
     def test_trigger_channel_update_endpoint(self):

@@ -28,13 +28,15 @@ class ChannelCleanupService:
         # Single query to find channels that either:
         # 1. Have no UserChannel entries at all, OR
         # 2. Have only inactive UserChannel entries
-        orphaned_channels = Channel.objects.filter(
-            Q(user_subscriptions__isnull=True) |  # No subscriptions at all
-            Q(user_subscriptions__is_active=False),  # Has subscriptions but all inactive
-            is_deleted=False
-        ).exclude(
-            user_subscriptions__is_active=True  # Exclude any with active subscriptions
-        ).distinct()
+        orphaned_channels = (
+            Channel.objects.filter(
+                Q(user_subscriptions__isnull=True)  # No subscriptions at all
+                | Q(user_subscriptions__is_active=False),  # Has subscriptions but all inactive
+                is_deleted=False,
+            )
+            .exclude(user_subscriptions__is_active=True)  # Exclude any with active subscriptions
+            .distinct()
+        )
 
         self.logger.info(f"Found {orphaned_channels.count()} orphaned channels")
         return list(orphaned_channels)
@@ -59,8 +61,7 @@ class ChannelCleanupService:
 
             has_high_value_interaction = False
             for user_video in user_videos:
-                if (user_video.is_watched or
-                    (user_video.notes and user_video.notes.strip())):
+                if user_video.is_watched or (user_video.notes and user_video.notes.strip()):
                     has_high_value_interaction = True
                     break
 
@@ -74,10 +75,7 @@ class ChannelCleanupService:
             f"{len(high_value_videos)} high-value, {len(low_value_videos)} low-value videos"
         )
 
-        return {
-            'high_value': high_value_videos,
-            'low_value': low_value_videos
-        }
+        return {"high_value": high_value_videos, "low_value": low_value_videos}
 
     def delete_low_value_videos(self, videos: List[Video]) -> Tuple[int, int]:
         """
@@ -118,27 +116,27 @@ class ChannelCleanupService:
             Dictionary with cleanup operation results
         """
         cleanup_result = {
-            'channel_uuid': str(channel.uuid),
-            'channel_id': channel.channel_id,
-            'cleanup_type': None,  # 'soft_delete' or 'hard_delete'
-            'videos_preserved': 0,
-            'videos_deleted': 0,
-            'user_video_entries_deleted': 0,
-            'cleanup_timestamp': timezone.now(),
-            'success': False,
-            'error_message': None
+            "channel_uuid": str(channel.uuid),
+            "channel_id": channel.channel_id,
+            "cleanup_type": None,  # 'soft_delete' or 'hard_delete'
+            "videos_preserved": 0,
+            "videos_deleted": 0,
+            "user_video_entries_deleted": 0,
+            "cleanup_timestamp": timezone.now(),
+            "success": False,
+            "error_message": None,
         }
 
         try:
             with transaction.atomic():
                 # Analyze videos in this channel
                 video_analysis = self.analyze_channel_videos(channel)
-                high_value_videos = video_analysis['high_value']
-                low_value_videos = video_analysis['low_value']
+                high_value_videos = video_analysis["high_value"]
+                low_value_videos = video_analysis["low_value"]
 
                 if high_value_videos:
                     # Soft delete approach: Preserve channel and high-value videos
-                    cleanup_result['cleanup_type'] = 'soft_delete'
+                    cleanup_result["cleanup_type"] = "soft_delete"
 
                     # Delete only low-value videos
                     videos_deleted, user_videos_deleted = self.delete_low_value_videos(low_value_videos)
@@ -146,14 +144,16 @@ class ChannelCleanupService:
                     # Mark channel as deleted but keep record for high-value videos
                     channel.is_deleted = True
                     channel.is_available = False
-                    channel.save(update_fields=['is_deleted', 'is_available', 'updated_at'])
+                    channel.save(update_fields=["is_deleted", "is_available", "updated_at"])
 
-                    cleanup_result.update({
-                        'videos_preserved': len(high_value_videos),
-                        'videos_deleted': videos_deleted,
-                        'user_video_entries_deleted': user_videos_deleted,
-                        'success': True
-                    })
+                    cleanup_result.update(
+                        {
+                            "videos_preserved": len(high_value_videos),
+                            "videos_deleted": videos_deleted,
+                            "user_video_entries_deleted": user_videos_deleted,
+                            "success": True,
+                        }
+                    )
 
                     self.logger.info(
                         f"Soft cleanup of channel {channel.channel_id}: "
@@ -162,7 +162,7 @@ class ChannelCleanupService:
 
                 else:
                     # Hard delete approach: Remove everything
-                    cleanup_result['cleanup_type'] = 'hard_delete'
+                    cleanup_result["cleanup_type"] = "hard_delete"
 
                     # Delete all videos (this also deletes associated UserVideo entries)
                     videos_deleted, user_videos_deleted = self.delete_low_value_videos(low_value_videos)
@@ -170,11 +170,13 @@ class ChannelCleanupService:
                     # Delete the channel itself
                     channel.delete()
 
-                    cleanup_result.update({
-                        'videos_deleted': videos_deleted,
-                        'user_video_entries_deleted': user_videos_deleted,
-                        'success': True
-                    })
+                    cleanup_result.update(
+                        {
+                            "videos_deleted": videos_deleted,
+                            "user_video_entries_deleted": user_videos_deleted,
+                            "success": True,
+                        }
+                    )
 
                     self.logger.info(
                         f"Hard cleanup of channel {channel.channel_id}: "
@@ -183,10 +185,7 @@ class ChannelCleanupService:
 
         except Exception as e:
             self.logger.error(f"Error cleaning up channel {channel.channel_id}: {str(e)}")
-            cleanup_result.update({
-                'success': False,
-                'error_message': str(e)
-            })
+            cleanup_result.update({"success": False, "error_message": str(e)})
 
         return cleanup_result
 
@@ -203,17 +202,17 @@ class ChannelCleanupService:
         self.logger.info(f"Starting batch cleanup of up to {max_channels} orphaned channels")
 
         batch_result = {
-            'cleanup_timestamp': timezone.now(),
-            'channels_processed': 0,
-            'soft_deletions': 0,
-            'hard_deletions': 0,
-            'failed_cleanups': 0,
-            'total_videos_preserved': 0,
-            'total_videos_deleted': 0,
-            'total_user_videos_deleted': 0,
-            'cleanup_details': [],
-            'success': True,
-            'error_message': None
+            "cleanup_timestamp": timezone.now(),
+            "channels_processed": 0,
+            "soft_deletions": 0,
+            "hard_deletions": 0,
+            "failed_cleanups": 0,
+            "total_videos_preserved": 0,
+            "total_videos_deleted": 0,
+            "total_user_videos_deleted": 0,
+            "cleanup_details": [],
+            "success": True,
+            "error_message": None,
         }
 
         try:
@@ -227,20 +226,20 @@ class ChannelCleanupService:
             # Process each orphaned channel
             for channel in orphaned_channels:
                 cleanup_result = self.cleanup_channel_selectively(channel)
-                batch_result['cleanup_details'].append(cleanup_result)
-                batch_result['channels_processed'] += 1
+                batch_result["cleanup_details"].append(cleanup_result)
+                batch_result["channels_processed"] += 1
 
-                if cleanup_result['success']:
-                    if cleanup_result['cleanup_type'] == 'soft_delete':
-                        batch_result['soft_deletions'] += 1
-                        batch_result['total_videos_preserved'] += cleanup_result['videos_preserved']
+                if cleanup_result["success"]:
+                    if cleanup_result["cleanup_type"] == "soft_delete":
+                        batch_result["soft_deletions"] += 1
+                        batch_result["total_videos_preserved"] += cleanup_result["videos_preserved"]
                     else:
-                        batch_result['hard_deletions'] += 1
+                        batch_result["hard_deletions"] += 1
 
-                    batch_result['total_videos_deleted'] += cleanup_result['videos_deleted']
-                    batch_result['total_user_videos_deleted'] += cleanup_result['user_video_entries_deleted']
+                    batch_result["total_videos_deleted"] += cleanup_result["videos_deleted"]
+                    batch_result["total_user_videos_deleted"] += cleanup_result["user_video_entries_deleted"]
                 else:
-                    batch_result['failed_cleanups'] += 1
+                    batch_result["failed_cleanups"] += 1
 
             self.logger.info(
                 f"Batch cleanup completed: {batch_result['soft_deletions']} soft deletions, "
@@ -250,10 +249,7 @@ class ChannelCleanupService:
 
         except Exception as e:
             self.logger.error(f"Error in batch cleanup operation: {str(e)}")
-            batch_result.update({
-                'success': False,
-                'error_message': str(e)
-            })
+            batch_result.update({"success": False, "error_message": str(e)})
 
         return batch_result
 
@@ -267,15 +263,16 @@ class ChannelCleanupService:
         total_channels = Channel.objects.filter(is_deleted=False).count()
         orphaned_channels_count = len(self.find_orphaned_channels())
 
-        active_channels_with_subs = Channel.objects.filter(
-            user_subscriptions__is_active=True,
-            is_deleted=False
-        ).distinct().count()
+        active_channels_with_subs = (
+            Channel.objects.filter(user_subscriptions__is_active=True, is_deleted=False).distinct().count()
+        )
 
         return {
-            'total_channels': total_channels,
-            'orphaned_channels': orphaned_channels_count,
-            'active_channels_with_subscriptions': active_channels_with_subs,
-            'cleanup_eligible_percentage': (orphaned_channels_count / total_channels * 100) if total_channels > 0 else 0,
-            'timestamp': timezone.now()
+            "total_channels": total_channels,
+            "orphaned_channels": orphaned_channels_count,
+            "active_channels_with_subscriptions": active_channels_with_subs,
+            "cleanup_eligible_percentage": (
+                (orphaned_channels_count / total_channels * 100) if total_channels > 0 else 0
+            ),
+            "timestamp": timezone.now(),
         }

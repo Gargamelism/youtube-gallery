@@ -1,6 +1,7 @@
 """
 Tests for QuotaTracker utility class.
 """
+
 from datetime import datetime, timezone, timedelta
 from unittest.mock import Mock, patch, call
 
@@ -117,7 +118,9 @@ class QuotaTrackerTests(TestCase):
         self.quota_tracker.record_usage("unknown.operation")
 
         self.assertEqual(mock_usage.daily_usage, 101)
-        warning_call = call("WARNING: Operation 'unknown.operation' doesn't have a quota cost defined, using default cost of 1")
+        warning_call = call(
+            "WARNING: Operation 'unknown.operation' doesn't have a quota cost defined, using default cost of 1"
+        )
         self.assertIn(warning_call, mock_print.call_args_list)
 
     @patch("builtins.print")

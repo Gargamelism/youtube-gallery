@@ -66,9 +66,7 @@ class ChannelSearchService:
 
         return queryset.order_by("title")
 
-    def _apply_search_filter(
-        self, queryset: QuerySet, search_query: str, prefix: ChannelFieldPrefix
-    ) -> QuerySet:
+    def _apply_search_filter(self, queryset: QuerySet, search_query: str, prefix: ChannelFieldPrefix) -> QuerySet:
         """Apply search query filter to queryset"""
         prefix_str = prefix.value
         return queryset.filter(

@@ -9,39 +9,58 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0001_initial'),
+        ("users", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ChannelTag',
+            name="ChannelTag",
             fields=[
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=50)),
-                ('color', models.CharField(default='#3B82F6', max_length=7)),
-                ('description', models.TextField(blank=True, null=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='channel_tags', to=settings.AUTH_USER_MODEL)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("name", models.CharField(max_length=50)),
+                ("color", models.CharField(default="#3B82F6", max_length=7)),
+                ("description", models.TextField(blank=True, null=True)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="channel_tags",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'db_table': 'channel_tags',
-                'ordering': ['name'],
-                'unique_together': {('user', 'name')},
+                "db_table": "channel_tags",
+                "ordering": ["name"],
+                "unique_together": {("user", "name")},
             },
         ),
         migrations.CreateModel(
-            name='UserChannelTag',
+            name="UserChannelTag",
             fields=[
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('tag', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='channel_assignments', to='users.channeltag')),
-                ('user_channel', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='channel_tags', to='users.userchannel')),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                (
+                    "tag",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="channel_assignments",
+                        to="users.channeltag",
+                    ),
+                ),
+                (
+                    "user_channel",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, related_name="channel_tags", to="users.userchannel"
+                    ),
+                ),
             ],
             options={
-                'db_table': 'user_channel_tags',
-                'unique_together': {('user_channel', 'tag')},
+                "db_table": "user_channel_tags",
+                "unique_together": {("user_channel", "tag")},
             },
         ),
     ]

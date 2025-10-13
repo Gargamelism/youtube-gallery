@@ -1,6 +1,7 @@
 """
 Service for updating channel metadata from YouTube API.
 """
+
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
@@ -65,7 +66,7 @@ class ChannelUpdateService:
                 success=False,
                 changes_made={},
                 error_message="Insufficient quota for channel update",
-                quota_used=0
+                quota_used=0,
             )
 
         try:
@@ -76,7 +77,7 @@ class ChannelUpdateService:
 
             new_videos_count = self._fetch_new_videos(channel)
             if new_videos_count > 0:
-                changes_made['new_videos'] = {'count': new_videos_count}
+                changes_made["new_videos"] = {"count": new_videos_count}
 
             self._log_update_success(channel, changes_made, new_videos_count)
 
@@ -85,7 +86,7 @@ class ChannelUpdateService:
                 success=True,
                 changes_made=changes_made,
                 quota_used=1 + (1 if new_videos_count > 0 else 0),
-                new_videos_added=new_videos_count
+                new_videos_added=new_videos_count,
             )
 
         except Exception as e:
@@ -100,21 +101,18 @@ class ChannelUpdateService:
             if not channel_details:
                 raise ChannelNotFoundError(f"Channel {channel_id} not found")
 
-            request = self.youtube_service.youtube.channels().list(
-                part="snippet,statistics",
-                id=channel_id
-            )
+            request = self.youtube_service.youtube.channels().list(part="snippet,statistics", id=channel_id)
             response = request.execute()
 
-            if not response or 'items' not in response:
+            if not response or "items" not in response:
                 raise InvalidChannelDataError(f"Empty response for channel {channel_id}")
 
-            if not response['items']:
+            if not response["items"]:
                 raise ChannelNotFoundError(f"Channel {channel_id} not found")
 
-            channel_data = response['items'][0]
+            channel_data = response["items"][0]
 
-            required_fields = ['snippet', 'statistics']
+            required_fields = ["snippet", "statistics"]
             for field in required_fields:
                 if field not in channel_data:
                     raise InvalidChannelDataError(f"Missing {field} in channel data")
@@ -123,12 +121,12 @@ class ChannelUpdateService:
 
         except HttpError as e:
             error_details = e.error_details[0] if e.error_details else {}
-            reason = error_details.get('reason', 'unknown')
+            reason = error_details.get("reason", "unknown")
 
             if e.resp.status == status.HTTP_403_FORBIDDEN:
-                if reason == 'quotaExceeded':
+                if reason == "quotaExceeded":
                     raise QuotaExceededError("YouTube API quota exceeded")
-                elif reason == 'rateLimitExceeded':
+                elif reason == "rateLimitExceeded":
                     raise APIRateLimitError("YouTube API rate limit exceeded")
                 else:
                     raise ChannelAccessDeniedError(f"Access denied: {reason}")
@@ -144,24 +142,24 @@ class ChannelUpdateService:
 
     def _apply_channel_updates(self, channel: Channel, channel_data: Dict[str, Any]) -> Dict[str, Any]:
         """Apply updates to channel model and track changes using django-dirtyfields"""
-        snippet = channel_data.get('snippet', {})
-        statistics = channel_data.get('statistics', {})
+        snippet = channel_data.get("snippet", {})
+        statistics = channel_data.get("statistics", {})
 
         # Update channel fields
-        if snippet.get('title'):
-            channel.title = snippet['title']
+        if snippet.get("title"):
+            channel.title = snippet["title"]
 
-        if snippet.get('description'):
-            channel.description = snippet['description']
+        if snippet.get("description"):
+            channel.description = snippet["description"]
 
-        if statistics.get('subscriberCount'):
-            channel.subscriber_count = int(statistics['subscriberCount'])
+        if statistics.get("subscriberCount"):
+            channel.subscriber_count = int(statistics["subscriberCount"])
 
-        if statistics.get('videoCount'):
-            channel.video_count = int(statistics['videoCount'])
+        if statistics.get("videoCount"):
+            channel.video_count = int(statistics["videoCount"])
 
-        if statistics.get('viewCount'):
-            channel.view_count = int(statistics['viewCount'])
+        if statistics.get("viewCount"):
+            channel.view_count = int(statistics["viewCount"])
 
         # Check what changed using django-dirtyfields
         if channel.is_dirty() or channel.last_updated is None:
@@ -178,11 +176,8 @@ class ChannelUpdateService:
             # Format changes for logging (convert to old/new format)
             changes_made = {}
             for field, old_value in dirty_fields.items():
-                if field not in ['last_updated', 'failed_update_count', 'is_available']:
-                    changes_made[field] = {
-                        'old': old_value,
-                        'new': getattr(channel, field)
-                    }
+                if field not in ["last_updated", "failed_update_count", "is_available"]:
+                    changes_made[field] = {"old": old_value, "new": getattr(channel, field)}
 
             return changes_made
 
@@ -196,15 +191,13 @@ class ChannelUpdateService:
                 return 0
 
             channel_details = self.youtube_service.get_channel_details(channel.channel_id)
-            if not channel_details or 'uploads_playlist_id' not in channel_details:
+            if not channel_details or "uploads_playlist_id" not in channel_details:
                 print(f"INFO: No uploads playlist found for channel {channel.uuid}")
                 return 0
 
-            uploads_playlist_id = channel_details['uploads_playlist_id']
+            uploads_playlist_id = channel_details["uploads_playlist_id"]
 
-            existing_video_ids = set(
-                Video.objects.filter(channel=channel).values_list('video_id', flat=True)
-            )
+            existing_video_ids = set(Video.objects.filter(channel=channel).values_list("video_id", flat=True))
 
             videos_created = 0
             videos_generator = self.youtube_service.get_channel_videos(uploads_playlist_id)
@@ -218,13 +211,12 @@ class ChannelUpdateService:
                 found_existing_video = False
 
                 for video_data in page_videos:
-                    if video_data['video_id'] in existing_video_ids:
+                    if video_data["video_id"] in existing_video_ids:
                         found_existing_video = True
                         break
 
                     Video.objects.update_or_create(
-                        video_id=video_data['video_id'],
-                        defaults={**video_data, 'channel': channel}
+                        video_id=video_data["video_id"], defaults={**video_data, "channel": channel}
                     )
                     videos_created += 1
 
@@ -247,7 +239,7 @@ class ChannelUpdateService:
                 success=False,
                 changes_made={},
                 error_message="API quota exceeded - retry scheduled",
-                quota_used=0
+                quota_used=0,
             )
 
         elif isinstance(error, ChannelNotFoundError):
@@ -258,13 +250,15 @@ class ChannelUpdateService:
 
             self._log_update_failure(channel, "channel_not_found", str(error))
             if old_status != channel.is_available:
-                self._log_channel_status_change(channel, old_status, channel.is_available, "Channel not found on YouTube")
+                self._log_channel_status_change(
+                    channel, old_status, channel.is_available, "Channel not found on YouTube"
+                )
 
             return ChannelUpdateResult(
                 channel_uuid=str(channel.uuid),
                 success=False,
-                changes_made={'is_available': False},
-                error_message="Channel no longer available on YouTube"
+                changes_made={"is_available": False},
+                error_message="Channel no longer available on YouTube",
             )
 
         elif isinstance(error, (APIRateLimitError, APIServerError)):
@@ -275,7 +269,7 @@ class ChannelUpdateService:
                 success=False,
                 changes_made={},
                 error_message=f"Transient error: {str(error)}",
-                quota_used=0
+                quota_used=0,
             )
 
         elif isinstance(error, ChannelAccessDeniedError):
@@ -287,13 +281,18 @@ class ChannelUpdateService:
 
             self._log_update_failure(channel, "access_denied", str(error))
             if old_status != channel.is_available:
-                self._log_channel_status_change(channel, old_status, channel.is_available, f"Too many failed attempts ({channel.failed_update_count})")
+                self._log_channel_status_change(
+                    channel,
+                    old_status,
+                    channel.is_available,
+                    f"Too many failed attempts ({channel.failed_update_count})",
+                )
 
             return ChannelUpdateResult(
                 channel_uuid=str(channel.uuid),
                 success=False,
                 changes_made={},
-                error_message="Channel access denied - privacy settings may have changed"
+                error_message="Channel access denied - privacy settings may have changed",
             )
 
         elif isinstance(error, InvalidChannelDataError):
@@ -306,7 +305,7 @@ class ChannelUpdateService:
                 channel_uuid=str(channel.uuid),
                 success=False,
                 changes_made={},
-                error_message="Invalid channel data received from API"
+                error_message="Invalid channel data received from API",
             )
 
         else:
@@ -319,14 +318,18 @@ class ChannelUpdateService:
                 channel_uuid=str(channel.uuid),
                 success=False,
                 changes_made={},
-                error_message=f"Unexpected error: {str(error)}"
+                error_message=f"Unexpected error: {str(error)}",
             )
 
     def _log_update_success(self, channel: Channel, changes_made: Dict[str, Any], new_videos_count: int) -> None:
         """Log successful update with structured change tracking"""
-        change_summary = ", ".join([f"{field}: {change['old']} -> {change['new']}"
-                                   for field, change in changes_made.items()
-                                   if field != 'new_videos'])
+        change_summary = ", ".join(
+            [
+                f"{field}: {change['old']} -> {change['new']}"
+                for field, change in changes_made.items()
+                if field != "new_videos"
+            ]
+        )
 
         print(f"[CHANNEL_UPDATE_SUCCESS] Channel: {channel.uuid} ({channel.title})")
         print(f"  - Changes: {len(changes_made)} fields updated")
@@ -338,16 +341,16 @@ class ChannelUpdateService:
     def _log_update_failure(self, channel: Channel, error_type: str, error_message: str) -> None:
         """Log failed update with comprehensive error categorization"""
         error_categories = {
-            'channel_not_found': 'PERMANENT_FAILURE',
-            'access_denied': 'PERMISSION_FAILURE',
-            'invalid_data': 'DATA_INTEGRITY_FAILURE',
-            'quota_exceeded': 'QUOTA_FAILURE',
-            'rate_limited': 'RATE_LIMIT_FAILURE',
-            'server_error': 'TRANSIENT_FAILURE',
-            'unknown_error': 'UNKNOWN_FAILURE'
+            "channel_not_found": "PERMANENT_FAILURE",
+            "access_denied": "PERMISSION_FAILURE",
+            "invalid_data": "DATA_INTEGRITY_FAILURE",
+            "quota_exceeded": "QUOTA_FAILURE",
+            "rate_limited": "RATE_LIMIT_FAILURE",
+            "server_error": "TRANSIENT_FAILURE",
+            "unknown_error": "UNKNOWN_FAILURE",
         }
 
-        category = error_categories.get(error_type, 'UNKNOWN_FAILURE')
+        category = error_categories.get(error_type, "UNKNOWN_FAILURE")
 
         print(f"[CHANNEL_UPDATE_FAILURE] Channel: {channel.uuid} ({channel.title})")
         print(f"  - Error Type: {error_type}")
@@ -389,12 +392,12 @@ class ChannelUpdateService:
         """Update multiple channels with quota optimization"""
         if not channels:
             return {
-                'processed': 0,
-                'successful': 0,
-                'failed': 0,
-                'quota_used': 0,
-                'stopped_due_to_quota': False,
-                'results': []
+                "processed": 0,
+                "successful": 0,
+                "failed": 0,
+                "quota_used": 0,
+                "stopped_due_to_quota": False,
+                "results": [],
             }
 
         optimal_batch_size = self.quota_tracker.optimize_batch_size("channels.list")
@@ -422,11 +425,11 @@ class ChannelUpdateService:
             total_quota_used += result.quota_used
 
         return {
-            'processed': len(results),
-            'successful': successful_updates,
-            'failed': failed_updates,
-            'quota_used': total_quota_used,
-            'stopped_due_to_quota': stopped_due_to_quota,
-            'results': results,
-            'quota_summary': self.quota_tracker.get_usage_summary()
+            "processed": len(results),
+            "successful": successful_updates,
+            "failed": failed_updates,
+            "quota_used": total_quota_used,
+            "stopped_due_to_quota": stopped_due_to_quota,
+            "results": results,
+            "quota_summary": self.quota_tracker.get_usage_summary(),
         }

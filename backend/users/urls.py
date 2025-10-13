@@ -18,7 +18,6 @@ urlpatterns = [
     path("quota-usage", views.quota_usage_view, name="quota-usage"),
     path("youtube-url", views.youtube_auth_url, name="youtube-auth-url"),
     path("youtube/callback", views.youtube_auth_callback, name="youtube-auth-callback"),
-
     # ViewSets through router
     path("", include(router.urls)),
 ]

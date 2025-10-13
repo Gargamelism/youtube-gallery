@@ -53,5 +53,3 @@ def youtube_auth_required(view_func):
         return view_func(self, request, *args, **kwargs)
 
     return wrapper
-
-

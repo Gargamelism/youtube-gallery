@@ -34,9 +34,7 @@ class VideoSearchService:
         queryset = Video.objects.select_related("channel")
 
         # Query 2: User videos prefetch
-        queryset = queryset.prefetch_related(
-            Prefetch("user_videos", queryset=UserVideo.objects.filter(user=self.user))
-        )
+        queryset = queryset.prefetch_related(Prefetch("user_videos", queryset=UserVideo.objects.filter(user=self.user)))
 
         # Query 3 & 4: Channel tags with strategic prefetching
         queryset = queryset.prefetch_related(
@@ -45,9 +43,9 @@ class VideoSearchService:
                 queryset=UserChannel.objects.filter(user=self.user).prefetch_related(
                     Prefetch(
                         "channel_tags",
-                        queryset=UserChannelTag.objects.select_related("tag").filter(tag__user=self.user)
+                        queryset=UserChannelTag.objects.select_related("tag").filter(tag__user=self.user),
                     )
-                )
+                ),
             )
         )
 

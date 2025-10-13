@@ -93,7 +93,7 @@ class ChannelSearchParams(BaseModel):
     search_query: Optional[str] = None
     user: User
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def validate_tags_belong_to_user(self):
         if not self.tags:
             return self

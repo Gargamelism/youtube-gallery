@@ -39,12 +39,7 @@ class Channel(DirtyFieldsMixin, TimestampMixin):
     url = models.URLField(blank=True, null=True)
 
     last_updated = models.DateTimeField(null=True, blank=True)
-    update_frequency = models.ForeignKey(
-        UpdateFrequency,
-        on_delete=models.PROTECT,
-        null=True,
-        blank=True
-    )
+    update_frequency = models.ForeignKey(UpdateFrequency, on_delete=models.PROTECT, null=True, blank=True)
     subscriber_count = models.IntegerField(null=True, blank=True)
     video_count = models.IntegerField(null=True, blank=True)
     view_count = models.BigIntegerField(null=True, blank=True)
@@ -59,19 +54,16 @@ class Channel(DirtyFieldsMixin, TimestampMixin):
         db_table = "channels"
         indexes = [
             models.Index(
-                fields=['update_frequency', 'is_available', 'failed_update_count', 'last_updated'],
-                name='channel_update_query_idx'
+                fields=["update_frequency", "is_available", "failed_update_count", "last_updated"],
+                name="channel_update_query_idx",
             ),
+            models.Index(fields=["is_deleted", "is_available"], name="channel_status_idx"),
+            GinIndex(fields=["title"], name="idx_ch_title_trgm", opclasses=["gin_trgm_ops"]),
+            GinIndex(fields=["description"], name="idx_ch_desc_trgm", opclasses=["gin_trgm_ops"]),
             models.Index(
-                fields=['is_deleted', 'is_available'],
-                name='channel_status_idx'
-            ),
-            GinIndex(fields=['title'], name='idx_ch_title_trgm', opclasses=['gin_trgm_ops']),
-            GinIndex(fields=['description'], name='idx_ch_desc_trgm', opclasses=['gin_trgm_ops']),
-            models.Index(
-                fields=['is_available', 'is_deleted'],
-                name='idx_ch_avail_del',
-                condition=Q(is_available=True, is_deleted=False)
+                fields=["is_available", "is_deleted"],
+                name="idx_ch_avail_del",
+                condition=Q(is_available=True, is_deleted=False),
             ),
         ]
 

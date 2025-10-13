@@ -83,7 +83,7 @@ class UserChannelSerializer(serializers.ModelSerializer):
         read_only_fields = ("id", "created_at", "subscribed_at")
 
     def get_tags(self, user_channel):
-        user_channel_tags = user_channel.channel_tags.select_related('tag').all()
+        user_channel_tags = user_channel.channel_tags.select_related("tag").all()
         tag_objects = [user_channel_tag.tag for user_channel_tag in user_channel_tags]
         return ChannelTagSerializer(tag_objects, many=True).data
 

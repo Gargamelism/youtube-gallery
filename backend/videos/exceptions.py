@@ -7,6 +7,7 @@ from typing import TypedDict, Optional, Dict
 
 class QuotaInfo(TypedDict):
     """Type definition for quota usage information"""
+
     daily_usage: int
     daily_limit: int
     remaining: int
@@ -26,31 +27,37 @@ class ChannelUpdateError(Exception):
 
 class ChannelNotFoundError(ChannelUpdateError):
     """Channel was deleted or made private on YouTube"""
+
     pass
 
 
 class QuotaExceededError(ChannelUpdateError):
     """YouTube API quota exceeded"""
+
     pass
 
 
 class APIRateLimitError(ChannelUpdateError):
     """YouTube API rate limit exceeded"""
+
     pass
 
 
 class ChannelAccessDeniedError(ChannelUpdateError):
     """Channel access denied due to privacy settings"""
+
     pass
 
 
 class InvalidChannelDataError(ChannelUpdateError):
     """Channel data from API is invalid or corrupted"""
+
     pass
 
 
 class APIServerError(ChannelUpdateError):
     """YouTube API server error (5xx responses)"""
+
     pass
 
 

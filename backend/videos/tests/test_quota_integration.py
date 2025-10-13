@@ -1,6 +1,7 @@
 """
 Integration tests for QuotaTracker with ChannelUpdateService.
 """
+
 from unittest.mock import Mock, patch, call
 
 from django.test import TestCase
@@ -24,7 +25,10 @@ class QuotaIntegrationTests(TestCase):
 
         # Create test channel
         self.channel = Channel.objects.create(
-            channel_id="UC_test123", title="Test Channel", description="Test Description", url="https://youtube.com/test"
+            channel_id="UC_test123",
+            title="Test Channel",
+            description="Test Description",
+            url="https://youtube.com/test",
         )
 
     def test_channel_update_checks_quota_before_request(self):
@@ -74,7 +78,9 @@ class QuotaIntegrationTests(TestCase):
                 videos_count = self.channel_updater._fetch_new_videos(self.channel)
 
                 self.assertEqual(videos_count, 0)
-                mock_print.assert_called_with(f"WARNING: Insufficient quota for video fetching for channel {self.channel.uuid}")
+                mock_print.assert_called_with(
+                    f"WARNING: Insufficient quota for video fetching for channel {self.channel.uuid}"
+                )
 
     def test_batch_update_optimizes_based_on_quota(self):
         """Test that batch updates use quota optimization"""

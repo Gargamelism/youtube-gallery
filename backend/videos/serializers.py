@@ -97,9 +97,5 @@ class VideoListSerializer(serializers.ModelSerializer):
         if user_subscription:
             for channel_tag in user_subscription.channel_tags.all():
                 tag = channel_tag.tag
-                tags.append({
-                    "id": str(tag.id),
-                    "name": tag.name,
-                    "color": tag.color
-                })
+                tags.append({"id": str(tag.id), "name": tag.name, "color": tag.color})
         return tags

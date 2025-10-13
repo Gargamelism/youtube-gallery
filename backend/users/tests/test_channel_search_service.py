@@ -128,7 +128,9 @@ class ChannelSearchServiceTests(TestCase):
     def test_combined_search_and_tag_filter(self):
         """Test combining search query and tag filtering"""
         service = ChannelSearchService(self.user)
-        channels = service.search_user_channels(search_query="Programming", tag_names=["Tutorial"], tag_mode=TagMode.ANY)
+        channels = service.search_user_channels(
+            search_query="Programming", tag_names=["Tutorial"], tag_mode=TagMode.ANY
+        )
 
         self.assertEqual(channels.count(), 1)
         self.assertEqual(channels.first().channel.title, "Python Programming")
@@ -249,9 +251,7 @@ class ChannelSearchServiceTests(TestCase):
 
     def test_available_channels_respects_is_deleted_flag(self):
         """Test that deleted channels are excluded from available channels"""
-        channel_deleted = Channel.objects.create(
-            channel_id="UC_DELETED", title="Deleted Channel", is_deleted=True
-        )
+        channel_deleted = Channel.objects.create(channel_id="UC_DELETED", title="Deleted Channel", is_deleted=True)
 
         service = ChannelSearchService(self.user)
         channels = service.search_available_channels()

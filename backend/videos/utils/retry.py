@@ -1,6 +1,7 @@
 """
 Retry utilities for YouTube API operations.
 """
+
 import time
 from functools import wraps
 from typing import Callable
@@ -39,10 +40,7 @@ def retry_transient_failures(max_attempts: int = MAX_RETRY_ATTEMPTS) -> Callable
                     if attempt == max_attempts - 1:
                         raise e
 
-                    delay = min(
-                        RETRY_INITIAL_DELAY * (RETRY_EXPONENTIAL_BASE ** attempt),
-                        MAX_RETRY_DELAY
-                    )
+                    delay = min(RETRY_INITIAL_DELAY * (RETRY_EXPONENTIAL_BASE**attempt), MAX_RETRY_DELAY)
 
                     print(f"INFO: Retrying after {delay}s due to transient error: {str(e)}")
                     time.sleep(delay)
@@ -51,4 +49,5 @@ def retry_transient_failures(max_attempts: int = MAX_RETRY_ATTEMPTS) -> Callable
                 raise last_exception
 
         return wrapper
+
     return decorator

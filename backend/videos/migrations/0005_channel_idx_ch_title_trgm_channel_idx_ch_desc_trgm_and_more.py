@@ -7,20 +7,28 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('videos', '0004_add_channel_update_fields'),
+        ("videos", "0004_add_channel_update_fields"),
     ]
 
     operations = [
         migrations.AddIndex(
-            model_name='channel',
-            index=django.contrib.postgres.indexes.GinIndex(fields=['title'], name='idx_ch_title_trgm', opclasses=['gin_trgm_ops']),
+            model_name="channel",
+            index=django.contrib.postgres.indexes.GinIndex(
+                fields=["title"], name="idx_ch_title_trgm", opclasses=["gin_trgm_ops"]
+            ),
         ),
         migrations.AddIndex(
-            model_name='channel',
-            index=django.contrib.postgres.indexes.GinIndex(fields=['description'], name='idx_ch_desc_trgm', opclasses=['gin_trgm_ops']),
+            model_name="channel",
+            index=django.contrib.postgres.indexes.GinIndex(
+                fields=["description"], name="idx_ch_desc_trgm", opclasses=["gin_trgm_ops"]
+            ),
         ),
         migrations.AddIndex(
-            model_name='channel',
-            index=models.Index(condition=models.Q(('is_available', True), ('is_deleted', False)), fields=['is_available', 'is_deleted'], name='idx_ch_avail_del'),
+            model_name="channel",
+            index=models.Index(
+                condition=models.Q(("is_available", True), ("is_deleted", False)),
+                fields=["is_available", "is_deleted"],
+                name="idx_ch_avail_del",
+            ),
         ),
     ]

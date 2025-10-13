@@ -22,7 +22,7 @@ class YouTubeAPIMockResponses:
         view_count: int = 100000,
         custom_url: Optional[str] = None,
         published_at: Optional[str] = None,
-        thumbnails: Optional[Dict] = None
+        thumbnails: Optional[Dict] = None,
     ) -> Dict[str, Any]:
         """Generate a mock channel response from YouTube API"""
 
@@ -34,27 +34,24 @@ class YouTubeAPIMockResponses:
                 "default": {
                     "url": f"https://yt3.ggpht.com/default_{channel_id}=s88-c-k-c0x00ffffff-no-rj",
                     "width": 88,
-                    "height": 88
+                    "height": 88,
                 },
                 "medium": {
                     "url": f"https://yt3.ggpht.com/medium_{channel_id}=s240-c-k-c0x00ffffff-no-rj",
                     "width": 240,
-                    "height": 240
+                    "height": 240,
                 },
                 "high": {
                     "url": f"https://yt3.ggpht.com/high_{channel_id}=s800-c-k-c0x00ffffff-no-rj",
                     "width": 800,
-                    "height": 800
-                }
+                    "height": 800,
+                },
             }
 
         return {
             "kind": "youtube#channelListResponse",
             "etag": f"mock_etag_{channel_id}",
-            "pageInfo": {
-                "totalResults": 1,
-                "resultsPerPage": 1
-            },
+            "pageInfo": {"totalResults": 1, "resultsPerPage": 1},
             "items": [
                 {
                     "kind": "youtube#channel",
@@ -66,26 +63,23 @@ class YouTubeAPIMockResponses:
                         "customUrl": custom_url or f"@{title.lower().replace(' ', '')}",
                         "publishedAt": published_at,
                         "thumbnails": thumbnails,
-                        "localized": {
-                            "title": title,
-                            "description": description
-                        },
-                        "country": "US"
+                        "localized": {"title": title, "description": description},
+                        "country": "US",
                     },
                     "contentDetails": {
                         "relatedPlaylists": {
                             "likes": "",
-                            "uploads": f"UU{channel_id[2:]}"  # Convert UC prefix to UU for uploads playlist
+                            "uploads": f"UU{channel_id[2:]}",  # Convert UC prefix to UU for uploads playlist
                         }
                     },
                     "statistics": {
                         "viewCount": str(view_count),
                         "subscriberCount": str(subscriber_count),
                         "hiddenSubscriberCount": False,
-                        "videoCount": str(video_count)
-                    }
+                        "videoCount": str(video_count),
+                    },
                 }
-            ]
+            ],
         }
 
     @staticmethod
@@ -94,11 +88,8 @@ class YouTubeAPIMockResponses:
         return {
             "kind": "youtube#channelListResponse",
             "etag": "mock_empty_etag",
-            "pageInfo": {
-                "totalResults": 0,
-                "resultsPerPage": 0
-            },
-            "items": []
+            "pageInfo": {"totalResults": 0, "resultsPerPage": 0},
+            "items": [],
         }
 
     @staticmethod
@@ -112,7 +103,7 @@ class YouTubeAPIMockResponses:
         duration: str = "PT5M30S",
         view_count: int = 10000,
         like_count: int = 500,
-        comment_count: int = 25
+        comment_count: int = 25,
     ) -> Dict[str, Any]:
         """Generate a mock video response from YouTube API"""
 
@@ -136,26 +127,23 @@ class YouTubeAPIMockResponses:
                             "default": {
                                 "url": f"https://i.ytimg.com/vi/{video_id}/default.jpg",
                                 "width": 120,
-                                "height": 90
+                                "height": 90,
                             },
                             "medium": {
                                 "url": f"https://i.ytimg.com/vi/{video_id}/mqdefault.jpg",
                                 "width": 320,
-                                "height": 180
+                                "height": 180,
                             },
                             "high": {
                                 "url": f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg",
                                 "width": 480,
-                                "height": 360
-                            }
+                                "height": 360,
+                            },
                         },
                         "channelTitle": channel_title,
                         "categoryId": "22",
                         "liveBroadcastContent": "none",
-                        "localized": {
-                            "title": title,
-                            "description": description
-                        }
+                        "localized": {"title": title, "description": description},
                     },
                     "contentDetails": {
                         "duration": duration,
@@ -164,49 +152,46 @@ class YouTubeAPIMockResponses:
                         "caption": "false",
                         "licensedContent": True,
                         "contentRating": {},
-                        "projection": "rectangular"
+                        "projection": "rectangular",
                     },
                     "statistics": {
                         "viewCount": str(view_count),
                         "likeCount": str(like_count),
-                        "commentCount": str(comment_count)
-                    }
+                        "commentCount": str(comment_count),
+                    },
                 }
-            ]
+            ],
         }
 
     @staticmethod
     def get_playlist_items_response(
-        video_ids: List[str],
-        playlist_id: str = "UU_test_channel",
-        next_page_token: Optional[str] = None
+        video_ids: List[str], playlist_id: str = "UU_test_channel", next_page_token: Optional[str] = None
     ) -> Dict[str, Any]:
         """Generate mock playlist items response for channel uploads"""
 
         items = []
         for i, video_id in enumerate(video_ids):
             published_at = (datetime.utcnow() - timedelta(days=i)).isoformat() + "Z"
-            items.append({
-                "kind": "youtube#playlistItem",
-                "etag": f"playlist_item_etag_{video_id}",
-                "id": f"playlist_item_{i}",
-                "contentDetails": {
-                    "videoId": video_id,
-                    "startAt": "PT0S",
-                    "endAt": "PT0S",
-                    "note": "",
-                    "videoPublishedAt": published_at
+            items.append(
+                {
+                    "kind": "youtube#playlistItem",
+                    "etag": f"playlist_item_etag_{video_id}",
+                    "id": f"playlist_item_{i}",
+                    "contentDetails": {
+                        "videoId": video_id,
+                        "startAt": "PT0S",
+                        "endAt": "PT0S",
+                        "note": "",
+                        "videoPublishedAt": published_at,
+                    },
                 }
-            })
+            )
 
         response = {
             "kind": "youtube#playlistItemListResponse",
             "etag": f"playlist_etag_{playlist_id}",
-            "pageInfo": {
-                "totalResults": len(video_ids),
-                "resultsPerPage": min(50, len(video_ids))
-            },
-            "items": items
+            "pageInfo": {"totalResults": len(video_ids), "resultsPerPage": min(50, len(video_ids))},
+            "items": items,
         }
 
         if next_page_token:
@@ -225,9 +210,9 @@ class YouTubeAPIMockResponses:
                     {
                         "domain": "youtube.quota",
                         "reason": "quotaExceeded",
-                        "message": "The request cannot be completed because you have exceeded your quota."
+                        "message": "The request cannot be completed because you have exceeded your quota.",
                     }
-                ]
+                ],
             }
         }
 
@@ -239,12 +224,8 @@ class YouTubeAPIMockResponses:
                 "code": 404,
                 "message": "The channel was not found.",
                 "errors": [
-                    {
-                        "domain": "youtube.channel",
-                        "reason": "channelNotFound",
-                        "message": "The channel was not found."
-                    }
-                ]
+                    {"domain": "youtube.channel", "reason": "channelNotFound", "message": "The channel was not found."}
+                ],
             }
         }
 
@@ -259,9 +240,9 @@ class YouTubeAPIMockResponses:
                     {
                         "domain": "youtube.channel",
                         "reason": "forbidden",
-                        "message": "The channel is private or no longer available."
+                        "message": "The channel is private or no longer available.",
                     }
-                ]
+                ],
             }
         }
 
@@ -276,9 +257,9 @@ class YouTubeAPIMockResponses:
                     {
                         "domain": "global",
                         "reason": "badRequest",
-                        "message": "API key not valid. Please pass a valid API key."
+                        "message": "API key not valid. Please pass a valid API key.",
                     }
-                ]
+                ],
             }
         }
 
@@ -286,7 +267,7 @@ class YouTubeAPIMockResponses:
     def get_search_response(
         channel_id: str = "UC_search_result",
         channel_title: str = "Search Result Channel",
-        description: str = "A channel found through search"
+        description: str = "A channel found through search",
     ) -> Dict[str, Any]:
         """Mock YouTube API search response for channels"""
         return {
@@ -294,34 +275,26 @@ class YouTubeAPIMockResponses:
             "etag": "search_etag",
             "nextPageToken": "next_token_123",
             "regionCode": "US",
-            "pageInfo": {
-                "totalResults": 1000000,
-                "resultsPerPage": 1
-            },
+            "pageInfo": {"totalResults": 1000000, "resultsPerPage": 1},
             "items": [
                 {
                     "kind": "youtube#searchResult",
                     "etag": "search_item_etag",
-                    "id": {
-                        "kind": "youtube#channel",
-                        "channelId": channel_id
-                    },
+                    "id": {"kind": "youtube#channel", "channelId": channel_id},
                     "snippet": {
                         "publishedAt": (datetime.utcnow() - timedelta(days=365)).isoformat() + "Z",
                         "channelId": channel_id,
                         "title": channel_title,
                         "description": description,
                         "thumbnails": {
-                            "default": {
-                                "url": f"https://yt3.ggpht.com/search_{channel_id}=s88-c-k-c0x00ffffff-no-rj"
-                            }
+                            "default": {"url": f"https://yt3.ggpht.com/search_{channel_id}=s88-c-k-c0x00ffffff-no-rj"}
                         },
                         "channelTitle": channel_title,
                         "liveBroadcastContent": "none",
-                        "publishTime": (datetime.utcnow() - timedelta(days=365)).isoformat() + "Z"
-                    }
+                        "publishTime": (datetime.utcnow() - timedelta(days=365)).isoformat() + "Z",
+                    },
                 }
-            ]
+            ],
         }
 
 
@@ -337,7 +310,7 @@ class MockYouTubeServiceFixtures:
             description="A very active technology channel with daily uploads",
             subscriber_count=150000,
             video_count=500,
-            view_count=5000000
+            view_count=5000000,
         )
 
     @staticmethod
@@ -350,7 +323,7 @@ class MockYouTubeServiceFixtures:
             subscriber_count=25000,
             video_count=50,
             view_count=800000,
-            published_at=(datetime.utcnow() - timedelta(days=800)).isoformat() + "Z"
+            published_at=(datetime.utcnow() - timedelta(days=800)).isoformat() + "Z",
         )
 
     @staticmethod
@@ -362,7 +335,7 @@ class MockYouTubeServiceFixtures:
             description="Educational content for beginners",
             subscriber_count=1500,
             video_count=25,
-            view_count=50000
+            view_count=50000,
         )
 
     @staticmethod

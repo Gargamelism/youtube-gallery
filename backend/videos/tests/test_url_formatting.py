@@ -83,16 +83,19 @@ class TestKebabCaseRouter(unittest.TestCase):
         self.assertNotIn("custom_action_name", combined_patterns)
         self.assertNotIn("another_custom_action", combined_patterns)
 
-    @pytest.mark.parametrize("input_str,expected", [
-        ("snake_case_string", "snake-case-string"),
-        ("already-kebab-case", "already-kebab-case"),
-        ("mixedCamelCase", "mixedcamelcase"),
-        ("with_numbers_123", "with-numbers-123"),
-        ("UPPERCASE_STRING", "uppercase-string"),
-        ("multiple__underscores", "multiple-underscores"),
-        ("ends_with_underscore_", "ends-with-underscore"),
-        ("_starts_with_underscore", "starts-with-underscore"),
-    ])
+    @pytest.mark.parametrize(
+        "input_str,expected",
+        [
+            ("snake_case_string", "snake-case-string"),
+            ("already-kebab-case", "already-kebab-case"),
+            ("mixedCamelCase", "mixedcamelcase"),
+            ("with_numbers_123", "with-numbers-123"),
+            ("UPPERCASE_STRING", "uppercase-string"),
+            ("multiple__underscores", "multiple-underscores"),
+            ("ends_with_underscore_", "ends-with-underscore"),
+            ("_starts_with_underscore", "starts-with-underscore"),
+        ],
+    )
     def test_to_kebab_case_method(self, input_str, expected):
         """Test the internal _to_kebab_case method directly"""
         actual = self.router._to_kebab_case(input_str)
