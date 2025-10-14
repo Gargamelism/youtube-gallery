@@ -97,7 +97,7 @@ jobs:
       - name: Security Scan (bandit + review dog)
         run: |
           bandit -r . --severity-level medium -f json -o bandit.json || true
-          python scripts/parse_bandit_for_reviewdog.py bandit.json | reviewdog -f=checkstyle -name="bandit" -reporter=github-pr-review -fail-level=warn
+          python scripts/parse_bandit_for_reviewdog.py bandit.json | reviewdog -f=checkstyle -name="bandit" -reporter=github-pr-review -fail-level=warning
 
       - name: Vulnerabilities (safety)
         run: safety check || true  # log but don't fail

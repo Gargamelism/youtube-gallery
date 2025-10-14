@@ -29,12 +29,3 @@ export function getRandomTagColor(): string {
   // eslint-disable-next-line security-node/detect-insecure-randomness
   return colors[Math.floor(Math.random() * colors.length)]!;
 }
-
-/**
- * Validates if a color string is a valid hex color
- * @param color - Color string to validate
- * @returns True if valid hex color
- */
-export function isValidHexColor(color: string): boolean {
-  return /^#[0-9A-F]{6}$/i.test(color);
-}

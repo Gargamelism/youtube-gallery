@@ -39,10 +39,6 @@ export interface RegisterRequest {
   captcha_token?: string;
 }
 
-export interface AuthResponse {
-  user: User;
-  token: string;
-}
 
 // Channel Types
 export interface Channel {
@@ -147,19 +143,6 @@ export interface ChannelFilters {
   pageSize?: number;
 }
 
-export interface SubscribedChannelUrlState {
-  ss: string;
-  sts: string[];
-  stm: TagModeType;
-  sp: number;
-}
-
-export interface AvailableChannelUrlState {
-  as: string;
-  ats: string[];
-  atm: TagModeType;
-  ap: number;
-}
 
 export interface ChannelApiParams {
   search?: string;
@@ -168,10 +151,6 @@ export interface ChannelApiParams {
   page?: number;
 }
 
-export interface ChannelStats {
-  subscribed: number;
-  available: number;
-}
 
 // Single source of truth - with description always optional
 interface ChannelTagBase {
@@ -191,16 +170,8 @@ export type ChannelTag = ChannelTagBase;
 // For creating new tags - no server-generated fields
 export type TagCreateRequest = Omit<ChannelTagBase, 'id' | 'channel_count' | 'created_at'>;
 
-// For preview/display - only name & color required, everything else optional
-export type ChannelTagPreview = Pick<ChannelTagBase, 'name' | 'color'> &
-  Partial<Omit<ChannelTagBase, 'name' | 'color'>>;
-
 // For partial updates
 export type TagUpdateRequest = Partial<TagCreateRequest>;
-
-export interface TagAssignmentRequest {
-  tag_ids: string[];
-}
 
 export enum HttpStatusCode {
   OK = 200,
