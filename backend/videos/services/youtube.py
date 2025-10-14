@@ -5,8 +5,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, TypedDict, Union, cast
 
 from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import Flow
-from googleapiclient.discovery import Resource, build
+from google_auth_oauthlib.flow import Flow  # type: ignore
+from googleapiclient.discovery import Resource, build  # type: ignore
 from videos.services.quota_tracker import QuotaTracker
 
 # Type aliases for better type checking

@@ -21,7 +21,7 @@ def pytest_configure():
 
 
 @pytest.fixture
-def mock_youtube_credentials(monkeypatch: pytest.MonkeyPatch, tmp_path: pytest.TempPathFactory) -> None:
+def mock_youtube_credentials(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Mock YouTube API credentials using a secure temporary directory"""
     # Create a secure temporary directory for credentials using tmp_path fixture
     credentials_dir = tmp_path / "test_credentials"

@@ -22,7 +22,7 @@ class YouTubeAPIMockResponses:
         view_count: int = 100000,
         custom_url: Optional[str] = None,
         published_at: Optional[str] = None,
-        thumbnails: Optional[Dict] = None,
+        thumbnails: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Generate a mock channel response from YouTube API"""
 
