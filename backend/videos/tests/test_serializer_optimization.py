@@ -16,7 +16,9 @@ class VideoSerializerOptimizationTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         """Create test data once for the entire test class"""
-        cls.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
+        cls.user = User.objects.create_user(
+            username="testuser", email="test@example.com", password="testpass123"
+        )  # nosec B105 - test-only password
 
         # Create channels
         cls.channel1 = Channel.objects.create(channel_id="UC1", title="Tech Channel")

@@ -16,8 +16,8 @@ class URLTest(TestCase):
             {
                 "email": "test@example.com",
                 "username": "testuser",
-                "password": "testpass123",
-                "password_confirm": "testpass123",
+                "password": "testpass123",  # nosec B105 - test-only password
+                "password_confirm": "testpass123",  # nosec B105 - test-only password
                 "captcha_token": "fake_token",
             },
             follow=False,

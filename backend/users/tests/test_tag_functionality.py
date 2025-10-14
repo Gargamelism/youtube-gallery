@@ -20,12 +20,21 @@ class ChannelTagModelTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         """Create test data once for the entire test class"""
-        cls.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
-        cls.user2 = User.objects.create_user(username="testuser2", email="test2@example.com", password="testpass123")
+        cls.user = User.objects.create_user(
+            username="testuser", email="test@example.com", password="testpass123"
+        )  # nosec B105 - test-only password
+        cls.user2 = User.objects.create_user(
+            username="testuser2", email="test2@example.com", password="testpass123"
+        )  # nosec B105 - test-only password
 
     def test_channel_tag_creation(self):
         """Test creating a channel tag"""
-        tag = ChannelTag.objects.create(user=self.user, name="Tech", color="#3B82F6", description="Technology channels")
+        tag = ChannelTag.objects.create(
+            user=self.user,
+            name="Tech",
+            color="#3B82F6",
+            description="Technology channels",
+        )
         self.assertEqual(tag.name, "Tech")
         self.assertEqual(tag.color, "#3B82F6")
         self.assertEqual(tag.user, self.user)
@@ -71,20 +80,30 @@ class UserChannelTagModelTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         """Create test data once for the entire test class"""
-        cls.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
-        cls.channel = Channel.objects.create(channel_id="UC123456", title="Test Channel")
-        cls.user_channel = UserChannel.objects.create(user=cls.user, channel=cls.channel)
+        cls.user = User.objects.create_user(
+            username="testuser", email="test@example.com", password="testpass123"
+        )  # nosec B105 - test-only password
+        cls.channel = Channel.objects.create(
+            channel_id="UC123456", title="Test Channel"
+        )
+        cls.user_channel = UserChannel.objects.create(
+            user=cls.user, channel=cls.channel
+        )
         cls.tag = ChannelTag.objects.create(user=cls.user, name="Tech")
 
     def test_user_channel_tag_creation(self):
         """Test creating a user channel tag assignment"""
-        assignment = UserChannelTag.objects.create(user_channel=self.user_channel, tag=self.tag)
+        assignment = UserChannelTag.objects.create(
+            user_channel=self.user_channel, tag=self.tag
+        )
         self.assertEqual(assignment.user_channel, self.user_channel)
         self.assertEqual(assignment.tag, self.tag)
 
     def test_user_channel_tag_string_representation(self):
         """Test string representation of UserChannelTag"""
-        assignment = UserChannelTag.objects.create(user_channel=self.user_channel, tag=self.tag)
+        assignment = UserChannelTag.objects.create(
+            user_channel=self.user_channel, tag=self.tag
+        )
         expected = f"{self.user_channel} -> {self.tag}"
         self.assertEqual(str(assignment), expected)
 
@@ -102,10 +121,12 @@ class ChannelTagAPITests(APITestCase):
     @classmethod
     def setUpTestData(cls):
         """Create test data once for the entire test class"""
-        cls.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
+        cls.user = User.objects.create_user(
+            username="testuser", email="test@example.com", password="testpass123"
+        )  # nosec B105 - test-only password
         cls.other_user = User.objects.create_user(
             username="otheruser", email="other@example.com", password="testpass123"
-        )
+        )  # nosec B105 - test-only password
 
     def setUp(self):
         """Set up per-test authentication"""
@@ -119,7 +140,11 @@ class ChannelTagAPITests(APITestCase):
 
     def test_create_channel_tag(self):
         """Test creating a channel tag via API"""
-        data = {"name": "Tech", "color": "#3B82F6", "description": "Technology channels"}
+        data = {
+            "name": "Tech",
+            "color": "#3B82F6",
+            "description": "Technology channels",
+        }
         response = self.client.post("/api/auth/tags", data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -190,7 +215,11 @@ class ChannelTagAPITests(APITestCase):
         """Test updating a channel tag"""
         tag = ChannelTag.objects.create(user=self.user, name="Tech")
 
-        data = {"name": "Technology", "color": "#10B981", "description": "Updated description"}
+        data = {
+            "name": "Technology",
+            "color": "#10B981",
+            "description": "Updated description",
+        }
         response = self.client.put(f"/api/auth/tags/{tag.id}", data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -235,7 +264,9 @@ class ChannelTagAPITests(APITestCase):
             with self.subTest(method=method, data=data):
                 client_method = getattr(self.client, method)
                 if data:
-                    response = client_method(f"/api/auth/tags/{tag.id}", data, format="json")
+                    response = client_method(
+                        f"/api/auth/tags/{tag.id}", data, format="json"
+                    )
                 else:
                     response = client_method(f"/api/auth/tags/{tag.id}")
 
@@ -255,13 +286,19 @@ class TagAssignmentAPITests(APITestCase):
     @classmethod
     def setUpTestData(cls):
         """Create test data once for the entire test class"""
-        cls.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
+        cls.user = User.objects.create_user(
+            username="testuser", email="test@example.com", password="testpass123"
+        )  # nosec B105 - test-only password
         cls.other_user = User.objects.create_user(
             username="otheruser", email="other@example.com", password="testpass123"
-        )
+        )  # nosec B105 - test-only password
 
-        cls.channel = Channel.objects.create(channel_id="UC123456", title="Test Channel")
-        cls.user_channel = UserChannel.objects.create(user=cls.user, channel=cls.channel)
+        cls.channel = Channel.objects.create(
+            channel_id="UC123456", title="Test Channel"
+        )
+        cls.user_channel = UserChannel.objects.create(
+            user=cls.user, channel=cls.channel
+        )
 
     def setUp(self):
         """Set up per-test authentication and data"""
@@ -281,32 +318,46 @@ class TagAssignmentAPITests(APITestCase):
         """Test assigning tags to a channel"""
         data = {"tag_ids": [str(self.tag1.id), str(self.tag2.id)]}
 
-        response = self.client.put(f"/api/auth/channels/{self.user_channel.id}/tags", data, format="json")
+        response = self.client.put(
+            f"/api/auth/channels/{self.user_channel.id}/tags", data, format="json"
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(UserChannelTag.objects.filter(user_channel=self.user_channel).count(), 2)
+        self.assertEqual(
+            UserChannelTag.objects.filter(user_channel=self.user_channel).count(), 2
+        )
 
     def test_assign_single_tag_to_channel(self):
         """Test assigning single tag to a channel"""
         data = {"tag_ids": [str(self.tag1.id)]}
 
-        response = self.client.put(f"/api/auth/channels/{self.user_channel.id}/tags", data, format="json")
+        response = self.client.put(
+            f"/api/auth/channels/{self.user_channel.id}/tags", data, format="json"
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(UserChannelTag.objects.filter(user_channel=self.user_channel).count(), 1)
+        self.assertEqual(
+            UserChannelTag.objects.filter(user_channel=self.user_channel).count(), 1
+        )
 
     def test_assign_empty_tags_to_channel(self):
         """Test assigning empty tag list to channel (removes all tags)"""
         # First assign some tags
         UserChannelTag.objects.create(user_channel=self.user_channel, tag=self.tag1)
-        self.assertEqual(UserChannelTag.objects.filter(user_channel=self.user_channel).count(), 1)
+        self.assertEqual(
+            UserChannelTag.objects.filter(user_channel=self.user_channel).count(), 1
+        )
 
         data = {"tag_ids": []}
 
-        response = self.client.put(f"/api/auth/channels/{self.user_channel.id}/tags", data, format="json")
+        response = self.client.put(
+            f"/api/auth/channels/{self.user_channel.id}/tags", data, format="json"
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(UserChannelTag.objects.filter(user_channel=self.user_channel).count(), 0)
+        self.assertEqual(
+            UserChannelTag.objects.filter(user_channel=self.user_channel).count(), 0
+        )
 
     def test_get_channel_tags(self):
         """Test getting tags assigned to a channel"""
@@ -332,7 +383,9 @@ class TagAssignmentAPITests(APITestCase):
         """Test assigning invalid tag ID format returns error"""
         data = {"tag_ids": ["invalid-uuid-123"]}
 
-        response = self.client.put(f"/api/auth/channels/{self.user_channel.id}/tags", data, format="json")
+        response = self.client.put(
+            f"/api/auth/channels/{self.user_channel.id}/tags", data, format="json"
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("Invalid UUID format", str(response.data))
@@ -342,7 +395,9 @@ class TagAssignmentAPITests(APITestCase):
         fake_uuid = str(uuid.uuid4())
         data = {"tag_ids": [fake_uuid]}
 
-        response = self.client.put(f"/api/auth/channels/{self.user_channel.id}/tags", data, format="json")
+        response = self.client.put(
+            f"/api/auth/channels/{self.user_channel.id}/tags", data, format="json"
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("Invalid tag IDs not owned by user", str(response.data))
@@ -353,7 +408,9 @@ class TagAssignmentAPITests(APITestCase):
 
         data = {"tag_ids": [str(other_tag.id)]}
 
-        response = self.client.put(f"/api/auth/channels/{self.user_channel.id}/tags", data, format="json")
+        response = self.client.put(
+            f"/api/auth/channels/{self.user_channel.id}/tags", data, format="json"
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("Invalid tag IDs not owned by user", str(response.data))
@@ -362,18 +419,26 @@ class TagAssignmentAPITests(APITestCase):
         """Test that new tag assignments replace existing ones"""
         # Initially assign tag1
         UserChannelTag.objects.create(user_channel=self.user_channel, tag=self.tag1)
-        self.assertEqual(UserChannelTag.objects.filter(user_channel=self.user_channel).count(), 1)
+        self.assertEqual(
+            UserChannelTag.objects.filter(user_channel=self.user_channel).count(), 1
+        )
 
         # Assign tag2 (should replace tag1)
         data = {"tag_ids": [str(self.tag2.id)]}
 
-        response = self.client.put(f"/api/auth/channels/{self.user_channel.id}/tags", data, format="json")
+        response = self.client.put(
+            f"/api/auth/channels/{self.user_channel.id}/tags", data, format="json"
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(UserChannelTag.objects.filter(user_channel=self.user_channel).count(), 1)
+        self.assertEqual(
+            UserChannelTag.objects.filter(user_channel=self.user_channel).count(), 1
+        )
 
         # Verify only tag2 is assigned
-        remaining_assignment = UserChannelTag.objects.filter(user_channel=self.user_channel).first()
+        remaining_assignment = UserChannelTag.objects.filter(
+            user_channel=self.user_channel
+        ).first()
         self.assertEqual(remaining_assignment.tag, self.tag2)
 
     def test_assign_tags_to_nonexistent_channel(self):
@@ -382,7 +447,9 @@ class TagAssignmentAPITests(APITestCase):
 
         data = {"tag_ids": [str(self.tag1.id)]}
 
-        response = self.client.put(f"/api/auth/channels/{fake_channel_id}/tags", data, format="json")
+        response = self.client.put(
+            f"/api/auth/channels/{fake_channel_id}/tags", data, format="json"
+        )
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -393,25 +460,43 @@ class VideoTagFilteringAPITests(APITestCase):
     @classmethod
     def setUpTestData(cls):
         """Create test data once for the entire test class"""
-        cls.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
+        cls.user = User.objects.create_user(
+            username="testuser", email="test@example.com", password="testpass123"
+        )  # nosec B105 - test-only password
 
         # Create channels
-        cls.tech_channel = Channel.objects.create(channel_id="UC_TECH", title="Tech Channel")
-        cls.gaming_channel = Channel.objects.create(channel_id="UC_GAMING", title="Gaming Channel")
-        cls.mixed_channel = Channel.objects.create(channel_id="UC_MIXED", title="Mixed Channel")
+        cls.tech_channel = Channel.objects.create(
+            channel_id="UC_TECH", title="Tech Channel"
+        )
+        cls.gaming_channel = Channel.objects.create(
+            channel_id="UC_GAMING", title="Gaming Channel"
+        )
+        cls.mixed_channel = Channel.objects.create(
+            channel_id="UC_MIXED", title="Mixed Channel"
+        )
 
         # Create user channel subscriptions
-        cls.user_tech_channel = UserChannel.objects.create(user=cls.user, channel=cls.tech_channel)
-        cls.user_gaming_channel = UserChannel.objects.create(user=cls.user, channel=cls.gaming_channel)
-        cls.user_mixed_channel = UserChannel.objects.create(user=cls.user, channel=cls.mixed_channel)
+        cls.user_tech_channel = UserChannel.objects.create(
+            user=cls.user, channel=cls.tech_channel
+        )
+        cls.user_gaming_channel = UserChannel.objects.create(
+            user=cls.user, channel=cls.gaming_channel
+        )
+        cls.user_mixed_channel = UserChannel.objects.create(
+            user=cls.user, channel=cls.mixed_channel
+        )
 
         # Create videos
-        cls.tech_video = Video.objects.create(channel=cls.tech_channel, video_id="tech_video_1", title="Tech Tutorial")
+        cls.tech_video = Video.objects.create(
+            channel=cls.tech_channel, video_id="tech_video_1", title="Tech Tutorial"
+        )
         cls.gaming_video = Video.objects.create(
             channel=cls.gaming_channel, video_id="gaming_video_1", title="Gaming Review"
         )
         cls.mixed_video = Video.objects.create(
-            channel=cls.mixed_channel, video_id="mixed_video_1", title="Tech Gaming Setup"
+            channel=cls.mixed_channel,
+            video_id="mixed_video_1",
+            title="Tech Gaming Setup",
         )
 
     def setUp(self):
@@ -425,11 +510,21 @@ class VideoTagFilteringAPITests(APITestCase):
         self.tutorial_tag = ChannelTag.objects.create(user=self.user, name="Tutorial")
 
         # Assign tags to channels
-        UserChannelTag.objects.create(user_channel=self.user_tech_channel, tag=self.tech_tag)
-        UserChannelTag.objects.create(user_channel=self.user_tech_channel, tag=self.tutorial_tag)
-        UserChannelTag.objects.create(user_channel=self.user_gaming_channel, tag=self.gaming_tag)
-        UserChannelTag.objects.create(user_channel=self.user_mixed_channel, tag=self.tech_tag)
-        UserChannelTag.objects.create(user_channel=self.user_mixed_channel, tag=self.gaming_tag)
+        UserChannelTag.objects.create(
+            user_channel=self.user_tech_channel, tag=self.tech_tag
+        )
+        UserChannelTag.objects.create(
+            user_channel=self.user_tech_channel, tag=self.tutorial_tag
+        )
+        UserChannelTag.objects.create(
+            user_channel=self.user_gaming_channel, tag=self.gaming_tag
+        )
+        UserChannelTag.objects.create(
+            user_channel=self.user_mixed_channel, tag=self.tech_tag
+        )
+        UserChannelTag.objects.create(
+            user_channel=self.user_mixed_channel, tag=self.gaming_tag
+        )
 
     def tearDown(self):
         """Clean up per-test data"""
@@ -477,7 +572,9 @@ class VideoTagFilteringAPITests(APITestCase):
     def test_filter_videos_with_watch_status_and_tags(self):
         """Test combining tag filtering with watch status filtering"""
         # Mark gaming video as watched
-        UserVideo.objects.create(user=self.user, video=self.gaming_video, is_watched=True)
+        UserVideo.objects.create(
+            user=self.user, video=self.gaming_video, is_watched=True
+        )
 
         response = self.client.get("/api/videos?tags=Gaming&watch_status=watched")
 
@@ -487,7 +584,9 @@ class VideoTagFilteringAPITests(APITestCase):
         # Should only include watched gaming videos
         self.assertIn("gaming_video_1", video_ids)
         self.assertNotIn("tech_video_1", video_ids)
-        self.assertNotIn("mixed_video_1", video_ids)  # mixed_video has Gaming tag but is not watched
+        self.assertNotIn(
+            "mixed_video_1", video_ids
+        )  # mixed_video has Gaming tag but is not watched
 
     def test_filter_videos_by_nonexistent_tag(self):
         """Test filtering by non-existent tag returns validation error"""
@@ -500,7 +599,9 @@ class VideoTagFilteringAPITests(APITestCase):
         """Test watched videos endpoint with tag filtering"""
         # Mark some videos as watched
         UserVideo.objects.create(user=self.user, video=self.tech_video, is_watched=True)
-        UserVideo.objects.create(user=self.user, video=self.mixed_video, is_watched=True)
+        UserVideo.objects.create(
+            user=self.user, video=self.mixed_video, is_watched=True
+        )
 
         response = self.client.get("/api/videos/watched?tags=Tech")
 
@@ -602,12 +703,18 @@ class SearchServiceIntegrationTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         """Create test data once for the entire test class"""
-        cls.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
+        cls.user = User.objects.create_user(
+            username="testuser", email="test@example.com", password="testpass123"
+        )  # nosec B105 - test-only password
 
         # Create test data similar to VideoTagFilteringAPITests
         cls.channel = Channel.objects.create(channel_id="UC_TEST", title="Test Channel")
-        cls.user_channel = UserChannel.objects.create(user=cls.user, channel=cls.channel)
-        cls.video = Video.objects.create(channel=cls.channel, video_id="test_video_1", title="Test Video")
+        cls.user_channel = UserChannel.objects.create(
+            user=cls.user, channel=cls.channel
+        )
+        cls.video = Video.objects.create(
+            channel=cls.channel, video_id="test_video_1", title="Test Video"
+        )
 
     def setUp(self):
         """Set up per-test data"""
@@ -630,7 +737,13 @@ class SearchServiceIntegrationTests(TestCase):
         # 3. User channels prefetch (filtered by user)
         # 4. User channel tags + channel tags with select_related optimization
         with self.assertNumQueries(4):
-            list(service.search_videos(tag_names=["Test"], tag_mode=TagMode.ANY, watch_status=WatchStatus.ALL))
+            list(
+                service.search_videos(
+                    tag_names=["Test"],
+                    tag_mode=TagMode.ANY,
+                    watch_status=WatchStatus.ALL,
+                )
+            )
 
     def test_search_service_query_optimization_no_tags(self):
         """Test that search service generates fewer queries without tag filtering"""
@@ -664,5 +777,9 @@ class SearchServiceIntegrationTests(TestCase):
                 tag_mode_enum = getattr(TagMode, tag_mode.split(".")[1])
                 watch_status_enum = getattr(WatchStatus, watch_status.split(".")[1])
 
-                results = service.search_videos(tag_names=tags, tag_mode=tag_mode_enum, watch_status=watch_status_enum)
+                results = service.search_videos(
+                    tag_names=tags,
+                    tag_mode=tag_mode_enum,
+                    watch_status=watch_status_enum,
+                )
                 self.assertEqual(len(list(results)), expected_count)
