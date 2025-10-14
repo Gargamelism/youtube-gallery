@@ -27,7 +27,10 @@ module.exports = {
           '(^|/)[.][^/]+[.](?:js|cjs|mjs|ts|cts|mts|json)$',                  // dot files
           '[.]d[.]ts$',                                                       // TypeScript declaration files
           '(^|/)tsconfig[.]json$',                                            // TypeScript config
-          '(^|/)(?:babel|webpack)[.]config[.](?:js|cjs|mjs|ts|cts|mts|json)$' // other configs
+          '(^|/)(?:babel|webpack)[.]config[.](?:js|cjs|mjs|ts|cts|mts|json)$', // other configs
+          '(^|/)(?:next|postcss|tailwind)[.]config[.](?:js|cjs|mjs|ts|cts|mts)$', // Next.js configs
+          '^[.]next/',                                                        // Next.js build output
+          '(^|/)jest[.](?:config|setup)[.](?:js|ts)$'                         // Jest config
         ]
       },
       to: {},
@@ -38,7 +41,12 @@ module.exports = {
         'A module depends on a node core module that has been deprecated. Find an alternative - these are ' +
         "bound to exist - node doesn't deprecate lightly.",
       severity: 'warn',
-      from: {},
+      from: {
+        pathNot: [
+          '^[.]next/',
+          'node_modules/'
+        ]
+      },
       to: {
         dependencyTypes: [
           'core'
@@ -57,7 +65,6 @@ module.exports = {
           '^node-inspect/lib/_inspect$',
           '^node-inspect/lib/internal/inspect_client$',
           '^node-inspect/lib/internal/inspect_repl$',
-          '^async_hooks$',
           '^punycode$',
           '^domain$',
           '^constants$',
@@ -88,7 +95,12 @@ module.exports = {
         "That's problematic as the package either (1) won't be available on live (2 - worse) will be " +
         "available on live with an non-guaranteed version. Fix it by adding the package to the dependencies " +
         "in your package.json.",
-      from: {},
+      from: {
+        pathNot: [
+          '^[.]next/',
+          'node_modules/'
+        ]
+      },
       to: {
         dependencyTypes: [
           'npm-no-pkg',
@@ -102,9 +114,19 @@ module.exports = {
         "This module depends on a module that cannot be found ('resolved to disk'). If it's an npm " +
         'module: add it to your package.json. In all other cases you likely already know what to do.',
       severity: 'error',
-      from: {},
+      from: {
+        pathNot: [
+          '^[.]next/',
+          'node_modules/',
+          'eslint[.]config[.]js$',
+          'jest[.]setup[.]js$'
+        ]
+      },
       to: {
-        couldNotResolve: true
+        couldNotResolve: true,
+        pathNot: [
+          '@builder[.]io/partytown/integration'
+        ]
       }
     },
     {
@@ -149,14 +171,18 @@ module.exports = {
         'from.pathNot re of the not-to-dev-dep rule in the dependency-cruiser configuration',
       from: {
         path: '^(\.)',
-        pathNot: '[.](?:spec|test)[.](?:js|mjs|cjs|jsx|ts|mts|cts|tsx)$'
+        pathNot: [
+          '[.](?:spec|test)[.](?:js|mjs|cjs|jsx|ts|mts|cts|tsx)$',
+          '__tests__/',
+          'eslint[.]config[.]js$',
+          'jest[.](?:config|setup)[.](?:js|ts)$',
+          '(?:next|postcss|tailwind)[.]config[.](?:js|cjs|mjs|ts)$'
+        ]
       },
       to: {
         dependencyTypes: [
           'npm-dev',
         ],
-        // type only dependencies are not a problem as they don't end up in the
-        // production code or are ignored by the runtime.
         dependencyTypesNot: [
           'type-only'
         ],
@@ -200,15 +226,16 @@ module.exports = {
 
     /* Which modules not to follow further when encountered */
     doNotFollow: {
-      /* path: an array of regular expressions in strings to match against */
       path: ['node_modules']
     },
 
     /* Which modules to exclude */
-    // exclude : {
-    //   /* path: an array of regular expressions in strings to match against */
-    //   path: '',
-    // },
+    exclude : {
+      path: [
+        '^[.]next/',
+        'node_modules/'
+      ],
+    },
 
     /* Which modules to exclusively include (array of regular expressions in strings)
        dependency-cruiser will skip everything not matching this pattern

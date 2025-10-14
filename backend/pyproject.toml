@@ -1,3 +1,17 @@
+[tool.mypy]
+plugins = ["mypy_django_plugin.main"]
+strict = true
+python_version = "3.12"
+ignore_missing_imports = false
+follow_imports = "normal"
+disallow_untyped_defs = true
+warn_unused_ignores = true
+show_error_codes = true
+pretty = true
+
+[tool.django-stubs]
+django_settings_module = "youtube_gallery.settings"
+
 [tool.black]
 line-length = 120
 target-version = ['py312']

@@ -16,6 +16,8 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "type-check": "tsc --noEmit",
+    "depcruise": "depcruise src app components lib services --config .dependency-cruiser.cjs",
+    "depcruise:graph": "depcruise src app components lib services --include-only '^(src|app|components|lib|services)' --output-type dot --config .dependency-cruiser.cjs | dot -T svg > dependency-graph.svg",
     "post-changes": "npm run type-check && npm run lint:strict && npm run test && npm run build"
   },
   "dependencies": {
