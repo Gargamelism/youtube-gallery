@@ -44,7 +44,7 @@ jobs:
         run: npx --yes madge --circular .
 
       - name: Check Import Rules (depcruise)
-        run: npx dependency-cruiser --validate .dependency-cruiser.json src/
+        run: npx dependency-cruiser --validate .dependency-cruiser.json .
 
       - name: Check Unused Exports (ts-prune)
         run: |

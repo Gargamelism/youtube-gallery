@@ -40,7 +40,7 @@ def youtube_auth_required(view_func):
 
             request.youtube_credentials = credentials
 
-        except Exception as refresh_error:
+        except Exception:
             return Response(
                 {
                     "error": "Failed to refresh YouTube authentication",

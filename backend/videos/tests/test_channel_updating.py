@@ -1,15 +1,10 @@
-import pytest
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from django.contrib.auth import get_user_model
-from django.utils import timezone
-from datetime import datetime, timedelta
-from unittest.mock import patch, Mock, MagicMock
 from rest_framework.test import APITestCase
-from rest_framework import status
 from rest_framework.authtoken.models import Token
 
-from videos.models import Channel, Video, UpdateFrequency
-from users.models import UserChannel, UserVideo, ChannelTag, UserChannelTag
+from videos.models import Channel, Video
+from users.models import UserChannel
 
 User = get_user_model()
 

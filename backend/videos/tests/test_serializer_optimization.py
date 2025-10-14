@@ -1,7 +1,6 @@
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.db import connection
-from django.test.utils import override_settings
 from rest_framework.test import APIRequestFactory
 from videos.models import Channel, Video
 from videos.serializers import VideoListSerializer
@@ -104,7 +103,7 @@ class VideoSerializerOptimizationTests(TestCase):
 
         # Serialize without prefetching
         serializer = VideoListSerializer(videos, many=True, context={"request": request})
-        data = serializer.data
+        serializer.data
 
         # Count database queries during serialization
         query_count = len(connection.queries)

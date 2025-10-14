@@ -1,7 +1,5 @@
 from celery import shared_task
-from celery.exceptions import Retry
 from django.conf import settings
-from django.db import transaction
 from typing import List
 
 from videos.models import Channel

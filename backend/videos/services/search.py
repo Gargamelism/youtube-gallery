@@ -3,7 +3,7 @@ from django.db.models import QuerySet, Count, Q, Exists, OuterRef, Prefetch
 
 from ..models import Video
 from ..validators import TagMode, WatchStatus
-from users.models import User, UserChannel, UserVideo, UserChannelTag, ChannelTag
+from users.models import User, UserChannel, UserVideo, UserChannelTag
 
 
 class VideoSearchService:

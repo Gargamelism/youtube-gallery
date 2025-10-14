@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from users.models import UserChannel, UserVideo, ChannelTag, UserChannelTag
+from users.models import UserChannel, UserVideo
 
 from .models import Channel, Video
 

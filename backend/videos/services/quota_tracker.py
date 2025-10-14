@@ -10,7 +10,7 @@ import warnings
 # Suppress Redis-OM/Pydantic pk field shadowing warnings
 warnings.filterwarnings("ignore", message='Field name "pk" shadows an attribute in parent', category=UserWarning)
 
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Dict, Optional
 

@@ -1,6 +1,5 @@
 from django.conf import settings
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.authtoken.models import Token
 from rest_framework import exceptions
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse

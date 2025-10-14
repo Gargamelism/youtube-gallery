@@ -6,7 +6,7 @@ channel states and scenarios for comprehensive testing of the channel updating
 and removal functionality.
 """
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 

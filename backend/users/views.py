@@ -27,7 +27,6 @@ from .serializers import (
 )
 from .services.channel_search import ChannelSearchService
 from videos.validators import ChannelSearchParams, TagAssignmentParams
-from videos.models import Channel
 from videos.serializers import ChannelSerializer
 
 

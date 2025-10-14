@@ -1,6 +1,5 @@
 import os
 from celery import Celery
-from celery.schedules import crontab
 
 # this must be set before importing settings
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "youtube_gallery.settings")

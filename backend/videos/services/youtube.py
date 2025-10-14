@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, TypedDict
 
 import requests
-from django.conf import settings
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import Resource, build
@@ -266,7 +265,7 @@ class YouTubeService:
 
             return self._format_channel_response(channel_info)
 
-        except Exception as e:
+        except Exception:
             # Error fetching channel details
             return None
 
@@ -329,7 +328,7 @@ class YouTubeService:
                 if not next_page_token:
                     break
 
-            except Exception as e:
+            except Exception:
                 break
 
     def fetch_channel(self, channel_identifier: str) -> Optional[Channel]:

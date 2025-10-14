@@ -1,13 +1,11 @@
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Tuple
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
-from django.conf import settings
 from celery.utils.log import get_task_logger
-import logging
 
 from videos.models import Channel, Video
-from users.models import UserVideo, UserChannel
+from users.models import UserVideo
 
 
 class ChannelCleanupService:

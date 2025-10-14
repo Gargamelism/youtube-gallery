@@ -3,7 +3,6 @@ import uuid
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 from django.db.models import Q
-from django.utils import timezone
 from dirtyfields import DirtyFieldsMixin
 
 from .fields import YouTubeDurationField

@@ -1,4 +1,3 @@
-from django.db.models import Count, Q
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions, status, viewsets
@@ -6,7 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
-from users.models import UserChannel, UserVideo, ChannelTag
+from users.models import UserVideo
 
 from .decorators import youtube_auth_required
 from .models import Channel, Video
@@ -15,7 +14,7 @@ from .services.youtube import YouTubeAuthenticationError, YouTubeService
 from .services.user_quota_tracker import UserQuotaTracker
 from .exceptions import UserQuotaExceededError
 from .services.search import VideoSearchService
-from .validators import VideoSearchParams, WatchStatus, TagMode
+from .validators import VideoSearchParams, WatchStatus
 
 
 class ChannelViewSet(viewsets.ModelViewSet):
@@ -61,7 +60,7 @@ class ChannelViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_429_TOO_MANY_REQUESTS,
             )
 
-        except YouTubeAuthenticationError as e:
+        except YouTubeAuthenticationError:
             return Response(
                 {
                     "error": "YouTube authentication failed",

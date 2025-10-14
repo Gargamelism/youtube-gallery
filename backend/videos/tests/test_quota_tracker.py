@@ -2,7 +2,7 @@
 Tests for QuotaTracker utility class.
 """
 
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from unittest.mock import Mock, patch, call
 
 from django.test import TestCase

@@ -47,7 +47,6 @@ class KebabCaseRouter(DefaultRouter):
         converted_routes = []
         for route in routes:
             if hasattr(route, "url") and route.url:
-                original_url = route.url
                 # Convert action names in URLs to kebab-case
                 url_parts = route.url.split("/")
                 converted_parts = []
