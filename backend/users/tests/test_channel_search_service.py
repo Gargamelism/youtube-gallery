@@ -13,7 +13,7 @@ class ChannelSearchServiceTests(TestCase):
     """Unit tests for ChannelSearchService"""
 
     @classmethod
-    def setUpTestData(cls):
+    def setUpTestData(cls) -> None:
         """Create test data once for the entire test class"""
         cls.user = User.objects.create_user(
             username="testuser", email="test@example.com", password="testpass123"  # nosec B105 - test-only password
@@ -53,7 +53,7 @@ class ChannelSearchServiceTests(TestCase):
         UserChannelTag.objects.create(user_channel=cls.user_channel3, tag=cls.tag_web)
         UserChannelTag.objects.create(user_channel=cls.user_channel3, tag=cls.tag_programming)
 
-    def test_search_user_channels_no_filters(self):
+    def test_search_user_channels_no_filters(self) -> None:
         """Test searching user channels without filters returns all active channels"""
         service = ChannelSearchService(self.user)
         channels = service.search_user_channels()
@@ -65,7 +65,7 @@ class ChannelSearchServiceTests(TestCase):
         self.assertIn("Web Development", channel_titles)
         self.assertNotIn("Data Science", channel_titles)
 
-    def test_search_user_channels_by_title(self):
+    def test_search_user_channels_by_title(self) -> None:
         """Test searching user channels by title"""
         service = ChannelSearchService(self.user)
         channels = service.search_user_channels(search_query="Python")
@@ -73,15 +73,15 @@ class ChannelSearchServiceTests(TestCase):
         self.assertEqual(channels.count(), 1)
         self.assertEqual(channels.first().channel.title, "Python Programming")
 
-    def test_search_user_channels_by_channel_id(self):
-        """Test searching user channels by channel ID"""
+    def test_search_user_channels_by_channel_id(self) -> None:
+        """Test searching user channels by channel_id"""
         service = ChannelSearchService(self.user)
         channels = service.search_user_channels(search_query="UC2")
 
         self.assertEqual(channels.count(), 1)
         self.assertEqual(channels.first().channel.channel_id, "UC2")
 
-    def test_search_user_channels_by_description(self):
+    def test_search_user_channels_by_description(self) -> None:
         """Test searching user channels by description"""
         service = ChannelSearchService(self.user)
         channels = service.search_user_channels(search_query="web development")
@@ -89,7 +89,7 @@ class ChannelSearchServiceTests(TestCase):
         self.assertEqual(channels.count(), 1)
         self.assertEqual(channels.first().channel.title, "Web Development")
 
-    def test_search_user_channels_case_insensitive(self):
+    def test_search_user_channels_case_insensitive(self) -> None:
         """Test that search is case insensitive"""
         service = ChannelSearchService(self.user)
         channels = service.search_user_channels(search_query="python")
@@ -97,7 +97,7 @@ class ChannelSearchServiceTests(TestCase):
         self.assertEqual(channels.count(), 1)
         self.assertEqual(channels.first().channel.title, "Python Programming")
 
-    def test_filter_by_single_tag_any_mode(self):
+    def test_filter_by_single_tag_any_mode(self) -> None:
         """Test filtering by single tag in ANY mode"""
         service = ChannelSearchService(self.user)
         channels = service.search_user_channels(tag_names=["Programming"], tag_mode=TagMode.ANY)
@@ -107,14 +107,14 @@ class ChannelSearchServiceTests(TestCase):
         self.assertIn("Python Programming", channel_titles)
         self.assertIn("Web Development", channel_titles)
 
-    def test_filter_by_multiple_tags_any_mode(self):
+    def test_filter_by_multiple_tags_any_mode(self) -> None:
         """Test filtering by multiple tags in ANY mode"""
         service = ChannelSearchService(self.user)
         channels = service.search_user_channels(tag_names=["Programming", "Tutorial"], tag_mode=TagMode.ANY)
 
         self.assertEqual(channels.count(), 3)
 
-    def test_filter_by_multiple_tags_all_mode(self):
+    def test_filter_by_multiple_tags_all_mode(self) -> None:
         """Test filtering by multiple tags in ALL mode"""
         service = ChannelSearchService(self.user)
         channels = service.search_user_channels(tag_names=["Programming", "Tutorial"], tag_mode=TagMode.ALL)
@@ -122,14 +122,14 @@ class ChannelSearchServiceTests(TestCase):
         self.assertEqual(channels.count(), 1)
         self.assertEqual(channels.first().channel.title, "Python Programming")
 
-    def test_filter_by_tags_all_mode_no_matches(self):
+    def test_filter_by_tags_all_mode_no_matches(self) -> None:
         """Test filtering by tags in ALL mode with no matches"""
         service = ChannelSearchService(self.user)
         channels = service.search_user_channels(tag_names=["Programming", "Web", "Tutorial"], tag_mode=TagMode.ALL)
 
         self.assertEqual(channels.count(), 0)
 
-    def test_combined_search_and_tag_filter(self):
+    def test_combined_search_and_tag_filter(self) -> None:
         """Test combining search query and tag filtering"""
         service = ChannelSearchService(self.user)
         channels = service.search_user_channels(
@@ -139,7 +139,7 @@ class ChannelSearchServiceTests(TestCase):
         self.assertEqual(channels.count(), 1)
         self.assertEqual(channels.first().channel.title, "Python Programming")
 
-    def test_search_available_channels_no_filters(self):
+    def test_search_available_channels_no_filters(self) -> None:
         """Test searching available channels without filters"""
         service = ChannelSearchService(self.user)
         channels = service.search_available_channels()
@@ -149,7 +149,7 @@ class ChannelSearchServiceTests(TestCase):
         self.assertIn("Data Science", channel_titles)
         self.assertIn("Programming Tips", channel_titles)
 
-    def test_search_available_channels_excludes_active_subscriptions(self):
+    def test_search_available_channels_excludes_active_subscriptions(self) -> None:
         """Test that available channels excludes active user subscriptions"""
         service = ChannelSearchService(self.user)
         channels = service.search_available_channels()
@@ -159,7 +159,7 @@ class ChannelSearchServiceTests(TestCase):
         self.assertNotIn("UC2", channel_ids)
         self.assertNotIn("UC3", channel_ids)
 
-    def test_search_available_channels_includes_inactive_subscriptions(self):
+    def test_search_available_channels_includes_inactive_subscriptions(self) -> None:
         """Test that available channels includes inactive user subscriptions"""
         service = ChannelSearchService(self.user)
         channels = service.search_available_channels()
@@ -167,7 +167,7 @@ class ChannelSearchServiceTests(TestCase):
         channel_ids = [ch.channel_id for ch in channels]
         self.assertIn("UC4", channel_ids)
 
-    def test_search_available_channels_by_title(self):
+    def test_search_available_channels_by_title(self) -> None:
         """Test searching available channels by title"""
         service = ChannelSearchService(self.user)
         channels = service.search_available_channels(search_query="Data")
@@ -175,7 +175,7 @@ class ChannelSearchServiceTests(TestCase):
         self.assertEqual(channels.count(), 1)
         self.assertEqual(channels.first().title, "Data Science")
 
-    def test_search_available_channels_by_description(self):
+    def test_search_available_channels_by_description(self) -> None:
         """Test searching available channels by description"""
         service = ChannelSearchService(self.user)
         channels = service.search_available_channels(search_query="Machine")
@@ -183,7 +183,7 @@ class ChannelSearchServiceTests(TestCase):
         self.assertEqual(channels.count(), 1)
         self.assertEqual(channels.first().title, "Data Science")
 
-    def test_user_isolation(self):
+    def test_user_isolation(self) -> None:
         """Test that users only see their own channels"""
         UserChannel.objects.create(user=self.user2, channel=self.channel5, is_active=True)
 
@@ -194,7 +194,7 @@ class ChannelSearchServiceTests(TestCase):
         channel_ids = [uc.channel.channel_id for uc in channels]
         self.assertNotIn("UC5", channel_ids)
 
-    def test_ordering_user_channels(self):
+    def test_ordering_user_channels(self) -> None:
         """Test that user channels are ordered by channel title"""
         service = ChannelSearchService(self.user)
         channels = list(service.search_user_channels())
@@ -203,7 +203,7 @@ class ChannelSearchServiceTests(TestCase):
         self.assertEqual(channels[1].channel.title, "Python Programming")
         self.assertEqual(channels[2].channel.title, "Web Development")
 
-    def test_ordering_available_channels(self):
+    def test_ordering_available_channels(self) -> None:
         """Test that available channels are ordered by title"""
         service = ChannelSearchService(self.user)
         channels = list(service.search_available_channels())
@@ -211,7 +211,7 @@ class ChannelSearchServiceTests(TestCase):
         self.assertEqual(channels[0].title, "Data Science")
         self.assertEqual(channels[1].title, "Programming Tips")
 
-    def test_query_optimization_with_tags(self):
+    def test_query_optimization_with_tags(self) -> None:
         """Test that tag prefetching is optimized"""
         service = ChannelSearchService(self.user)
 
@@ -220,28 +220,28 @@ class ChannelSearchServiceTests(TestCase):
             for channel in channels:
                 list(channel.channel_tags.all())
 
-    def test_search_with_empty_string(self):
+    def test_search_with_empty_string(self) -> None:
         """Test that empty search string returns all results"""
         service = ChannelSearchService(self.user)
         channels = service.search_user_channels(search_query="")
 
         self.assertEqual(channels.count(), 3)
 
-    def test_search_with_no_results(self):
+    def test_search_with_no_results(self) -> None:
         """Test search with query that matches no channels"""
         service = ChannelSearchService(self.user)
         channels = service.search_user_channels(search_query="NonexistentChannel")
 
         self.assertEqual(channels.count(), 0)
 
-    def test_filter_by_nonexistent_tag(self):
+    def test_filter_by_nonexistent_tag(self) -> None:
         """Test filtering by tag that doesn't exist"""
         service = ChannelSearchService(self.user)
         channels = service.search_user_channels(tag_names=["Nonexistent"], tag_mode=TagMode.ANY)
 
         self.assertEqual(channels.count(), 0)
 
-    def test_available_channels_respects_is_available_flag(self):
+    def test_available_channels_respects_is_available_flag(self) -> None:
         """Test that unavailable channels are excluded from available channels"""
         channel_unavailable = Channel.objects.create(
             channel_id="UC_UNAVAIL", title="Unavailable Channel", is_available=False

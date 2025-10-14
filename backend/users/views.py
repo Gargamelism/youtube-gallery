@@ -1,11 +1,11 @@
 import secrets
 from urllib.parse import unquote, urlparse
-import requests
 from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.utils import timezone
 from django.utils import timezone as dj_tz
+from django.db.models import QuerySet
 from rest_framework import permissions, status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action, api_view, permission_classes
@@ -28,6 +28,7 @@ from .serializers import (
 from .services.channel_search import ChannelSearchService
 from videos.validators import ChannelSearchParams, TagAssignmentParams
 from videos.serializers import ChannelSerializer
+from youtube_gallery.utils.http import http
 
 
 def _is_safe_url(url, request):
@@ -61,7 +62,7 @@ def validate_recaptcha_v3(token, action, threshold=0.5):
     data = {"secret": settings.CAPTCHA_PRIVATE_KEY, "response": token}
 
     try:
-        response = requests.post("https://www.google.com/recaptcha/api/siteverify", data=data, timeout=10)
+        response = http.post("https://www.google.com/recaptcha/api/siteverify", data=data, timeout=10)
         result = response.json()
 
         # Check if request was successful
@@ -85,7 +86,7 @@ def validate_recaptcha_v3(token, action, threshold=0.5):
 @api_view(["POST"])
 @permission_classes([permissions.AllowAny])
 def register_view(request):
-    captcha_token = request.data.get("captcha_token")
+    captcha_token = http.data.get("captcha_token")
     if not validate_recaptcha_v3(captcha_token, "register"):
         return Response({"error": "Invalid captcha"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -177,7 +178,7 @@ class UserChannelViewSet(viewsets.ModelViewSet):
     serializer_class = UserChannelSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet:
         search_params = ChannelSearchParams.from_request(self.request)
         search_service = ChannelSearchService(self.request.user)
         return search_service.search_user_channels(
@@ -186,7 +187,7 @@ class UserChannelViewSet(viewsets.ModelViewSet):
             search_query=search_params.search_query,
         )
 
-    def perform_create(self, serializer):
+    def perform_create(self, serializer) -> None:
         serializer.save(user=self.request.user)
 
     @action(detail=False, methods=["get"], url_path="available")

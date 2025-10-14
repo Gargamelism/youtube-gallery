@@ -240,9 +240,12 @@ class ChannelCleanupService:
                     batch_result["failed_cleanups"] += 1
 
             self.logger.info(
-                f"Batch cleanup completed: {batch_result['soft_deletions']} soft deletions, "
-                f"{batch_result['hard_deletions']} hard deletions, "
-                f"{batch_result['failed_cleanups']} failed out of {batch_result['channels_processed']} total"
+                "Batch cleanup completed: {} soft deletions, {} hard deletions, {} failed out of {} total".format(
+                    batch_result["soft_deletions"],
+                    batch_result["hard_deletions"],
+                    batch_result["failed_cleanups"],
+                    batch_result["channels_processed"],
+                )
             )
 
         except Exception as e:

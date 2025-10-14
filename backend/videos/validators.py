@@ -19,9 +19,9 @@ class TagMode(str, Enum):
     def from_param(cls, value: Optional[str]) -> Self:
         """Parse tag mode from parameter with fallback to ANY"""
         try:
-            return cls(value)
+            return cls(value)  # type: ignore
         except (ValueError, TypeError):
-            return cls.ANY
+            return cls.ANY  # type: ignore
 
 
 class WatchStatus(str, Enum):

@@ -4,13 +4,13 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, TypedDict
 
-import requests
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import Resource, build
 from videos.models import Channel, Video
 from videos.services.quota_tracker import QuotaTracker
 from videos.utils.dateutils import timezone_aware_datetime
+from youtube_gallery.utils.http import http
 
 YOUTUBE_SCOPES = ["https://www.googleapis.com/auth/youtube.readonly"]
 MAX_SEARCH_RESULTS = 50  # Max results for searching channel by handle
@@ -117,7 +117,7 @@ class YouTubeService:
             "grant_type": "authorization_code",
         }
         try:
-            response = requests.post(token_uri, data=data)
+            response = http.post(token_uri, data=data)
             response.raise_for_status()
             token_data = response.json()
         except Exception as e:

@@ -7,6 +7,7 @@ the system meets performance requirements with large datasets.
 
 import time
 from faker import Faker
+from typing import List, Tuple
 from django.contrib.auth import get_user_model
 from django.db import connection
 from django.test import TestCase
@@ -24,7 +25,7 @@ class ChannelPerformanceTestCase(TestCase):
     """Performance tests for channel search with large datasets"""
 
     @classmethod
-    def setUpTestData(cls):
+    def setUpTestData(cls) -> None:
         """Create test data - large dataset simulation with realistic content"""
         fake = Faker()
         Faker.seed(42)
@@ -116,11 +117,11 @@ class ChannelPerformanceTestCase(TestCase):
         for user_channel in cls.user1_channels[10:30]:
             UserChannelTag.objects.create(user_channel=user_channel, tag=cls.tag_python)
 
-    def setUp(self):
+    def setUp(self) -> None:
         """Reset query tracking before each test"""
         connection.queries_log.clear()
 
-    def _get_explain_analyze(self, queryset):
+    def _get_explain_analyze(self, queryset) -> List[Tuple[str, ...]]:
         """Get EXPLAIN ANALYZE output for a queryset"""
         sql, params = queryset.query.sql_with_params()
         # print(sql, params)
@@ -131,7 +132,7 @@ class ChannelPerformanceTestCase(TestCase):
 
         return "\n".join([row[0] for row in explain_output])
 
-    def _assert_index_used(self, explain_output, index_name):
+    def _assert_index_used(self, explain_output: str, index_name: str) -> None:
         """Assert that a specific index was used in the query"""
         self.assertIn(
             index_name,
@@ -139,7 +140,7 @@ class ChannelPerformanceTestCase(TestCase):
             f"Expected index '{index_name}' not found in EXPLAIN output:\n{explain_output}",
         )
 
-    def _assert_gin_index_used(self, explain_output):
+    def _assert_gin_index_used(self, explain_output: str) -> None:
         """Assert that a GIN index scan was used"""
         self.assertTrue(
             "Bitmap Index Scan" in explain_output
@@ -149,7 +150,7 @@ class ChannelPerformanceTestCase(TestCase):
             f"Expected GIN index scan not found in EXPLAIN output:\n{explain_output}",
         )
 
-    def test_query_count_subscribed_channels_no_filters(self):
+    def test_query_count_subscribed_channels_no_filters(self) -> None:
         """Test query count for basic subscribed channels fetch"""
         service = ChannelSearchService(self.user1)
 
@@ -158,7 +159,7 @@ class ChannelPerformanceTestCase(TestCase):
 
         self.assertEqual(len(channels), 100)
 
-    def test_query_count_subscribed_channels_with_search(self):
+    def test_query_count_subscribed_channels_with_search(self) -> None:
         """Test query count with search filter"""
         service = ChannelSearchService(self.user1)
 
@@ -167,7 +168,7 @@ class ChannelPerformanceTestCase(TestCase):
 
         self.assertGreater(len(channels), 0)
 
-    def test_query_count_subscribed_channels_with_tags(self):
+    def test_query_count_subscribed_channels_with_tags(self) -> None:
         """Test query count with tag filtering"""
         service = ChannelSearchService(self.user1)
 
@@ -176,7 +177,7 @@ class ChannelPerformanceTestCase(TestCase):
 
         self.assertEqual(len(channels), 40)
 
-    def test_query_count_subscribed_channels_with_all_filters(self):
+    def test_query_count_subscribed_channels_with_all_filters(self) -> None:
         """Test query count with search + tag filtering"""
         service = ChannelSearchService(self.user1)
 
@@ -191,7 +192,7 @@ class ChannelPerformanceTestCase(TestCase):
 
         self.assertGreater(len(channels), 0)
 
-    def test_query_count_available_channels(self):
+    def test_query_count_available_channels(self) -> None:
         """Test query count for available channels"""
         service = ChannelSearchService(self.user1)
 
@@ -201,7 +202,7 @@ class ChannelPerformanceTestCase(TestCase):
         # Should return channels not subscribed by user1 (900 channels)
         self.assertEqual(len(channels), 900)
 
-    def test_query_count_available_channels_with_search(self):
+    def test_query_count_available_channels_with_search(self) -> None:
         """Test query count for available channels with search"""
         service = ChannelSearchService(self.user1)
 
@@ -210,7 +211,7 @@ class ChannelPerformanceTestCase(TestCase):
 
         self.assertGreater(len(channels), 0)
 
-    def test_performance_subscribed_channels_search(self):
+    def test_performance_subscribed_channels_search(self) -> None:
         """Test that search queries complete in reasonable time"""
         service = ChannelSearchService(self.user1)
 
@@ -226,7 +227,7 @@ class ChannelPerformanceTestCase(TestCase):
             f"Query took {query_time_ms:.2f}ms, expected < 100ms with 100 channels",
         )
 
-    def test_performance_available_channels_large_dataset(self):
+    def test_performance_available_channels_large_dataset(self) -> None:
         """Test that available channels query scales well"""
         service = ChannelSearchService(self.user1)
 
@@ -243,7 +244,7 @@ class ChannelPerformanceTestCase(TestCase):
         )
 
     @override_settings(DEBUG=True)
-    def test_index_usage_user_channels_composite(self):
+    def test_index_usage_user_channels_composite(self) -> None:
         """Verify 2-column index is used for user channel queries"""
         service = ChannelSearchService(self.user1)
 
@@ -254,7 +255,7 @@ class ChannelPerformanceTestCase(TestCase):
         self._assert_index_used(explain_output, "idx_user_channels_user_active")
 
     @override_settings(DEBUG=True)
-    def test_index_usage_text_search_on_title(self):
+    def test_index_usage_text_search_on_title(self) -> None:
         """Verify GIN trigram index is used for title search"""
         service = ChannelSearchService(self.user1)
 
@@ -268,7 +269,7 @@ class ChannelPerformanceTestCase(TestCase):
         )
 
     @override_settings(DEBUG=True)
-    def test_index_usage_available_channels_partial(self):
+    def test_index_usage_available_channels_partial(self) -> None:
         """Verify partial index is used for available channels query"""
         service = ChannelSearchService(self.user1)
 
@@ -278,7 +279,7 @@ class ChannelPerformanceTestCase(TestCase):
         self._assert_index_used(explain_output, "idx_ch_avail_del")
 
     @override_settings(DEBUG=True)
-    def test_no_n_plus_one_with_tags(self):
+    def test_no_n_plus_one_with_tags(self) -> None:
         """Verify tag prefetch prevents N+1 queries"""
         service = ChannelSearchService(self.user1)
 
@@ -289,7 +290,7 @@ class ChannelPerformanceTestCase(TestCase):
             for channel in channels:
                 _ = list(channel.channel_tags.all())
 
-    def test_tag_filtering_all_mode_efficiency(self):
+    def test_tag_filtering_all_mode_efficiency(self) -> None:
         """Test ALL mode tag filtering query efficiency"""
         service = ChannelSearchService(self.user1)
 
@@ -299,7 +300,7 @@ class ChannelPerformanceTestCase(TestCase):
         # Should only return channels with both tags (overlap between indices 20-40 and 20-50)
         self.assertEqual(len(channels), 20)
 
-    def test_tag_filtering_any_mode_efficiency(self):
+    def test_tag_filtering_any_mode_efficiency(self) -> None:
         """Test ANY mode tag filtering uses EXISTS subquery"""
         service = ChannelSearchService(self.user1)
 
@@ -310,7 +311,7 @@ class ChannelPerformanceTestCase(TestCase):
         # ANY mode should use EXISTS for efficiency
         self.assertIn("EXISTS", sql.upper())
 
-    def test_user_isolation_performance(self):
+    def test_user_isolation_performance(self) -> None:
         """Verify user isolation doesn't impact performance"""
         service1 = ChannelSearchService(self.user1)
         service2 = ChannelSearchService(self.user2)
@@ -333,7 +334,7 @@ class ChannelPerformanceTestCase(TestCase):
         )
 
     @override_settings(DEBUG=True)
-    def test_explain_output_details(self):
+    def test_explain_output_details(self) -> None:
         """Print detailed EXPLAIN ANALYZE for manual inspection"""
         service = ChannelSearchService(self.user1)
 
@@ -405,7 +406,7 @@ class ChannelPaginationPerformanceTestCase(TestCase):
         for channel in cls.channels:
             UserChannel.objects.create(user=cls.user, channel=channel, is_active=True)
 
-    def test_pagination_query_consistency(self):
+    def test_pagination_query_consistency(self) -> None:
         """Verify query count is consistent across pages"""
         service = ChannelSearchService(self.user)
 
@@ -425,7 +426,7 @@ class ChannelPaginationPerformanceTestCase(TestCase):
         self.assertEqual(len(page2), 20)
         self.assertEqual(len(page3), 20)
 
-    def test_pagination_performance(self):
+    def test_pagination_performance(self) -> None:
         """Verify pagination doesn't degrade with offset"""
         service = ChannelSearchService(self.user)
 

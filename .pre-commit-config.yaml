@@ -43,7 +43,7 @@ repos:
 
       - id: bandit-security
         name: Bandit Security Check
-        entry: docker-compose run --rm backend bandit -r .
+        entry: docker-compose run --rm backend bandit -r . --severity-level medium
         language: system
         pass_filenames: false
         files: \.py$

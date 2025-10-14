@@ -6,16 +6,16 @@ using Redis-OM for persistence and daily quota limits.
 """
 
 import warnings
-
-# Suppress Redis-OM/Pydantic pk field shadowing warnings
-warnings.filterwarnings("ignore", message='Field name "pk" shadows an attribute in parent', category=UserWarning)
-
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Dict, Optional
 
 from django.conf import settings
 from redis_om import Field, JsonModel, Migrator, get_redis_connection
+
+# Suppress Redis-OM/Pydantic pk field shadowing warnings
+warnings.filterwarnings("ignore", message='Field name "pk" shadows an attribute in parent', category=UserWarning)
+
 
 THIRTY_DAYS_IN_SECONDS = 30 * 24 * 60 * 60
 

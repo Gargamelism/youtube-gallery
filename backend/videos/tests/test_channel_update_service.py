@@ -64,7 +64,7 @@ class ChannelUpdateServiceTests(TestCase):
         self.mock_youtube_service.youtube = mock_youtube_api
         self.mock_youtube_service.get_channel_videos.return_value = iter([])
 
-    def test_channel_title_update(self):
+    def test_channel_title_update(self) -> None:
         """Test channel title field update"""
         self._mock_successful_api_response({"title": "New Title"})
         result = self.service.update_channel(self.channel)

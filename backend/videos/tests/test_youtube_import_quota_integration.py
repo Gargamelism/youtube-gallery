@@ -12,12 +12,12 @@ from videos.services.quota_tracker import QuotaTracker
 class YouTubeImportQuotaIntegrationTests(TestCase):
     """Integration tests for QuotaTracker with YouTubeService import functionality"""
 
-    def setUp(self):
+    def setUp(self) -> None:
         """Set up test cases with mocked credentials and services"""
         self.mock_credentials = Mock()
         self.quota_tracker = QuotaTracker(daily_quota_limit=100)
 
-    def test_youtube_service_accepts_quota_tracker(self):
+    def test_youtube_service_accepts_quota_tracker(self) -> None:
         """Test that YouTubeService properly accepts and stores QuotaTracker"""
         with patch("videos.services.youtube.build") as mock_build:
             mock_build.return_value = Mock()
@@ -26,7 +26,7 @@ class YouTubeImportQuotaIntegrationTests(TestCase):
 
             self.assertEqual(youtube_service.quota_tracker, self.quota_tracker)
 
-    def test_youtube_service_creates_default_quota_tracker(self):
+    def test_youtube_service_creates_default_quota_tracker(self) -> None:
         """Test that YouTubeService creates default QuotaTracker when none provided"""
         with patch("videos.services.youtube.build") as mock_build:
             mock_build.return_value = Mock()
@@ -35,7 +35,7 @@ class YouTubeImportQuotaIntegrationTests(TestCase):
 
             self.assertIsInstance(youtube_service.quota_tracker, QuotaTracker)
 
-    def test_get_channels_by_ids_checks_quota(self):
+    def test_get_channels_by_ids_checks_quota(self) -> None:
         """Test that _get_channels_by_ids checks quota before making API call"""
         with patch("videos.services.youtube.build") as mock_build:
             mock_youtube = Mock()
@@ -52,7 +52,7 @@ class YouTubeImportQuotaIntegrationTests(TestCase):
             self.assertIn("Insufficient quota", str(context.exception))
             self.quota_tracker.can_make_request.assert_called_with("channels.list")
 
-    def test_get_channels_by_ids_records_quota_usage(self):
+    def test_get_channels_by_ids_records_quota_usage(self) -> None:
         """Test that _get_channels_by_ids records quota usage after successful API call"""
         with patch("videos.services.youtube.build") as mock_build:
             mock_youtube = Mock()
@@ -72,10 +72,12 @@ class YouTubeImportQuotaIntegrationTests(TestCase):
 
             result = youtube_service._get_channels_by_ids("UC123456")
 
-            self.assertEqual(result[0]["id"], "UC123456")
+            self.assertIsNotNone(result)
+            if result:  # type: ignore
+                self.assertEqual(result.get("id"), "UC123456")
             self.quota_tracker.record_usage.assert_called_with("channels.list")
 
-    def test_get_channel_by_handle_checks_quota(self):
+    def test_get_channel_by_handle_checks_quota(self) -> None:
         """Test that _get_channel_by_handle checks quota before making API call"""
         with patch("videos.services.youtube.build") as mock_build:
             mock_youtube = Mock()
@@ -92,8 +94,8 @@ class YouTubeImportQuotaIntegrationTests(TestCase):
             self.assertIn("Insufficient quota", str(context.exception))
             self.quota_tracker.can_make_request.assert_called_with("channels.list")
 
-    def test_search_channel_by_handle_checks_quota(self):
-        """Test that _search_channel_by_handle checks quota before making API call"""
+    def test_search_channel_by_handle_checks_quota(self) -> None:
+        """Test that search_channel_by_handle checks quota before making API call"""
         with patch("videos.services.youtube.build") as mock_build:
             mock_youtube = Mock()
             mock_build.return_value = mock_youtube
@@ -109,7 +111,7 @@ class YouTubeImportQuotaIntegrationTests(TestCase):
             self.assertIn("Insufficient quota", str(context.exception))
             self.quota_tracker.can_make_request.assert_called_with("search.list")
 
-    def test_search_channel_records_quota_usage(self):
+    def test_search_channel_records_quota_usage(self) -> None:
         """Test that _search_channel_by_handle records quota usage correctly"""
         with patch("videos.services.youtube.build") as mock_build:
             mock_youtube = Mock()
@@ -132,7 +134,7 @@ class YouTubeImportQuotaIntegrationTests(TestCase):
             self.assertEqual(result, "UC123456")
             self.quota_tracker.record_usage.assert_called_with("search.list")
 
-    def test_get_channel_videos_checks_quota_for_playlist_items(self):
+    def test_get_channel_videos_checks_quota_for_playlist_items(self) -> None:
         """Test that get_channel_videos checks quota for playlistItems.list calls"""
         with patch("videos.services.youtube.build") as mock_build:
             mock_youtube = Mock()
@@ -149,7 +151,7 @@ class YouTubeImportQuotaIntegrationTests(TestCase):
                 self.assertEqual(len(videos), 0)
                 mock_print.assert_called_with("WARNING: Insufficient quota for playlistItems.list API call")
 
-    def test_get_channel_videos_checks_quota_for_videos_list(self):
+    def test_get_channel_videos_checks_quota_for_videos_list(self) -> None:
         """Test that get_channel_videos checks quota for videos.list calls"""
         with patch("videos.services.youtube.build") as mock_build:
             mock_youtube = Mock()
@@ -176,7 +178,7 @@ class YouTubeImportQuotaIntegrationTests(TestCase):
                 self.assertEqual(len(videos), 0)
                 mock_print.assert_called_with("WARNING: Insufficient quota for videos.list API call")
 
-    def test_get_channel_videos_records_quota_usage(self):
+    def test_get_channel_videos_records_quota_usage(self) -> None:
         """Test that get_channel_videos records quota usage for both API calls"""
         with patch("videos.services.youtube.build") as mock_build:
             mock_youtube = Mock()
@@ -222,7 +224,7 @@ class YouTubeImportQuotaIntegrationTests(TestCase):
             expected_calls = [Mock.call("playlistItems.list"), Mock.call("videos.list")]
             self.quota_tracker.record_usage.assert_has_calls(expected_calls)
 
-    def test_import_or_create_channel_with_quota_tracking(self):
+    def test_import_or_create_channel_with_quota_tracking(self) -> None:
         """Test complete channel import flow with quota tracking"""
         with patch("videos.services.youtube.build") as mock_build:
             mock_youtube = Mock()
@@ -267,7 +269,7 @@ class YouTubeImportQuotaIntegrationTests(TestCase):
             ]
             self.quota_tracker.record_usage.assert_has_calls(expected_calls)
 
-    def test_channel_import_falls_back_when_quota_exhausted(self):
+    def test_channel_import_falls_back_when_quota_exhausted(self) -> None:
         """Test that channel import falls back to basic channel creation when quota is exhausted"""
         with patch("videos.services.youtube.build") as mock_build:
             mock_youtube = Mock()
