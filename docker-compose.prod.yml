@@ -44,7 +44,7 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: frontend.Dockerfile.prod
+      dockerfile: Dockerfile.prod
     ports:
       - '3000:80'
     depends_on:

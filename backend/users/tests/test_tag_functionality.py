@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APITestCase
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-from unittest.mock import patch, Mock
+from unittest.mock import patch
 from videos.models import Channel, Video
 from videos.services.search import VideoSearchService
 from videos.validators import TagMode, WatchStatus
@@ -155,8 +155,8 @@ class ChannelTagAPITests(APITestCase):
 
     def test_list_channel_tags(self):
         """Test listing user's channel tags"""
-        tag1 = ChannelTag.objects.create(user=self.user, name="Tech")
-        tag2 = ChannelTag.objects.create(user=self.user, name="Gaming")
+        ChannelTag.objects.create(user=self.user, name="Tech")
+        ChannelTag.objects.create(user=self.user, name="Gaming")
 
         # Create tag for other user (should not appear in results)
         ChannelTag.objects.create(user=self.other_user, name="Music")

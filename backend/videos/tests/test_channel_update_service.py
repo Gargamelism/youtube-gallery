@@ -2,21 +2,14 @@
 Comprehensive unit tests for ChannelUpdateService.
 """
 
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 from django.test import TestCase
 from django.utils import timezone
 from googleapiclient.errors import HttpError
 
 from videos.models import Channel, Video, UpdateFrequency
-from videos.services.channel_updater import ChannelUpdateService, ChannelUpdateResult
+from videos.services.channel_updater import ChannelUpdateService
 from videos.services.youtube import YouTubeService
-from videos.exceptions import (
-    ChannelNotFoundError,
-    QuotaExceededError,
-    APIRateLimitError,
-    ChannelAccessDeniedError,
-    InvalidChannelDataError,
-)
 
 
 class ChannelUpdateServiceTests(TestCase):

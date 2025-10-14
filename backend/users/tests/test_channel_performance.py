@@ -207,7 +207,7 @@ class ChannelPerformanceTestCase(TestCase):
         service = ChannelSearchService(self.user1)
 
         start_time = time.perf_counter()
-        channels = list(service.search_user_channels(search_query="Programming"))
+        list(service.search_user_channels(search_query="Programming"))
         end_time = time.perf_counter()
 
         query_time_ms = (end_time - start_time) * 1000
@@ -223,7 +223,7 @@ class ChannelPerformanceTestCase(TestCase):
         service = ChannelSearchService(self.user1)
 
         start_time = time.perf_counter()
-        channels = list(service.search_available_channels(search_query="Python"))
+        list(service.search_available_channels(search_query="Python"))
         end_time = time.perf_counter()
 
         query_time_ms = (end_time - start_time) * 1000

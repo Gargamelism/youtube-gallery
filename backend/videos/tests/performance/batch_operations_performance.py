@@ -9,8 +9,8 @@ don't cause database performance degradation.
 import time
 import statistics
 from contextlib import contextmanager
-from typing import List, Dict, Any, Callable, Optional
-from unittest.mock import patch, Mock
+from typing import List, Dict, Any, Callable
+from unittest.mock import patch
 
 from django.test import TestCase, TransactionTestCase
 from django.db import connection, reset_queries
@@ -18,7 +18,6 @@ from django.test.utils import override_settings
 from django.utils import timezone
 
 from videos.models import Channel, Video
-from users.models import UserChannel, UserVideo, ChannelTag, UserChannelTag
 from videos.tests.fixtures.channel_updating_fixtures import ChannelUpdatingFixtures
 
 
@@ -339,7 +338,7 @@ class BatchOperationPerformanceTests(TransactionTestCase):
 
         def setup_mixed_channels(scale: int) -> Dict[str, Any]:
             """Create mix of subscribed and orphaned channels"""
-            scenario = self.fixtures.create_complete_test_scenario()
+            self.fixtures.create_complete_test_scenario()
 
             # Add additional orphaned channels
             orphaned_channels = []
@@ -472,7 +471,7 @@ class BatchOperationPerformanceTests(TransactionTestCase):
         for result in results:
             # Time should scale roughly linearly with API calls
             expected_min_time = result["scale_factor"] * 40  # 40ms minimum per call
-            self.assertGreater(result["elapsed_time_ms"], expected_min_time, f"API simulation timing seems incorrect")
+            self.assertGreater(result["elapsed_time_ms"], expected_min_time, "API simulation timing seems incorrect")
 
         print("\n" + self.benchmark.generate_performance_report(results))
 
@@ -486,7 +485,7 @@ class PerformanceRegressionTests(TestCase):
 
         try:
             # Create test scenario
-            scenario = fixtures.create_complete_test_scenario()
+            fixtures.create_complete_test_scenario()
 
             # Test channel list queries
             with DatabaseQueryCounter() as counter:
