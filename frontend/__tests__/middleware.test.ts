@@ -44,12 +44,12 @@ jest.mock('next/server', () => ({
       const urlObj = new URL(url);
       this.nextUrl = {
         pathname: urlObj.pathname,
-        search: urlObj.search
+        search: urlObj.search,
       };
       this.cookieMap = new Map();
       this.cookies = {
         get: (name: string) => this.cookieMap.get(name),
-        set: (name: string, value: string) => this.cookieMap.set(name, { value })
+        set: (name: string, value: string) => this.cookieMap.set(name, { value }),
       };
     }
   },
@@ -58,16 +58,16 @@ jest.mock('next/server', () => ({
     redirect: (url: string) => ({
       status: 307,
       headers: {
-        get: (name: string) => name === 'location' ? String(url) : undefined
-      }
-    })
-  }
+        get: (name: string) => (name === 'location' ? String(url) : undefined),
+      },
+    }),
+  },
 }));
 
 // Mock the config/routes module
 jest.mock('../config/routes', () => ({
   isPublicRoute: jest.fn(),
-  MIDDLEWARE_MATCHER: ['/((?!_next/static|_next/image|favicon.ico).*)']
+  MIDDLEWARE_MATCHER: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 }));
 
 import { middleware } from '../middleware';
@@ -135,12 +135,14 @@ describe('middleware', () => {
       const response = middleware(request);
 
       expect(response.status).toBe(307);
-      expect(response.headers.get('location')).toBe('https://localhost:3000/auth?returnUrl=%2Fvideos%3Fpage%3D2%26filter%3Dwatched');
+      expect(response.headers.get('location')).toBe(
+        'https://localhost:3000/auth?returnUrl=%2Fvideos%3Fpage%3D2%26filter%3Dwatched'
+      );
     });
 
     it('should redirect to auth when auth cookie is invalid JSON', () => {
       const request = createRequestWithCookies('/channels', {
-        'youtube-gallery-auth': ''
+        'youtube-gallery-auth': '',
       });
 
       const response = middleware(request);
@@ -160,11 +162,11 @@ describe('middleware', () => {
         state: {
           user: { id: '123', name: 'Test User' },
           token: 'valid-token',
-          isAuthenticated: true
-        }
+          isAuthenticated: true,
+        },
       });
       const request = createRequestWithCookies('/videos', {
-        'youtube-gallery-auth': authData
+        'youtube-gallery-auth': authData,
       });
 
       const response = middleware(request);
@@ -177,11 +179,11 @@ describe('middleware', () => {
         state: {
           user: { id: '123', name: 'Test User' },
           token: 'valid-token',
-          isAuthenticated: true
-        }
+          isAuthenticated: true,
+        },
       });
       const request = createRequestWithCookies('/videos/123', {
-        'youtube-gallery-auth': authData
+        'youtube-gallery-auth': authData,
       });
 
       const response = middleware(request);
@@ -194,11 +196,11 @@ describe('middleware', () => {
         state: {
           user: { id: '123', name: 'Test User' },
           token: 'valid-token',
-          isAuthenticated: true
-        }
+          isAuthenticated: true,
+        },
       });
       const request = createRequestWithCookies('/channels?search=test&page=1', {
-        'youtube-gallery-auth': authData
+        'youtube-gallery-auth': authData,
       });
 
       const response = middleware(request);
@@ -219,12 +221,14 @@ describe('middleware', () => {
       const response = middleware(request);
 
       expect(response.status).toBe(307);
-      expect(response.headers.get('location')).toBe('https://localhost:3000/auth?returnUrl=%2Fvideos%3Fpage%3D2%26tags%3Dreact%2Ctypescript%26search%3Dhello%2520world%26sort%3Ddate');
+      expect(response.headers.get('location')).toBe(
+        'https://localhost:3000/auth?returnUrl=%2Fvideos%3Fpage%3D2%26tags%3Dreact%2Ctypescript%26search%3Dhello%2520world%26sort%3Ddate'
+      );
     });
 
     it('should handle empty string values in auth data', () => {
       const request = createRequestWithCookies('/videos', {
-        'youtube-gallery-auth': ''
+        'youtube-gallery-auth': '',
       });
 
       const response = middleware(request);

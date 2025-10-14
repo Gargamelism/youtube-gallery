@@ -12,7 +12,7 @@ const ROOT_KEY = 'youtube_gallery';
 // Scroll mode types
 export enum ScrollMode {
   AUTO = 'auto',
-  MANUAL = 'manual'
+  MANUAL = 'manual',
 }
 
 function isScrollMode(value: string): boolean {
@@ -153,7 +153,7 @@ class StorageManager {
   // Scroll mode helpers
   getScrollMode(): ScrollMode {
     const stored = this.getLocal('scroll_mode');
-    const mode = isScrollMode(stored ?? '') ? stored as ScrollMode : DEFAULT_SCROLL_MODE;
+    const mode = isScrollMode(stored ?? '') ? (stored as ScrollMode) : DEFAULT_SCROLL_MODE;
     return mode;
   }
 

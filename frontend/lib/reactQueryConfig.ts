@@ -90,7 +90,8 @@ export const queryKeys = {
   userChannels: ['userChannels'] as const,
   userChannelsWithFilter: (filters: Partial<ChannelFilters>) => ['userChannels', 'filtered', filters] as const,
   availableChannels: ['availableChannels'] as const,
-  availableChannelsWithFilter: (filters: Partial<ChannelFilters>) => ['availableChannels', 'filtered', filters] as const,
+  availableChannelsWithFilter: (filters: Partial<ChannelFilters>) =>
+    ['availableChannels', 'filtered', filters] as const,
   channelById: (channelId: string) => ['channels', channelId] as const,
 
   userProfile: ['user', 'profile'] as const,

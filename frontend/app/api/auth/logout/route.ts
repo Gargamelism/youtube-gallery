@@ -30,10 +30,7 @@ export async function POST() {
     return response;
   } catch (error) {
     console.error('Logout API error:', error);
-    const response = NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    const response = NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     clearAuthCookie(response);
 
     return response;

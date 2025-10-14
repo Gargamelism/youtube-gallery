@@ -27,9 +27,7 @@ describe('useInfiniteScroll', () => {
   });
 
   it('returns loading ref', () => {
-    const { result } = renderHook(() =>
-      useInfiniteScroll(mockFetchNextPage, true, false, 1, mockFilters)
-    );
+    const { result } = renderHook(() => useInfiniteScroll(mockFetchNextPage, true, false, 1, mockFilters));
 
     expect(result.current.current).toBe(null);
   });
@@ -55,10 +53,9 @@ describe('useInfiniteScroll', () => {
       searchQuery: '',
     };
 
-    const { rerender } = renderHook(
-      ({ filters }) => useInfiniteScroll(mockFetchNextPage, true, false, 1, filters),
-      { initialProps: { filters: mockFilters } }
-    );
+    const { rerender } = renderHook(({ filters }) => useInfiniteScroll(mockFetchNextPage, true, false, 1, filters), {
+      initialProps: { filters: mockFilters },
+    });
 
     expect(mockSavePosition).toHaveBeenCalledTimes(1);
 

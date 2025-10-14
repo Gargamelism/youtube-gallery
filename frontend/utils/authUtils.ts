@@ -9,9 +9,7 @@ export function extractTokenFromResponse(response: Response): string | null {
   }
 
   const cookies = cookieHeader.split(',').map(cookie => cookie.trim());
-  const authCookie = cookies.find(cookie =>
-    cookie.startsWith(`${config.auth.cookieName}=`)
-  );
+  const authCookie = cookies.find(cookie => cookie.startsWith(`${config.auth.cookieName}=`));
 
   if (!authCookie) {
     return null;

@@ -44,7 +44,7 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
       tag_mode: allFilters.selectedTags.length > 1 ? allFilters.tag_mode : undefined,
       search: allFilters.searchQuery,
     });
-  }
+  };
 
   const updateFilter = (newFilter: string) => {
     updateAllFilters({ filter: newFilter });
@@ -75,7 +75,8 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
   };
 
   const areFiltersEqual = (otherFilters: VideoFilters): boolean => {
-    const areTagsEqual = selectedTags.length === otherFilters.selectedTags.length &&
+    const areTagsEqual =
+      selectedTags.length === otherFilters.selectedTags.length &&
       selectedTags.every(tag => otherFilters.selectedTags.includes(tag));
 
     return (

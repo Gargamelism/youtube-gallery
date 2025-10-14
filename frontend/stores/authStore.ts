@@ -17,7 +17,7 @@ interface AuthStore {
 
 export const useAuthStore = create<AuthStore>()(
   persist(
-    (set) => ({
+    set => ({
       user: null,
       isAuthenticated: false,
       isLoading: true,

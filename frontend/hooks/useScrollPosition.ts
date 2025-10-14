@@ -14,13 +14,16 @@ interface ScrollPosition {
 const POSITION_EXPIRY_TIME = 30 * 60 * 1000; // 30 minutes
 
 export function useScrollPosition(key: string) {
-  const savePosition = useCallback((position: ScrollPosition) => {
-    try {
-      storage.setScrollPosition(key, position);
-    } catch (error) {
-      console.warn('Failed to save scroll position:', error);
-    }
-  }, [key]);
+  const savePosition = useCallback(
+    (position: ScrollPosition) => {
+      try {
+        storage.setScrollPosition(key, position);
+      } catch (error) {
+        console.warn('Failed to save scroll position:', error);
+      }
+    },
+    [key]
+  );
 
   const getPosition = useCallback((): ScrollPosition | null => {
     try {

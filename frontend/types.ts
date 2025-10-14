@@ -39,7 +39,6 @@ export interface RegisterRequest {
   captcha_token?: string;
 }
 
-
 // Channel Types
 export interface Channel {
   uuid: string;
@@ -117,7 +116,7 @@ export enum WatchStatus {
 // Tag Types
 export enum TagMode {
   ALL = 'all',
-  ANY = 'any'
+  ANY = 'any',
 }
 
 export type TagModeType = TagMode.ALL | TagMode.ANY;
@@ -143,14 +142,12 @@ export interface ChannelFilters {
   pageSize?: number;
 }
 
-
 export interface ChannelApiParams {
   search?: string;
   tags?: string[];
   tag_mode?: TagModeType;
   page?: number;
 }
-
 
 // Single source of truth - with description always optional
 interface ChannelTagBase {
@@ -184,7 +181,7 @@ export enum HttpStatusCode {
   UNPROCESSABLE_ENTITY = 422,
   TOO_MANY_REQUESTS = 429,
   INTERNAL_SERVER_ERROR = 500,
-  SERVICE_UNAVAILABLE = 503
+  SERVICE_UNAVAILABLE = 503,
 }
 
 // User Quota Types

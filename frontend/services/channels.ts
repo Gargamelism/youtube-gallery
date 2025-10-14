@@ -1,4 +1,12 @@
-import { Channel, UserChannel, ChannelResponse, UserChannelResponse, QuotaExceededErrorType, HttpStatusCode, ChannelFilters } from '@/types';
+import {
+  Channel,
+  UserChannel,
+  ChannelResponse,
+  UserChannelResponse,
+  QuotaExceededErrorType,
+  HttpStatusCode,
+  ChannelFilters,
+} from '@/types';
 import { ResponseHandler, ApiResponse } from './ResponseHandler';
 import { API_BASE_URL, getRequestOptions } from './shared';
 import { filtersToApiParams } from '@/utils/channelUrlHelpers';

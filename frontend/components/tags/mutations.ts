@@ -59,7 +59,7 @@ export function useCreateChannelTag(queryClient: QueryClient) {
         if (!oldData || !oldData.results) return { results: [newTag] };
         return {
           ...oldData,
-          results: [...oldData.results, newTag]
+          results: [...oldData.results, newTag],
         };
       });
     },
@@ -78,7 +78,7 @@ export function useUpdateChannelTag(queryClient: QueryClient) {
         if (!oldData || !oldData.results) return { results: [updatedTag] };
         return {
           ...oldData,
-          results: oldData.results.map((tag: ChannelTag) => (tag.id === updatedTag.id ? updatedTag : tag))
+          results: oldData.results.map((tag: ChannelTag) => (tag.id === updatedTag.id ? updatedTag : tag)),
         };
       });
     },
@@ -100,7 +100,7 @@ export function useDeleteChannelTag(queryClient: QueryClient) {
         if (!oldData || !oldData.results) return oldData;
         return {
           ...oldData,
-          results: oldData.results.filter((tag: ChannelTag) => tag.id !== tagId)
+          results: oldData.results.filter((tag: ChannelTag) => tag.id !== tagId),
         };
       });
 

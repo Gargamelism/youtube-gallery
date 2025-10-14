@@ -5,7 +5,7 @@ import {
   withLightOpacity,
   withMediumOpacity,
   withStrongOpacity,
-  withOpaqueOpacity
+  withOpaqueOpacity,
 } from '../colorUtils';
 
 describe('addOpacityToHexColor', () => {

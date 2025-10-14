@@ -4,11 +4,11 @@
 
 /**
  * Adds opacity to a hex color by appending an alpha channel
- * 
+ *
  * @param hexColor - Base hex color (e.g., "#3B82F6")
  * @param opacityPercent - Opacity as percentage (0-100, default: 20)
  * @returns Hex color with alpha channel (e.g., "#3B82F633")
- * 
+ *
  * @example
  * addOpacityToHexColor("#3B82F6", 20) // "#3B82F633" (20% opacity)
  * addOpacityToHexColor("#FF0000", 50) // "#FF000080" (50% opacity)
@@ -34,11 +34,11 @@ export function addOpacityToHexColor(hexColor: string, opacityPercent: number = 
  * Common opacity levels for consistent UI
  */
 export const OPACITY_LEVELS = {
-  SUBTLE: 10,      // Very light tint
-  LIGHT: 20,       // Light background
-  MEDIUM: 40,      // Borders, hover states
-  STRONG: 60,      // More visible elements
-  OPAQUE: 80,      // Nearly solid
+  SUBTLE: 10, // Very light tint
+  LIGHT: 20, // Light background
+  MEDIUM: 40, // Borders, hover states
+  STRONG: 60, // More visible elements
+  OPAQUE: 80, // Nearly solid
 } as const;
 
 /**

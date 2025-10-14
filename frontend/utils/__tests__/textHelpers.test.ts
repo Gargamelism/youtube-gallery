@@ -16,7 +16,7 @@ describe('isHebrew', () => {
       'הערוץ של דני - פרק 5',
     ];
 
-    test.each(hebrewTestCases)('detects Hebrew in "%s"', (text) => {
+    test.each(hebrewTestCases)('detects Hebrew in "%s"', text => {
       expect(isHebrew(text)).toBe(true);
     });
   });
@@ -36,7 +36,7 @@ describe('isHebrew', () => {
       'Привет мир', // Russian
     ];
 
-    test.each(nonHebrewTestCases)('returns false for non-Hebrew text "%s"', (text) => {
+    test.each(nonHebrewTestCases)('returns false for non-Hebrew text "%s"', text => {
       expect(isHebrew(text)).toBe(false);
     });
   });
@@ -189,11 +189,14 @@ describe('integration tests', () => {
       { text: '', expectedHebrew: false, expectedDirection: 'ltr', expectedAlign: 'text-left' },
     ];
 
-    test.each(testCases)('handles "$text" consistently across all functions', ({ text, expectedHebrew, expectedDirection, expectedAlign }) => {
-      expect(isHebrew(text)).toBe(expectedHebrew);
-      expect(getTextDirection(text)).toBe(expectedDirection);
-      expect(getTextAlign(text)).toBe(expectedAlign);
-    });
+    test.each(testCases)(
+      'handles "$text" consistently across all functions',
+      ({ text, expectedHebrew, expectedDirection, expectedAlign }) => {
+        expect(isHebrew(text)).toBe(expectedHebrew);
+        expect(getTextDirection(text)).toBe(expectedDirection);
+        expect(getTextAlign(text)).toBe(expectedAlign);
+      }
+    );
   });
 
   describe('real-world YouTube scenarios', () => {

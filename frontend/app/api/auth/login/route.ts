@@ -23,10 +23,7 @@ export async function POST(request: NextRequest) {
 
     const token = extractTokenFromResponse(response);
     if (!token) {
-      return NextResponse.json(
-        { error: 'Authentication token not received' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Authentication token not received' }, { status: 500 });
     }
 
     const responseData = {
@@ -40,9 +37,6 @@ export async function POST(request: NextRequest) {
     return nextResponse;
   } catch (error) {
     console.error('Login API error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

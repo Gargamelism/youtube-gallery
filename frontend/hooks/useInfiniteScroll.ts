@@ -18,14 +18,18 @@ export function useInfiniteScroll(
   const loadingRef = useRef<HTMLDivElement>(null);
   const { savePosition } = useScrollPosition('videos');
 
-  const saveCurrentPosition = useDebouncedCallback(() => {
-    savePosition({
-      scrollY: window.scrollY,
-      loadedPages: currentPageCount,
-      timestamp: Date.now(),
-      filters
-    });
-  }, 1000, { maxWait: 3000 });
+  const saveCurrentPosition = useDebouncedCallback(
+    () => {
+      savePosition({
+        scrollY: window.scrollY,
+        loadedPages: currentPageCount,
+        timestamp: Date.now(),
+        filters,
+      });
+    },
+    1000,
+    { maxWait: 3000 }
+  );
 
   // Save on scroll
   useEffect(() => {
@@ -43,7 +47,7 @@ export function useInfiniteScroll(
       scrollY: window.scrollY,
       loadedPages: currentPageCount,
       timestamp: Date.now(),
-      filters
+      filters,
     });
   }, [filters, savePosition]);
 

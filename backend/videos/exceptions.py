@@ -66,4 +66,11 @@ class UserQuotaExceededError(Exception):
 
     def __init__(self, message: str, quota_info: Optional[QuotaInfo] = None):
         super().__init__(message)
-        self.quota_info = quota_info or {}
+        self.quota_info: QuotaInfo = quota_info or {
+            "daily_usage": 0,
+            "daily_limit": 0,
+            "remaining": 0,
+            "percentage_used": 0.0,
+            "operations_count": {},
+            "status": "unknown",
+        }

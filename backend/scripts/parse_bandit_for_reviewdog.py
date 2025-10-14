@@ -18,7 +18,7 @@ def bandit_to_checkstyle(bandit_report):
 
         print(f'  <file name="{filename}">')
         print(f'    <error line="{line}" severity="{severity}" message="{message}" source="bandit" />')
-        print(f"  </file>")
+        print("  </file>")
 
     print("</checkstyle>")
 

@@ -41,7 +41,7 @@ export function useInfiniteVideos(filters: VideoFilters, areFiltersEqual: (other
         page: pageParam,
         page_size: PAGINATION_CONFIG.VIDEOS_PAGE_SIZE,
       }),
-    getNextPageParam: (lastPage) => {
+    getNextPageParam: lastPage => {
       if (lastPage.data?.next) {
         const url = new URL(lastPage.data.next);
         const nextPage = url.searchParams.get('page');

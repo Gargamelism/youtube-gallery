@@ -14,9 +14,7 @@ export const ALLOWED_RETURN_URL_ROUTES = ['/videos', '/channels'] as const;
  * Check if a given pathname is a public (unprotected) route
  */
 export function isPublicRoute(pathname: string): boolean {
-  return PUBLIC_ROUTES.some(route =>
-    pathname === route || pathname.startsWith(`${route}/`)
-  );
+  return PUBLIC_ROUTES.some(route => pathname === route || pathname.startsWith(`${route}/`));
 }
 
 /**
@@ -30,9 +28,7 @@ export function isProtectedRoute(pathname: string): boolean {
  * Check if a given pathname is an allowed return URL route
  */
 export function isAllowedReturnUrlRoute(pathname: string): boolean {
-  return ALLOWED_RETURN_URL_ROUTES.some(route =>
-    pathname === route || pathname.startsWith(`${route}/`)
-  );
+  return ALLOWED_RETURN_URL_ROUTES.some(route => pathname === route || pathname.startsWith(`${route}/`));
 }
 
 /**

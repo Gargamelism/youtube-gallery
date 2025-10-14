@@ -17,19 +17,13 @@ describe('fetchUserChannels', () => {
     it('calls API without query parameters', async () => {
       await fetchUserChannels();
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        `${API_BASE_URL}/auth/channels`,
-        expect.any(Object)
-      );
+      expect(global.fetch).toHaveBeenCalledWith(`${API_BASE_URL}/auth/channels`, expect.any(Object));
     });
 
     it('calls API with undefined filters', async () => {
       await fetchUserChannels(undefined);
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        `${API_BASE_URL}/auth/channels`,
-        expect.any(Object)
-      );
+      expect(global.fetch).toHaveBeenCalledWith(`${API_BASE_URL}/auth/channels`, expect.any(Object));
     });
   });
 
@@ -41,10 +35,7 @@ describe('fetchUserChannels', () => {
 
       await fetchUserChannels(filters);
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        `${API_BASE_URL}/auth/channels?search=tech`,
-        expect.any(Object)
-      );
+      expect(global.fetch).toHaveBeenCalledWith(`${API_BASE_URL}/auth/channels?search=tech`, expect.any(Object));
     });
 
     it('encodes special characters in search', async () => {
@@ -123,10 +114,7 @@ describe('fetchUserChannels', () => {
 
       await fetchUserChannels(filters);
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        `${API_BASE_URL}/auth/channels?page=3`,
-        expect.any(Object)
-      );
+      expect(global.fetch).toHaveBeenCalledWith(`${API_BASE_URL}/auth/channels?page=3`, expect.any(Object));
     });
 
     it('includes page 1', async () => {
@@ -136,10 +124,7 @@ describe('fetchUserChannels', () => {
 
       await fetchUserChannels(filters);
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        `${API_BASE_URL}/auth/channels?page=1`,
-        expect.any(Object)
-      );
+      expect(global.fetch).toHaveBeenCalledWith(`${API_BASE_URL}/auth/channels?page=1`, expect.any(Object));
     });
 
     it('omits page when undefined', async () => {
@@ -205,10 +190,7 @@ describe('fetchUserChannels', () => {
     it('handles empty filters object', async () => {
       await fetchUserChannels({});
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        `${API_BASE_URL}/auth/channels`,
-        expect.any(Object)
-      );
+      expect(global.fetch).toHaveBeenCalledWith(`${API_BASE_URL}/auth/channels`, expect.any(Object));
     });
 
     it('handles empty search string', async () => {
@@ -239,10 +221,7 @@ describe('fetchAvailableChannels', () => {
     it('calls available channels endpoint without query parameters', async () => {
       await fetchAvailableChannels();
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        `${API_BASE_URL}/auth/channels/available`,
-        expect.any(Object)
-      );
+      expect(global.fetch).toHaveBeenCalledWith(`${API_BASE_URL}/auth/channels/available`, expect.any(Object));
     });
   });
 
@@ -269,10 +248,7 @@ describe('fetchAvailableChannels', () => {
 
       await fetchAvailableChannels(filters);
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        `${API_BASE_URL}/auth/channels/available?page=2`,
-        expect.any(Object)
-      );
+      expect(global.fetch).toHaveBeenCalledWith(`${API_BASE_URL}/auth/channels/available?page=2`, expect.any(Object));
     });
   });
 

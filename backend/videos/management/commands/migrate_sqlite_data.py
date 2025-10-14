@@ -3,7 +3,6 @@ import sqlite3
 
 from dateutil import parser
 from django.core.management.base import BaseCommand
-from django.utils import timezone
 from videos.models import Channel, Video
 
 

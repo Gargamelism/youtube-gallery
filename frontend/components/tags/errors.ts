@@ -1,7 +1,11 @@
 import { ApiResponse } from '@/services/ResponseHandler';
 
 export class TagError extends Error {
-  constructor(public translationKey: string, public code?: string, public params?: Record<string, unknown>) {
+  constructor(
+    public translationKey: string,
+    public code?: string,
+    public params?: Record<string, unknown>
+  ) {
     super(translationKey);
     this.name = 'TagError';
   }

@@ -1,8 +1,9 @@
 import uuid
-from typing import List, Optional
+from typing import List, Optional, Self
 from enum import Enum
-from pydantic import BaseModel, ConfigDict, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator, ValidationInfo
 from rest_framework.exceptions import ValidationError as DRFValidationError
+from rest_framework.request import Request
 
 from users.models import User, ChannelTag
 
@@ -15,7 +16,7 @@ class TagMode(str, Enum):
     ALL = "all"
 
     @classmethod
-    def from_param(cls, value):
+    def from_param(cls, value: Optional[str]) -> Self:
         """Parse tag mode from parameter with fallback to ANY"""
         try:
             return cls(value)
@@ -29,7 +30,7 @@ class WatchStatus(str, Enum):
     ALL = "all"
 
     @classmethod
-    def from_param(cls, value):
+    def from_param(cls, value: Optional[str]) -> Optional[Self]:
         """Parse watch status from parameter with fallback to None"""
         try:
             return cls(value)
@@ -47,7 +48,7 @@ class VideoSearchParams(BaseModel):
 
     @field_validator("tags")
     @classmethod
-    def validate_tags_belong_to_user(cls, tags, info):
+    def validate_tags_belong_to_user(cls, tags: Optional[List[str]], info: ValidationInfo) -> Optional[List[str]]:
         if not tags or not info.context or not info.context.get("user"):
             return tags
 
@@ -61,7 +62,7 @@ class VideoSearchParams(BaseModel):
         return tags
 
     @classmethod
-    def from_request(cls, request):
+    def from_request(cls, request: Request) -> Self:
         """Create VideoSearchParams from Django request with proper error handling"""
         tags_param = request.query_params.get("tags")
         tags = None
@@ -94,7 +95,7 @@ class ChannelSearchParams(BaseModel):
     user: User
 
     @model_validator(mode="after")
-    def validate_tags_belong_to_user(self):
+    def validate_tags_belong_to_user(self) -> Self:
         if not self.tags:
             return self
 
@@ -108,7 +109,7 @@ class ChannelSearchParams(BaseModel):
 
     @field_validator("search_query")
     @classmethod
-    def validate_search_query_length(cls, search_query):
+    def validate_search_query_length(cls, search_query: Optional[str]) -> Optional[str]:
         if not search_query:
             return None
 
@@ -119,7 +120,7 @@ class ChannelSearchParams(BaseModel):
         return search_query
 
     @classmethod
-    def from_request(cls, request):
+    def from_request(cls, request: Request) -> Self:
         """Create ChannelSearchParams from Django request with proper error handling"""
         tags_param = request.query_params.get("tags")
         tags = None

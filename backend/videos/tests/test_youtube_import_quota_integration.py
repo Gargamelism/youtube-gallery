@@ -2,10 +2,10 @@
 Integration tests for QuotaTracker with YouTubeService channel import functionality.
 """
 
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 from django.test import TestCase
 from videos.models import Channel
-from videos.services.youtube import YouTubeService, YouTubeAuthenticationError
+from videos.services.youtube import YouTubeService
 from videos.services.quota_tracker import QuotaTracker
 
 

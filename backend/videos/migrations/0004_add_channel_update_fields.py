@@ -1,5 +1,4 @@
 from django.db import migrations, models
-import uuid
 
 
 def create_default_frequencies(apps, schema_editor):
