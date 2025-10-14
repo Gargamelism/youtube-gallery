@@ -88,7 +88,8 @@ jobs:
         run: black --check .
 
       - name: Lint (ruff)
-        run: ruff check . | reviewdog -efm="%f:%l:%c: %m" -name="ruff" -reporter=github-pr-review -fail-on-error=true
+        run: |
+          ruff check . | reviewdog -efm="%f:%l:%c: %m" -name="ruff" -reporter=github-pr-review -fail-on-error=true
 
       - name: Type Check (mypy)
         run: mypy . | reviewdog -f=mypy -name="mypy" -reporter=github-pr-review -fail-on-error=true
