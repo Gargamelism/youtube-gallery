@@ -1,4 +1,5 @@
 function getEnvVar(name: string, defaultValue?: string): string {
+  // eslint-disable-next-line security/detect-object-injection
   const value = process.env[name] || defaultValue;
   if (!value) {
     throw new Error(`Missing required environment variable: ${name}`);

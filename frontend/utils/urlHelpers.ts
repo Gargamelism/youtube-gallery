@@ -2,6 +2,8 @@ import { ReadonlyURLSearchParams } from 'next/navigation';
 import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { isAllowedReturnUrlRoute } from '@/config/routes';
 
+const MAX_RETURN_URL_LENGTH = 2000;
+
 /**
  * Updates URL search parameters with new values
  * @param searchParams - Current URL search parameters
@@ -55,15 +57,15 @@ export function sanitizeReturnUrl(returnUrl: string | null | undefined, fallback
 
   const trimmed = returnUrl.trim();
 
-  if (!trimmed) {
+  if (!trimmed || trimmed.length > MAX_RETURN_URL_LENGTH) {
     return fallback;
   }
 
-  if (/^(https?:)?\/\//.test(trimmed)) {
+  if (trimmed.startsWith('//') || trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
     return fallback;
   }
 
-  if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) {
+  if (trimmed.includes(':') && !/^\//.test(trimmed)) {
     return fallback;
   }
 

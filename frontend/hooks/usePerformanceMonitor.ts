@@ -48,6 +48,7 @@ export function usePerformanceMonitor({
         performanceMonitor.recordMetric(category, {
           scrollRestorationTime: duration,
         });
+        // eslint-disable-next-line security-node/detect-crlf
         console.log(`Scroll restoration took ${duration.toFixed(2)}ms`);
       }
       restorationStartRef.current = null;

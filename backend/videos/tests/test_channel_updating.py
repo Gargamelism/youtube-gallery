@@ -16,11 +16,11 @@ class ChannelUpdatingServiceTests(TestCase):
     def setUpTestData(cls):
         """Create test data once for the entire test class"""
         cls.user1 = User.objects.create_user(
-            username="testuser1", email="test1@example.com", password="testpass123"
-        )  # nosec B105 - test-only password
+            username="testuser1", email="test1@example.com", password="testpass123"  # nosec B105 - test-only password
+        )
         cls.user2 = User.objects.create_user(
-            username="testuser2", email="test2@example.com", password="testpass123"
-        )  # nosec B105 - test-only password
+            username="testuser2", email="test2@example.com", password="testpass123"  # nosec B105 - test-only password
+        )
 
         # Create channels with different states
         cls.active_channel = Channel.objects.create(
@@ -84,8 +84,8 @@ class ChannelMetadataUpdateTests(TestCase):
     def setUp(self):
         """Set up test data for each test"""
         self.user = User.objects.create_user(
-            username="testuser", email="test@example.com", password="testpass123"
-        )  # nosec B105 - test-only password
+            username="testuser", email="test@example.com", password="testpass123"  # nosec B105 - test-only password
+        )
 
         self.channel = Channel.objects.create(channel_id="UC_test", title="Old Title", description="Old Description")
 
@@ -118,8 +118,8 @@ class ChannelRemovalTests(TestCase):
     def setUp(self):
         """Set up test data for each test"""
         self.user = User.objects.create_user(
-            username="testuser", email="test@example.com", password="testpass123"
-        )  # nosec B105 - test-only password
+            username="testuser", email="test@example.com", password="testpass123"  # nosec B105 - test-only password
+        )
 
         # Channel with subscription
         self.subscribed_channel = Channel.objects.create(channel_id="UC_subscribed", title="Subscribed Channel")
@@ -153,8 +153,8 @@ class ChannelUpdateAPITests(APITestCase):
     def setUp(self):
         """Set up test data for each test"""
         self.user = User.objects.create_user(
-            username="testuser", email="test@example.com", password="testpass123"
-        )  # nosec B105 - test-only password
+            username="testuser", email="test@example.com", password="testpass123"  # nosec B105 - test-only password
+        )
         self.token = Token.objects.create(user=self.user)
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
 

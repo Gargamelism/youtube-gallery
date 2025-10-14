@@ -26,6 +26,7 @@ export function getRandomTagColor(): string {
     '#374151', // gray-700
   ];
 
+  // eslint-disable-next-line security-node/detect-insecure-randomness
   return colors[Math.floor(Math.random() * colors.length)]!;
 }
 

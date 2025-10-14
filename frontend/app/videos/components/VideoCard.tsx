@@ -9,6 +9,8 @@ import { TagBadge } from '@/components/tags/TagBadge';
 import { useVideoFilters } from '@/hooks/useVideoFilters';
 import { getTextDirection, getTextAlign } from '@/utils/textHelpers';
 
+const MAX_DURATION_LENGTH = 20;
+
 interface VideoCardProps {
   video: Video;
   onWatch: () => void;
@@ -44,16 +46,21 @@ export function VideoCard({ video, onWatch, onToggleWatched }: VideoCardProps) {
 
   const formatDuration = (duration: string | null) => {
     if (!duration) return null;
-    const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
-    if (!match) return duration;
 
-    const [, hours, minutes, seconds] = match;
+    if (duration.length > MAX_DURATION_LENGTH || !duration.startsWith('PT')) {
+      return duration;
+    }
+
     const parts = [];
-    if (hours) parts.push(`${hours}h`);
-    if (minutes) parts.push(`${minutes}m`);
-    if (seconds && !hours && !minutes) parts.push(`${seconds}s`);
+    const hourMatch = /(\d{1,4})H/.exec(duration);
+    const minuteMatch = /(\d{1,4})M/.exec(duration);
+    const secondMatch = /(\d{1,4})S/.exec(duration);
 
-    return parts.join(' ') || duration;
+    if (hourMatch) parts.push(`${hourMatch[1]}h`);
+    if (minuteMatch) parts.push(`${minuteMatch[1]}m`);
+    if (secondMatch && !hourMatch && !minuteMatch) parts.push(`${secondMatch[1]}s`);
+
+    return parts.length > 0 ? parts.join(' ') : duration;
   };
 
   const formatDate = (dateString: string) => {

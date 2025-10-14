@@ -74,11 +74,13 @@ class StorageManager {
   // LocalStorage operations
   getLocal<K extends keyof LocalStorageData>(key: K): LocalStorageData[K] | null {
     const root = this.getRoot<LocalStorageData>(localStorage);
+    // eslint-disable-next-line security/detect-object-injection
     return root?.[key] ?? null;
   }
 
   setLocal<K extends keyof LocalStorageData>(key: K, value: LocalStorageData[K]): void {
     const root = this.getRoot<LocalStorageData>(localStorage) || {};
+    // eslint-disable-next-line security/detect-object-injection
     root[key] = value;
     this.setRoot(localStorage, root);
   }
@@ -86,6 +88,7 @@ class StorageManager {
   removeLocal<K extends keyof LocalStorageData>(key: K): void {
     const root = this.getRoot<LocalStorageData>(localStorage);
     if (root) {
+      // eslint-disable-next-line security/detect-object-injection
       delete root[key];
       this.setRoot(localStorage, root);
     }
@@ -99,11 +102,13 @@ class StorageManager {
   // SessionStorage operations
   getSession<K extends keyof SessionStorageData>(key: K): SessionStorageData[K] | null {
     const root = this.getRoot<SessionStorageData>(sessionStorage);
+    // eslint-disable-next-line security/detect-object-injection
     return root?.[key] ?? null;
   }
 
   setSession<K extends keyof SessionStorageData>(key: K, value: SessionStorageData[K]): void {
     const root = this.getRoot<SessionStorageData>(sessionStorage) || {};
+    // eslint-disable-next-line security/detect-object-injection
     root[key] = value;
     this.setRoot(sessionStorage, root);
   }
@@ -111,6 +116,7 @@ class StorageManager {
   removeSession<K extends keyof SessionStorageData>(key: K): void {
     const root = this.getRoot<SessionStorageData>(sessionStorage);
     if (root) {
+      // eslint-disable-next-line security/detect-object-injection
       delete root[key];
       this.setRoot(sessionStorage, root);
     }
@@ -124,11 +130,13 @@ class StorageManager {
   // Scroll position helpers
   getScrollPosition(key: string): ScrollPosition | null {
     const positions = this.getSession('scroll_positions');
+    // eslint-disable-next-line security/detect-object-injection
     return positions?.[key] ?? null;
   }
 
   setScrollPosition(key: string, position: ScrollPosition): void {
     const positions = this.getSession('scroll_positions') || {};
+    // eslint-disable-next-line security/detect-object-injection
     positions[key] = position;
     this.setSession('scroll_positions', positions);
   }
@@ -136,6 +144,7 @@ class StorageManager {
   removeScrollPosition(key: string): void {
     const positions = this.getSession('scroll_positions');
     if (positions) {
+      // eslint-disable-next-line security/detect-object-injection
       delete positions[key];
       this.setSession('scroll_positions', positions);
     }

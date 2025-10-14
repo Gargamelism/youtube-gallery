@@ -54,20 +54,26 @@ class ChannelUpdatingFixtures:
         users = {}
 
         users["active_user"] = User.objects.create_user(
-            username="active_user", email="active@example.com", password="testpass123"
-        )  # nosec B105 - test-only password
+            username="active_user",
+            email="active@example.com",
+            password="testpass123",  # nosec B105 - test-only password
+        )
 
         users["inactive_user"] = User.objects.create_user(
-            username="inactive_user", email="inactive@example.com", password="testpass123"
-        )  # nosec B105 - test-only password
+            username="inactive_user",
+            email="inactive@example.com",
+            password="testpass123",  # nosec B105 - test-only password
+        )
 
         users["power_user"] = User.objects.create_user(
-            username="power_user", email="power@example.com", password="testpass123"
-        )  # nosec B105 - test-only password
+            username="power_user", email="power@example.com", password="testpass123"  # nosec B105 - test-only password
+        )
 
         users["casual_user"] = User.objects.create_user(
-            username="casual_user", email="casual@example.com", password="testpass123"
-        )  # nosec B105 - test-only password
+            username="casual_user",
+            email="casual@example.com",
+            password="testpass123",  # nosec B105 - test-only password
+        )
 
         self.created_objects["users"].extend(users.values())
         return users

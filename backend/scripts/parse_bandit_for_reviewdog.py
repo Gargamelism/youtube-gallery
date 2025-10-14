@@ -1,6 +1,9 @@
 import sys
 import json
+import defusedxml
 from xml.sax.saxutils import escape
+
+defusedxml.defuse_stdlib()
 
 
 def bandit_to_checkstyle(bandit_report):
@@ -14,7 +17,9 @@ def bandit_to_checkstyle(bandit_report):
         severity = result["issue_severity"].lower()
 
         print(f'  <file name="{filename}">')
-        print(f'    <error line="{line}" severity="{severity}" message="{message}" source="bandit" />')
+        print(
+            f'    <error line="{line}" severity="{severity}" message="{message}" source="bandit" />'
+        )
         print(f"  </file>")
 
     print("</checkstyle>")

@@ -30,11 +30,15 @@ class ChannelPerformanceTestCase(TestCase):
         Faker.seed(42)
 
         cls.user1 = User.objects.create_user(
-            username="perfuser1", email="perf1@example.com", password="testpass123"
-        )  # nosec B105 - test-only password
+            username="perfuser1",
+            email="perf1@example.com",
+            password="testpass123",  # nosec B105 - test-only password
+        )
         cls.user2 = User.objects.create_user(
-            username="perfuser2", email="perf2@example.com", password="testpass123"
-        )  # nosec B105 - test-only password
+            username="perfuser2",
+            email="perf2@example.com",
+            password="testpass123",  # nosec B105 - test-only password
+        )
 
         # YouTube channel title templates for realistic data
         title_templates = [
@@ -88,25 +92,39 @@ class ChannelPerformanceTestCase(TestCase):
         # User1 subscribes to 100 channels (10%)
         cls.user1_channels = []
         for i in range(0, 100):
-            user_channel = UserChannel.objects.create(user=cls.user1, channel=cls.channels[i], is_active=True)
+            user_channel = UserChannel.objects.create(
+                user=cls.user1, channel=cls.channels[i], is_active=True
+            )
             cls.user1_channels.append(user_channel)
 
         # User2 subscribes to 50 different channels
         for i in range(500, 550):
-            UserChannel.objects.create(user=cls.user2, channel=cls.channels[i], is_active=True)
+            UserChannel.objects.create(
+                user=cls.user2, channel=cls.channels[i], is_active=True
+            )
 
         # Create tags for user1
-        cls.tag_programming = ChannelTag.objects.create(user=cls.user1, name="Programming", color="#FF0000")
-        cls.tag_tutorial = ChannelTag.objects.create(user=cls.user1, name="Tutorial", color="#00FF00")
-        cls.tag_python = ChannelTag.objects.create(user=cls.user1, name="Python", color="#0000FF")
+        cls.tag_programming = ChannelTag.objects.create(
+            user=cls.user1, name="Programming", color="#FF0000"
+        )
+        cls.tag_tutorial = ChannelTag.objects.create(
+            user=cls.user1, name="Tutorial", color="#00FF00"
+        )
+        cls.tag_python = ChannelTag.objects.create(
+            user=cls.user1, name="Python", color="#0000FF"
+        )
 
         # Tag 40% of user1's channels with programming
         for user_channel in cls.user1_channels[:40]:
-            UserChannelTag.objects.create(user_channel=user_channel, tag=cls.tag_programming)
+            UserChannelTag.objects.create(
+                user_channel=user_channel, tag=cls.tag_programming
+            )
 
         # Tag 30% with tutorial
         for user_channel in cls.user1_channels[20:50]:
-            UserChannelTag.objects.create(user_channel=user_channel, tag=cls.tag_tutorial)
+            UserChannelTag.objects.create(
+                user_channel=user_channel, tag=cls.tag_tutorial
+            )
 
         # Tag 20% with python
         for user_channel in cls.user1_channels[10:30]:
@@ -168,7 +186,11 @@ class ChannelPerformanceTestCase(TestCase):
         service = ChannelSearchService(self.user1)
 
         with self.assertNumQueries(2):
-            channels = list(service.search_user_channels(tag_names=["Programming"], tag_mode=TagMode.ANY))
+            channels = list(
+                service.search_user_channels(
+                    tag_names=["Programming"], tag_mode=TagMode.ANY
+                )
+            )
 
         self.assertEqual(len(channels), 40)
 
@@ -202,7 +224,9 @@ class ChannelPerformanceTestCase(TestCase):
         service = ChannelSearchService(self.user1)
 
         with self.assertNumQueries(1):
-            channels = list(service.search_available_channels(search_query="Programming"))
+            channels = list(
+                service.search_available_channels(search_query="Programming")
+            )
 
         self.assertGreater(len(channels), 0)
 
@@ -259,7 +283,8 @@ class ChannelPerformanceTestCase(TestCase):
 
         # Check that index scan is mentioned (GIN indexes may show as Bitmap Index Scan)
         self.assertTrue(
-            "idx_ch_title_trgm" in explain_output or "Bitmap Index Scan" in explain_output,
+            "idx_ch_title_trgm" in explain_output
+            or "Bitmap Index Scan" in explain_output,
             f"Expected GIN index usage not found:\n{explain_output}",
         )
 
@@ -290,7 +315,11 @@ class ChannelPerformanceTestCase(TestCase):
         service = ChannelSearchService(self.user1)
 
         with self.assertNumQueries(2):
-            channels = list(service.search_user_channels(tag_names=["Programming", "Tutorial"], tag_mode=TagMode.ALL))
+            channels = list(
+                service.search_user_channels(
+                    tag_names=["Programming", "Tutorial"], tag_mode=TagMode.ALL
+                )
+            )
 
         # Should only return channels with both tags (overlap between indices 20-40 and 20-50)
         self.assertEqual(len(channels), 20)
@@ -299,7 +328,9 @@ class ChannelPerformanceTestCase(TestCase):
         """Test ANY mode tag filtering uses EXISTS subquery"""
         service = ChannelSearchService(self.user1)
 
-        queryset = service.search_user_channels(tag_names=["Programming", "Tutorial"], tag_mode=TagMode.ANY)
+        queryset = service.search_user_channels(
+            tag_names=["Programming", "Tutorial"], tag_mode=TagMode.ANY
+        )
 
         sql = str(queryset.query)
 
@@ -348,13 +379,17 @@ class ChannelPerformanceTestCase(TestCase):
         print("\n" + "=" * 80)
         print("EXPLAIN ANALYZE: Subscribed channels with tag filter (ANY mode)")
         print("=" * 80)
-        queryset = service.search_user_channels(tag_names=["Programming"], tag_mode=TagMode.ANY)
+        queryset = service.search_user_channels(
+            tag_names=["Programming"], tag_mode=TagMode.ANY
+        )
         print(self._get_explain_analyze(queryset))
 
         print("\n" + "=" * 80)
         print("EXPLAIN ANALYZE: Subscribed channels with tag filter (ALL mode)")
         print("=" * 80)
-        queryset = service.search_user_channels(tag_names=["Programming", "Tutorial"], tag_mode=TagMode.ALL)
+        queryset = service.search_user_channels(
+            tag_names=["Programming", "Tutorial"], tag_mode=TagMode.ALL
+        )
         print(self._get_explain_analyze(queryset))
 
         print("\n" + "=" * 80)

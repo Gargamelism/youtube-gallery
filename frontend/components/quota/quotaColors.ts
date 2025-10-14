@@ -35,17 +35,21 @@ const QUOTA_COLOR_MAP: Record<UserQuotaInfo['status'], QuotaColorConfig> = {
 } as const;
 
 export const getQuotaStatusClasses = (status: UserQuotaInfo['status']) => {
+  // eslint-disable-next-line security/detect-object-injection
   return QUOTA_COLOR_MAP[status]?.background ?? QUOTA_COLOR_MAP.normal.background;
 };
 
 export const getQuotaStrokeClasses = (status: UserQuotaInfo['status']) => {
+  // eslint-disable-next-line security/detect-object-injection
   return QUOTA_COLOR_MAP[status]?.stroke ?? QUOTA_COLOR_MAP.normal.stroke;
 };
 
 export const getQuotaTextClasses = (status: UserQuotaInfo['status']) => {
+  // eslint-disable-next-line security/detect-object-injection
   return QUOTA_COLOR_MAP[status]?.text ?? QUOTA_COLOR_MAP.normal.text;
 };
 
 export const getQuotaProgressClasses = (status: UserQuotaInfo['status']) => {
+  // eslint-disable-next-line security/detect-object-injection
   return QUOTA_COLOR_MAP[status]?.progress ?? QUOTA_COLOR_MAP.normal.progress;
 };

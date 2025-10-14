@@ -25,6 +25,11 @@ export function TagBadge({ tag, size = 'md', removable = false, onRemove, onClic
     lg: 'h-5 w-5',
   };
 
+  // eslint-disable-next-line security/detect-object-injection
+  const sizeClass = sizeClasses[size];
+  // eslint-disable-next-line security/detect-object-injection
+  const iconSizeClass = iconSizeClasses[size];
+
   const handleClick = (event: React.MouseEvent) => {
     if (removable && onRemove) {
       event.stopPropagation();
@@ -43,7 +48,7 @@ export function TagBadge({ tag, size = 'md', removable = false, onRemove, onClic
       className={`
         TagBadge inline-flex items-center gap-1.5 rounded-full font-medium
         transition-all duration-200 select-none
-        ${sizeClasses[size]}
+        ${sizeClass}
         ${onClick && !removable ? 'cursor-pointer hover:shadow-md' : ''}
         ${removable ? 'pr-1.5' : ''}
       `}
@@ -71,12 +76,12 @@ export function TagBadge({ tag, size = 'md', removable = false, onRemove, onClic
             transition-colors duration-150
             hover:bg-current hover:bg-opacity-20
             focus:outline-none focus:ring-2 focus:ring-current focus:ring-opacity-50
-            ${iconSizeClasses[size]}
+            ${iconSizeClass}
           `}
           aria-label={`Remove ${tag.name} tag`}
           type="button"
         >
-          <X className={iconSizeClasses[size]} />
+          <X className={iconSizeClass} />
         </button>
       )}
     </span>

@@ -16,11 +16,11 @@ class ChannelSearchServiceTests(TestCase):
     def setUpTestData(cls):
         """Create test data once for the entire test class"""
         cls.user = User.objects.create_user(
-            username="testuser", email="test@example.com", password="testpass123"
-        )  # nosec B105 - test-only password
+            username="testuser", email="test@example.com", password="testpass123"  # nosec B105 - test-only password
+        )
         cls.user2 = User.objects.create_user(
-            username="testuser2", email="test2@example.com", password="testpass123"
-        )  # nosec B105 - test-only password
+            username="testuser2", email="test2@example.com", password="testpass123"  # nosec B105 - test-only password
+        )
 
         cls.channel1 = Channel.objects.create(
             channel_id="UC1", title="Python Programming", description="Learn Python programming"
