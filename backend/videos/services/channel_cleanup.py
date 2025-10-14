@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, TypedDict
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
@@ -6,6 +6,25 @@ from celery.utils.log import get_task_logger
 
 from videos.models import Channel, Video
 from users.models import UserVideo
+
+
+class CleanupResult(TypedDict):
+    success: bool
+    cleanup_type: str
+    videos_preserved: int
+    videos_deleted: int
+    user_video_entries_deleted: int
+
+
+class BatchCleanupResult(TypedDict):
+    channels_processed: int
+    soft_deletions: int
+    hard_deletions: int
+    failed_cleanups: int
+    total_videos_preserved: int
+    total_videos_deleted: int
+    total_user_videos_deleted: int
+    cleanup_details: List[CleanupResult]
 
 
 class ChannelCleanupService:
@@ -224,18 +243,24 @@ class ChannelCleanupService:
             # Process each orphaned channel
             for channel in orphaned_channels:
                 cleanup_result = self.cleanup_channel_selectively(channel)
-                batch_result["cleanup_details"].append(cleanup_result)
-                batch_result["channels_processed"] += 1
+                batch_result["cleanup_details"].append(cleanup_result)  # type: ignore
+                batch_result["channels_processed"] = int(batch_result["channels_processed"]) + 1
 
                 if cleanup_result["success"]:
                     if cleanup_result["cleanup_type"] == "soft_delete":
-                        batch_result["soft_deletions"] += 1
-                        batch_result["total_videos_preserved"] += cleanup_result["videos_preserved"]
+                        batch_result["soft_deletions"] = int(batch_result["soft_deletions"]) + 1
+                        batch_result["total_videos_preserved"] = int(batch_result["total_videos_preserved"]) + int(
+                            cleanup_result["videos_preserved"]
+                        )
                     else:
-                        batch_result["hard_deletions"] += 1
+                        batch_result["hard_deletions"] = int(batch_result["hard_deletions"]) + 1
 
-                    batch_result["total_videos_deleted"] += cleanup_result["videos_deleted"]
-                    batch_result["total_user_videos_deleted"] += cleanup_result["user_video_entries_deleted"]
+                    batch_result["total_videos_deleted"] = int(batch_result["total_videos_deleted"]) + int(
+                        cleanup_result["videos_deleted"]
+                    )
+                    batch_result["total_user_videos_deleted"] = int(batch_result["total_user_videos_deleted"]) + int(
+                        cleanup_result["user_video_entries_deleted"]
+                    )
                 else:
                     batch_result["failed_cleanups"] += 1
 

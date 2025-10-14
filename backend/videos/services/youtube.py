@@ -2,9 +2,26 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, TypedDict
+from typing import Any, Dict, List, Optional, TypedDict, Union, cast
 
 from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import Flow
+from googleapiclient.discovery import Resource, build
+from videos.services.quota_tracker import QuotaTracker
+
+# Type aliases for better type checking
+YouTubeClientConfig = Dict[str, Any]
+YouTubeResource = Any  # Type stub for Resource isn't available
+
+
+class CredentialsData(TypedDict, total=False):
+    token: str
+    refresh_token: str
+    token_uri: str
+    expiry: str
+    scopes: List[str]
+
+
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import Resource, build
 from videos.models import Channel, Video
@@ -42,7 +59,13 @@ class YouTubeAuthenticationError(Exception):
 
 
 class YouTubeService:
-    def __init__(self, credentials=None, api_key=None, redirect_uri=None, quota_tracker: Optional[QuotaTracker] = None):
+    def __init__(
+        self,
+        credentials: Optional[Credentials] = None,
+        api_key: Optional[str] = None,
+        redirect_uri: Optional[str] = None,
+        quota_tracker: Optional[QuotaTracker] = None,
+    ) -> None:
         self.credentials = credentials
         self.api_key = api_key
         self.quota_tracker = quota_tracker or QuotaTracker()
@@ -50,11 +73,11 @@ class YouTubeService:
         # Initialize YouTube API client
         if credentials:
             # OAuth authentication
-            self.youtube: Resource = build("youtube", "v3", credentials=credentials)
+            self.youtube: YouTubeResource = cast(YouTubeResource, build("youtube", "v3", credentials=credentials))
             self.auth_type = "oauth"
         elif api_key:
             # API key authentication
-            self.youtube: Resource = build("youtube", "v3", developerKey=api_key)
+            self.youtube: YouTubeResource = cast(YouTubeResource, build("youtube", "v3", developerKey=api_key))
             self.auth_type = "api_key"
         else:
             # Neither provided - require OAuth
@@ -77,7 +100,7 @@ class YouTubeService:
         return client_info
 
     @staticmethod
-    def _generate_oauth_url(redirect_uri=None, state=None):
+    def _generate_oauth_url(redirect_uri: Optional[str] = None, state: Optional[str] = None) -> Optional[str]:
         """Generate OAuth 2.0 authorization URL"""
         try:
             base_dir = Path(os.getenv("YOUTUBE_CREDENTIALS_DIR", "/app/config/credentials"))
@@ -104,7 +127,7 @@ class YouTubeService:
             return None
 
     @classmethod
-    def handle_oauth_callback(cls, authorization_code, redirect_uri):
+    def handle_oauth_callback(cls, authorization_code: str, redirect_uri: str) -> Dict[str, Any]:
         """Handle OAuth callback and return credentials"""
         client_info = cls.get_client_config()
 
@@ -117,7 +140,7 @@ class YouTubeService:
             "grant_type": "authorization_code",
         }
         try:
-            response = http.post(token_uri, data=data)
+            response = http.post(url=token_uri, data=data)
             response.raise_for_status()
             token_data = response.json()
         except Exception as e:
@@ -126,7 +149,7 @@ class YouTubeService:
         return token_data
 
     @classmethod
-    def create_credentials(cls, credentials_data) -> Credentials:
+    def create_credentials(cls, credentials_data: Union[str, CredentialsData]) -> Credentials:
         """Factory method to create Google OAuth2 Credentials object from session data"""
         client_config = cls.get_client_config()
 
@@ -220,7 +243,7 @@ class YouTubeService:
 
         return None
 
-    def _find_channel_by_handle(self, handle: str, items: List) -> Optional[Dict[str, Any]]:
+    def _find_channel_by_handle(self, handle: str, items: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
         channel_ids = [item["snippet"]["channelId"] for item in items]
         channels_info = self._get_channels_by_ids(",".join(channel_ids))
 

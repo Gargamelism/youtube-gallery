@@ -379,7 +379,7 @@ class ChannelPaginationPerformanceTestCase(TestCase):
     """Performance tests for pagination with large result sets"""
 
     @classmethod
-    def setUpTestData(cls):
+    def setUpTestData(cls) -> None:
         """Create large dataset for pagination testing"""
         fake = Faker()
         Faker.seed(100)

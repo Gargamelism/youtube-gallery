@@ -1,4 +1,6 @@
 import os
+from typing import Optional
+
 from celery import Celery
 
 # this must be set before importing settings
@@ -52,13 +54,13 @@ if CELERY_ENABLED:
     )
 
     @app.task(bind=True)
-    def debug_task(self):
+    def debug_task(self) -> str:
         """Debug task for testing Celery worker connectivity"""
         print(f"Request: {self.request!r}")
         return "Celery is working!"
 
 else:
 
-    def debug_task():
+    def debug_task() -> None:
         print("Celery is disabled. No tasks can be executed.")
         return None

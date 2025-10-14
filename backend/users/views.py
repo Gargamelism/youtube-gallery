@@ -1,16 +1,24 @@
 import secrets
+from typing import Optional, Dict, Any, List
 from urllib.parse import unquote, urlparse
+
 from django.conf import settings
+from django.db.models import QuerySet
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.utils import timezone
 from django.utils import timezone as dj_tz
-from django.db.models import QuerySet
+
 from rest_framework import permissions, status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.request import Request
 from rest_framework.response import Response
+
+from users.models import UserChannel
 from users.utils import get_youtube_credentials
+from videos.services.youtube import YouTubeAuthenticationError, YouTubeService
+from videos.services.user_quota_tracker import UserQuotaTracker
 from videos.services.youtube import YouTubeAuthenticationError, YouTubeService
 from videos.services.user_quota_tracker import UserQuotaTracker
 from datetime import timedelta
@@ -85,8 +93,11 @@ def validate_recaptcha_v3(token, action, threshold=0.5):
 
 @api_view(["POST"])
 @permission_classes([permissions.AllowAny])
-def register_view(request):
-    captcha_token = http.data.get("captcha_token")
+def register_view(request: Request) -> Response:
+    if not hasattr(request, "data"):
+        return Response({"error": "Invalid request"}, status=status.HTTP_400_BAD_REQUEST)
+
+    captcha_token = request.data.get("captcha_token")
     if not validate_recaptcha_v3(captcha_token, "register"):
         return Response({"error": "Invalid captcha"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -178,7 +189,7 @@ class UserChannelViewSet(viewsets.ModelViewSet):
     serializer_class = UserChannelSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self) -> QuerySet:
+    def get_queryset(self) -> QuerySet[UserChannel]:
         search_params = ChannelSearchParams.from_request(self.request)
         search_service = ChannelSearchService(self.request.user)
         return search_service.search_user_channels(

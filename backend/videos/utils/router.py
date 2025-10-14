@@ -94,9 +94,15 @@ class KebabCaseRouter(DefaultRouter):
 
         return converted_routes
 
-    def _to_kebab_case(self, value):
+    def _to_kebab_case(self, value: str) -> str:
         """
         Convert snake_case to kebab-case while preserving regex patterns and URL parameters.
+
+        Args:
+            value: The string to convert from snake_case to kebab-case
+
+        Returns:
+            The converted string in kebab-case format
         """
         if not value:
             return value

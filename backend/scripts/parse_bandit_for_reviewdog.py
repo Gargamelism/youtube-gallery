@@ -1,12 +1,13 @@
 import sys
 import json
+from typing import Dict, Any
 import defusedxml
 from xml.sax.saxutils import escape
 
 defusedxml.defuse_stdlib()
 
 
-def bandit_to_checkstyle(bandit_report):
+def bandit_to_checkstyle(bandit_report: Dict[str, Any]) -> None:
     print('<?xml version="1.0" encoding="UTF-8"?>')
     print('<checkstyle version="4.3">')
 
@@ -24,6 +25,10 @@ def bandit_to_checkstyle(bandit_report):
 
 
 if __name__ == "__main__":
-    with open(sys.argv[1]) as file:
-        bandit_report = json.load(file)
+    if len(sys.argv) < 2:
+        print("Error: Please provide a bandit report file as argument", file=sys.stderr)
+        sys.exit(1)
+
+    with open(sys.argv[1], "r", encoding="utf-8") as file:
+        bandit_report: Dict[str, Any] = json.load(file)
     bandit_to_checkstyle(bandit_report)

@@ -1,14 +1,25 @@
 import uuid
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, TypeVar, TYPE_CHECKING
 from cryptography.fernet import Fernet
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth import get_user_model
 from django.db import models
-from django.db.models import Prefetch
+from django.db.models import Prefetch, QuerySet
+from django.db.models.query import QuerySet
 from django.utils import timezone as dj_tz
 from google.oauth2.credentials import Credentials
+
 from videos.services.youtube import YOUTUBE_SCOPES, YouTubeService
+
+if TYPE_CHECKING:
+    User = get_user_model()
+else:
+    User = None
+
+T = TypeVar("T", bound=models.Model)
 
 
 class TimestampMixin(models.Model):
@@ -31,8 +42,8 @@ class User(AbstractUser, TimestampMixin):
         db_table = "users"
 
 
-class UserChannelQuerySet(models.QuerySet):
-    def with_user_tags(self, user):
+class UserChannelQuerySet(QuerySet["UserChannel"]):
+    def with_user_tags(self, user: "User") -> "QuerySet[UserChannel]":
         """Prefetch channel tags filtered by user"""
         from users.models import UserChannelTag
 
