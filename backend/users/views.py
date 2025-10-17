@@ -4,7 +4,6 @@ from typing import Any, cast
 from urllib.parse import unquote, urlparse
 
 from django.conf import settings
-from django.contrib.auth.models import AnonymousUser
 from django.db.models import QuerySet
 from django.http import HttpResponse, HttpRequest
 from django.shortcuts import redirect

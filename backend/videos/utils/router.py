@@ -1,5 +1,4 @@
 import re
-from typing import Any
 
 from rest_framework.routers import DefaultRouter, Route
 from rest_framework.viewsets import ViewSetMixin
