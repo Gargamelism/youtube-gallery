@@ -22,7 +22,6 @@ class ChannelSerializer(serializers.ModelSerializer):
         return UserVideo.objects.filter(user=user, video__channel=obj, is_watched=True).count()
 
     def get_unwatched_videos(self, obj):
-        user = self.context["request"].user
         total_videos = obj.videos.count()
         watched_count = self.get_watched_videos(obj)
         return total_videos - watched_count

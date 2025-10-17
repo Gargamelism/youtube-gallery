@@ -4,14 +4,17 @@ Performance tests for channel search and filtering.
 These tests analyze query performance, verify index usage, and ensure
 the system meets performance requirements with large datasets.
 """
+from __future__ import annotations
 
 import time
-from faker import Faker
-from typing import List, Tuple
+from typing import Any
+
 from django.contrib.auth import get_user_model
 from django.db import connection
+from django.db.models import QuerySet
 from django.test import TestCase
 from django.test.utils import override_settings
+from faker import Faker
 
 from users.models import ChannelTag, UserChannel, UserChannelTag
 from users.services.channel_search import ChannelSearchService
@@ -23,6 +26,14 @@ User = get_user_model()
 
 class ChannelPerformanceTestCase(TestCase):
     """Performance tests for channel search with large datasets"""
+
+    user1: User
+    user2: User
+    channels: list[Channel]
+    user1_channels: list[UserChannel]
+    tag_programming: ChannelTag
+    tag_tutorial: ChannelTag
+    tag_python: ChannelTag
 
     @classmethod
     def setUpTestData(cls) -> None:
@@ -121,7 +132,7 @@ class ChannelPerformanceTestCase(TestCase):
         """Reset query tracking before each test"""
         connection.queries_log.clear()
 
-    def _get_explain_analyze(self, queryset) -> List[Tuple[str, ...]]:
+    def _get_explain_analyze(self, queryset: QuerySet[Any]) -> str:
         """Get EXPLAIN ANALYZE output for a queryset"""
         sql, params = queryset.query.sql_with_params()
         # print(sql, params)
@@ -377,6 +388,9 @@ class ChannelPerformanceTestCase(TestCase):
 
 class ChannelPaginationPerformanceTestCase(TestCase):
     """Performance tests for pagination with large result sets"""
+
+    user: User
+    channels: list[Channel]
 
     @classmethod
     def setUpTestData(cls) -> None:

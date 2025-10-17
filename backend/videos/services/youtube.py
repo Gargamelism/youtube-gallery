@@ -7,11 +7,17 @@ from typing import Any, Dict, List, Optional, TypedDict, Union, cast
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow  # type: ignore
 from googleapiclient.discovery import build  # type: ignore
+
+from videos.models import Channel, Video
 from videos.services.quota_tracker import QuotaTracker
+from videos.utils.dateutils import timezone_aware_datetime
+from youtube_gallery.utils.http import http
 
 # Type aliases for better type checking
-YouTubeClientConfig = Dict[str, Any]
 YouTubeResource = Any  # Type stub for Resource isn't available
+
+YOUTUBE_SCOPES = ["https://www.googleapis.com/auth/youtube.readonly"]
+MAX_SEARCH_RESULTS = 50  # Max results for searching channel by handle
 
 
 class CredentialsData(TypedDict, total=False):
@@ -20,14 +26,6 @@ class CredentialsData(TypedDict, total=False):
     token_uri: str
     expiry: str
     scopes: List[str]
-
-
-from videos.models import Channel, Video
-from videos.utils.dateutils import timezone_aware_datetime
-from youtube_gallery.utils.http import http
-
-YOUTUBE_SCOPES = ["https://www.googleapis.com/auth/youtube.readonly"]
-MAX_SEARCH_RESULTS = 50  # Max results for searching channel by handle
 
 
 class YouTubeClientConfig(TypedDict):
