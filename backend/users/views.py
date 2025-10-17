@@ -145,7 +145,7 @@ def login_view(request: Request) -> Response:
 def logout_view(request: Request) -> Response:
     try:
         request.user.auth_token.delete()
-    except:
+    except Exception:
         pass
 
     response = Response({"message": "Successfully logged out"})
@@ -272,7 +272,7 @@ def youtube_auth_url(request: Request) -> Response:
 
     # Store return URL in session for post-auth redirect
     return_url = request.GET.get("return_url")
-    if return_url and _is_safe_url(return_url, request._request):  # type: ignore[attr-defined]
+    if return_url and _is_safe_url(return_url, request._request):
         request.session["auth_return_url"] = return_url
 
     redirect_uri = request.GET.get("redirect_uri")

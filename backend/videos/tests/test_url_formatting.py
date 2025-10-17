@@ -2,17 +2,14 @@ from __future__ import annotations
 
 import unittest
 import pytest
-from collections import namedtuple
 from typing import Any
 
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.routers import Route
 from videos.utils.router import KebabCaseRouter
-
-# DRF Route type for proper type hints
-Route = namedtuple("Route", ["url", "mapping", "name", "detail", "initkwargs"])
 
 
 # Test ViewSet for router testing
@@ -62,7 +59,7 @@ class TestKebabCaseRouter(unittest.TestCase):
     def test_action_conversion(self) -> None:
         """Test that action method names are converted to kebab-case"""
         # Get the routes and substitute the placeholder values
-        routes: list[Route] = self.router.get_routes(DummyViewSet)  # type: ignore[no-untyped-call]
+        routes: list[Route] = self.router.get_routes(DummyViewSet)
         patterns = []
 
         for route in routes:

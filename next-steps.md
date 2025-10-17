@@ -4,8 +4,8 @@
 1. code quality
     1. checkout pyscn/integrate maybe github actions?
     1. find similar code quality analyzer for FE
-1. add sidebar filtering videos by channels
 1. add "not interested" option - and filtering based on it
+1. add sidebar filtering videos by channels
 1. keep filters state when moving between pages
 1. import flow:
     1. cannot import @TheAdamConover
@@ -57,6 +57,10 @@
 1. fix backend dev hot reload
 1. make navigation clickable with middle click
 1. handle captcha errors
+1. full player with auto mark as watched
 1. add config lib for frontend
 1. if no channels/no videos auto direct to channels page
 1. open manage tags modal - auto focus to tag name
+1. mark as watched - add some "loading mode"
+1. email is too long in profile drop down
+1. ctrl+r/ctrl+shift+r don't work
