@@ -2,13 +2,13 @@ from django.test import TestCase
 
 
 class URLTest(TestCase):
-    def test_get_redirect(self):
+    def test_get_redirect(self) -> None:
         """Test that GET requests with trailing slashes get redirected"""
         response = self.client.get("/api/videos/", follow=False)
         self.assertEqual(response.status_code, 301)
         self.assertEqual(response["Location"], "/api/videos")
 
-    def test_post_no_redirect(self):
+    def test_post_no_redirect(self) -> None:
         """Test that POST requests work without redirection"""
         # Use a real POST endpoint that exists
         response = self.client.post(

@@ -10,47 +10,47 @@ from videos.utils.router import KebabCaseRouter
 class DummyViewSet(viewsets.ViewSet):
     """A dummy ViewSet for testing URL patterns"""
 
-    def list(self):
+    def list(self) -> None:
         pass
 
-    def create(self):
+    def create(self) -> None:
         pass
 
-    def retrieve(self):
+    def retrieve(self) -> None:
         pass
 
-    def update(self):
+    def update(self) -> None:
         pass
 
-    def partial_update(self):
+    def partial_update(self) -> None:
         pass
 
-    def destroy(self):
-        pass
-
-    @action(detail=True, methods=["post"])
-    def custom_action_name(self):
+    def destroy(self) -> None:
         pass
 
     @action(detail=True, methods=["post"])
-    def another_custom_action(self):
+    def custom_action_name(self) -> None:
+        pass
+
+    @action(detail=True, methods=["post"])
+    def another_custom_action(self) -> None:
         pass
 
     @action(detail=False, methods=["get"])
-    def list_something_special(self):
+    def list_something_special(self) -> None:
         pass
 
 
 class TestKebabCaseRouter(unittest.TestCase):
     """Unit tests for the KebabCaseRouter"""
 
-    def setUp(self):
+    def setUp(self) -> None:
         """Set up the router and register test viewset"""
         self.router = KebabCaseRouter()
         # Register with explicit basename to avoid queryset requirement
         self.router.register(r"test-resource", DummyViewSet, basename="test-resource")
 
-    def test_action_conversion(self):
+    def test_action_conversion(self) -> None:
         """Test that action method names are converted to kebab-case"""
         # Get the routes and substitute the placeholder values
         routes = self.router.get_routes(DummyViewSet)
@@ -96,7 +96,7 @@ class TestKebabCaseRouter(unittest.TestCase):
             ("_starts_with_underscore", "starts-with-underscore"),
         ],
     )
-    def test_to_kebab_case_method(self, input_str, expected):
+    def test_to_kebab_case_method(self, input_str: str, expected: str) -> None:
         """Test the internal _to_kebab_case method directly"""
         actual = self.router._to_kebab_case(input_str)
         self.assertEqual(

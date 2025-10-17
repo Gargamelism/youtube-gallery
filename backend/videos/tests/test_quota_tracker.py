@@ -13,21 +13,21 @@ from videos.services.quota_tracker import QuotaTracker, QuotaUsageModel
 class QuotaTrackerTests(TestCase):
     """Test cases for QuotaTracker functionality"""
 
-    def setUp(self):
+    def setUp(self) -> None:
         """Set up test cases with fresh QuotaTracker instance"""
         self.quota_tracker = QuotaTracker(daily_quota_limit=1000)
 
-    def test_initialization_with_default_limit(self):
+    def test_initialization_with_default_limit(self) -> None:
         """Test QuotaTracker initializes with default daily limit"""
         tracker = QuotaTracker()
         self.assertEqual(tracker.daily_quota_limit, 10000)
 
-    def test_initialization_with_custom_limit(self):
+    def test_initialization_with_custom_limit(self) -> None:
         """Test QuotaTracker initializes with custom daily limit"""
         tracker = QuotaTracker(daily_quota_limit=5000)
         self.assertEqual(tracker.daily_quota_limit, 5000)
 
-    def test_quota_costs_constants(self):
+    def test_quota_costs_constants(self) -> None:
         """Test quota costs are correctly defined"""
         expected_costs = {
             "channels.list": 1,
@@ -37,14 +37,14 @@ class QuotaTrackerTests(TestCase):
         }
         self.assertEqual(self.quota_tracker.QUOTA_COSTS, expected_costs)
 
-    def test_reserve_factors_constants(self):
+    def test_reserve_factors_constants(self) -> None:
         """Test reserve factor constants are correctly set"""
         self.assertEqual(self.quota_tracker.QUOTA_RESERVE_FACTOR, 0.95)
         self.assertEqual(self.quota_tracker.BATCH_RESERVE_FACTOR, 0.8)
         self.assertEqual(self.quota_tracker.ALERT_THRESHOLD, 0.8)
 
     @patch("videos.services.quota_tracker.QuotaUsageModel")
-    def test_can_make_request_with_sufficient_quota(self, mock_model):
+    def test_can_make_request_with_sufficient_quota(self, mock_model) -> None:
         """Test can_make_request returns True when quota is available"""
         mock_usage = Mock()
         mock_usage.daily_usage = 100
@@ -54,7 +54,7 @@ class QuotaTrackerTests(TestCase):
         self.assertTrue(result)
 
     @patch("videos.services.quota_tracker.QuotaUsageModel")
-    def test_can_make_request_with_insufficient_quota(self, mock_model):
+    def test_can_make_request_with_insufficient_quota(self, mock_model) -> None:
         """Test can_make_request returns False when quota is insufficient"""
         mock_usage = Mock()
         mock_usage.daily_usage = 950  # Close to limit of 1000 * 0.95 = 950
@@ -65,7 +65,7 @@ class QuotaTrackerTests(TestCase):
 
     @patch("builtins.print")
     @patch("videos.services.quota_tracker.QuotaUsageModel")
-    def test_can_make_request_with_unknown_operation(self, mock_model, mock_print):
+    def test_can_make_request_with_unknown_operation(self, mock_model, mock_print) -> None:
         """Test can_make_request handles unknown operations with warning"""
         mock_usage = Mock()
         mock_usage.daily_usage = 100
@@ -78,7 +78,7 @@ class QuotaTrackerTests(TestCase):
         )
 
     @patch("videos.services.quota_tracker.QuotaUsageModel")
-    def test_record_usage_increments_quota(self, mock_model):
+    def test_record_usage_increments_quota(self, mock_model) -> None:
         """Test record_usage correctly increments quota usage"""
         mock_usage = Mock()
         mock_usage.daily_usage = 100
@@ -92,7 +92,7 @@ class QuotaTrackerTests(TestCase):
         self.assertEqual(mock_usage.operations_count["channels.list"], 1)
 
     @patch("videos.services.quota_tracker.QuotaUsageModel")
-    def test_record_usage_with_custom_cost(self, mock_model):
+    def test_record_usage_with_custom_cost(self, mock_model) -> None:
         """Test record_usage accepts custom quota cost"""
         mock_usage = Mock()
         mock_usage.daily_usage = 100
@@ -107,7 +107,7 @@ class QuotaTrackerTests(TestCase):
 
     @patch("builtins.print")
     @patch("videos.services.quota_tracker.QuotaUsageModel")
-    def test_record_usage_with_unknown_operation(self, mock_model, mock_print):
+    def test_record_usage_with_unknown_operation(self, mock_model, mock_print) -> None:
         """Test record_usage handles unknown operations with warning"""
         mock_usage = Mock()
         mock_usage.daily_usage = 100
@@ -125,7 +125,7 @@ class QuotaTrackerTests(TestCase):
 
     @patch("builtins.print")
     @patch("videos.services.quota_tracker.QuotaUsageModel")
-    def test_record_usage_triggers_alert_at_threshold(self, mock_model, mock_print):
+    def test_record_usage_triggers_alert_at_threshold(self, mock_model, mock_print) -> None:
         """Test record_usage triggers alert when approaching quota limit"""
         mock_usage = Mock()
         mock_usage.daily_usage = 799  # Will become 800 after recording, triggering alert
@@ -138,7 +138,7 @@ class QuotaTrackerTests(TestCase):
         mock_print.assert_any_call("WARNING: Quota usage high - 800/1000 (80.0%)")
 
     @patch("videos.services.quota_tracker.QuotaUsageModel")
-    def test_get_current_usage(self, mock_model):
+    def test_get_current_usage(self, mock_model) -> None:
         """Test get_current_usage returns correct daily usage"""
         mock_usage = Mock()
         mock_usage.daily_usage = 250
@@ -147,14 +147,14 @@ class QuotaTrackerTests(TestCase):
         result = self.quota_tracker.get_current_usage()
         self.assertEqual(result, 250)
 
-    def test_get_remaining_quota(self):
+    def test_get_remaining_quota(self) -> None:
         """Test get_remaining_quota calculates correctly"""
         self.quota_tracker.get_current_usage = Mock(return_value=300)
 
         result = self.quota_tracker.get_remaining_quota()
         self.assertEqual(result, 700)
 
-    def test_get_remaining_quota_never_negative(self):
+    def test_get_remaining_quota_never_negative(self) -> None:
         """Test get_remaining_quota never returns negative values"""
         self.quota_tracker.get_current_usage = Mock(return_value=1200)
 
@@ -162,7 +162,7 @@ class QuotaTrackerTests(TestCase):
         self.assertEqual(result, 0)
 
     @patch("videos.services.quota_tracker.QuotaUsageModel")
-    def test_get_usage_summary(self, mock_model):
+    def test_get_usage_summary(self, mock_model) -> None:
         """Test get_usage_summary returns comprehensive data"""
         mock_usage = Mock()
         mock_usage.daily_usage = 400
@@ -186,7 +186,7 @@ class QuotaTrackerTests(TestCase):
         self.assertEqual(result["percentage_used"], expected["percentage_used"])
         self.assertEqual(result["status"], expected["status"])
 
-    def test_optimize_batch_size_with_sufficient_quota(self):
+    def test_optimize_batch_size_with_sufficient_quota(self) -> None:
         """Test optimize_batch_size calculates optimal size"""
         self.quota_tracker.get_remaining_quota = Mock(return_value=1000)
 
@@ -194,7 +194,7 @@ class QuotaTrackerTests(TestCase):
         # 1000 * 0.8 / 1 = 800, but max is 200
         self.assertEqual(result, 200)
 
-    def test_optimize_batch_size_with_limited_quota(self):
+    def test_optimize_batch_size_with_limited_quota(self) -> None:
         """Test optimize_batch_size respects quota limits"""
         self.quota_tracker.get_remaining_quota = Mock(return_value=100)
 
@@ -202,7 +202,7 @@ class QuotaTrackerTests(TestCase):
         # 100 * 0.8 / 1 = 80
         self.assertEqual(result, 80)
 
-    def test_optimize_batch_size_with_expensive_operation(self):
+    def test_optimize_batch_size_with_expensive_operation(self) -> None:
         """Test optimize_batch_size handles expensive operations"""
         self.quota_tracker.get_remaining_quota = Mock(return_value=1000)
 
@@ -211,7 +211,7 @@ class QuotaTrackerTests(TestCase):
         self.assertEqual(result, 8)
 
     @patch("builtins.print")
-    def test_optimize_batch_size_with_unknown_operation(self, mock_print):
+    def test_optimize_batch_size_with_unknown_operation(self, mock_print) -> None:
         """Test optimize_batch_size handles unknown operations"""
         self.quota_tracker.get_remaining_quota = Mock(return_value=100)
 
@@ -221,35 +221,35 @@ class QuotaTrackerTests(TestCase):
             "WARNING: Operation 'unknown.operation' doesn't have a quota cost defined, using default cost of 1"
         )
 
-    def test_optimize_batch_size_with_zero_quota(self):
+    def test_optimize_batch_size_with_zero_quota(self) -> None:
         """Test optimize_batch_size returns 0 when no quota available"""
         self.quota_tracker.get_remaining_quota = Mock(return_value=0)
 
         result = self.quota_tracker.optimize_batch_size("channels.list")
         self.assertEqual(result, 0)
 
-    def test_get_quota_status_normal(self):
+    def test_get_quota_status_normal(self) -> None:
         """Test _get_quota_status returns 'normal' for low usage"""
         result = self.quota_tracker._get_quota_status(50.0)
         self.assertEqual(result, "normal")
 
-    def test_get_quota_status_moderate(self):
+    def test_get_quota_status_moderate(self) -> None:
         """Test _get_quota_status returns 'moderate' for medium usage"""
         result = self.quota_tracker._get_quota_status(70.0)
         self.assertEqual(result, "moderate")
 
-    def test_get_quota_status_high(self):
+    def test_get_quota_status_high(self) -> None:
         """Test _get_quota_status returns 'high' for high usage"""
         result = self.quota_tracker._get_quota_status(85.0)
         self.assertEqual(result, "high")
 
-    def test_get_quota_status_critical(self):
+    def test_get_quota_status_critical(self) -> None:
         """Test _get_quota_status returns 'critical' for very high usage"""
         result = self.quota_tracker._get_quota_status(97.0)
         self.assertEqual(result, "critical")
 
     @patch("videos.services.quota_tracker.QuotaUsageModel")
-    def test_fallback_data_when_redis_unavailable(self, mock_model):
+    def test_fallback_data_when_redis_unavailable(self, mock_model) -> None:
         """Test fallback behavior when Redis is unavailable"""
         self.quota_tracker.use_redis_om = False
 
@@ -266,7 +266,7 @@ class QuotaTrackerTests(TestCase):
 
     @patch("builtins.print")
     @patch("videos.services.quota_tracker.QuotaUsageModel")
-    def test_force_reset_quota(self, mock_model, mock_print):
+    def test_force_reset_quota(self, mock_model, mock_print) -> None:
         """Test force_reset_quota deletes existing data"""
         mock_existing = Mock()
         mock_find = Mock()
@@ -280,7 +280,7 @@ class QuotaTrackerTests(TestCase):
         mock_print.assert_called_with("INFO: Quota manually reset")
 
     @patch("videos.services.quota_tracker.datetime")
-    def test_ttl_calculation_for_midnight_reset(self, mock_datetime):
+    def test_ttl_calculation_for_midnight_reset(self, mock_datetime) -> None:
         """Test TTL calculation for midnight reset"""
         # Mock current time as 2:30 PM
         mock_now = datetime(2023, 10, 15, 14, 30, 0, tzinfo=timezone.utc)
@@ -300,7 +300,7 @@ class QuotaTrackerTests(TestCase):
 class QuotaUsageModelTests(TestCase):
     """Test cases for QuotaUsageModel"""
 
-    def test_model_default_values(self):
+    def test_model_default_values(self) -> None:
         """Test QuotaUsageModel has correct default values"""
         model = Mock(spec=QuotaUsageModel)
         model.daily_usage = 0
@@ -308,7 +308,7 @@ class QuotaUsageModelTests(TestCase):
         self.assertEqual(model.daily_usage, 0)
         self.assertEqual(model.operations_count, {})
 
-    def test_model_field_types(self):
+    def test_model_field_types(self) -> None:
         """Test QuotaUsageModel field types are correct"""
         model = Mock(spec=QuotaUsageModel)
         model.daily_usage = 100

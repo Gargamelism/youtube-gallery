@@ -43,11 +43,11 @@ class VideoSerializerOptimizationTests(TestCase):
         # Create user video data
         UserVideo.objects.create(user=cls.user, video=cls.video1, is_watched=True)
 
-    def setUp(self):
+    def setUp(self) -> None:
         """Reset query count for each test"""
         connection.queries_log.clear()
 
-    def test_serializer_uses_prefetched_data(self):
+    def test_serializer_uses_prefetched_data(self) -> None:
         """Test that VideoListSerializer uses prefetched data efficiently"""
         # Get optimized queryset from search service
         search_service = VideoSearchService(self.user)
@@ -88,7 +88,7 @@ class VideoSerializerOptimizationTests(TestCase):
         self.assertFalse(video2_data["is_watched"])
         self.assertEqual(len(video2_data["channel_tags"]), 1)  # Tech tag only
 
-    def test_serializer_without_optimization(self):
+    def test_serializer_without_optimization(self) -> None:
         """Test query count without optimization (for comparison)"""
         # Get videos without prefetching optimization
         videos = Video.objects.filter(
@@ -113,7 +113,7 @@ class VideoSerializerOptimizationTests(TestCase):
         # Without prefetching, we expect N+1 queries (many more queries)
         self.assertGreater(query_count, 5, f"Expected many queries ({query_count}) without prefetching optimization")
 
-    def test_search_service_query_efficiency(self):
+    def test_search_service_query_efficiency(self) -> None:
         """Test that VideoSearchService performs efficiently with complex filtering"""
         search_service = VideoSearchService(self.user)
 
@@ -132,7 +132,7 @@ class VideoSerializerOptimizationTests(TestCase):
         # Verify results
         self.assertEqual(len(results), 2)  # Both videos have Tech tag
 
-    def test_prefetch_data_accuracy(self):
+    def test_prefetch_data_accuracy(self) -> None:
         """Test that prefetched data matches direct query results"""
         search_service = VideoSearchService(self.user)
         videos = search_service.search_videos()

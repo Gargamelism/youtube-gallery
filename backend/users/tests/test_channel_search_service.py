@@ -253,7 +253,7 @@ class ChannelSearchServiceTests(TestCase):
         channel_ids = [ch.channel_id for ch in channels]
         self.assertNotIn("UC_UNAVAIL", channel_ids)
 
-    def test_available_channels_respects_is_deleted_flag(self):
+    def test_available_channels_respects_is_deleted_flag(self) -> None:
         """Test that deleted channels are excluded from available channels"""
         channel_deleted = Channel.objects.create(channel_id="UC_DELETED", title="Deleted Channel", is_deleted=True)
 

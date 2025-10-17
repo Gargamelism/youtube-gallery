@@ -15,7 +15,7 @@ from videos.services.youtube import YouTubeService
 class ChannelUpdateServiceTests(TestCase):
     """Unit tests for ChannelUpdateService core functionality"""
 
-    def setUp(self):
+    def setUp(self) -> None:
         """Set up test data for each test"""
         self.mock_youtube_service = Mock(spec=YouTubeService)
         self.service = ChannelUpdateService(self.mock_youtube_service)
@@ -34,7 +34,7 @@ class ChannelUpdateServiceTests(TestCase):
             update_frequency=self.daily_frequency,
         )
 
-    def _mock_successful_api_response(self, updates=None):
+    def _mock_successful_api_response(self, updates: dict[str, str] | None = None) -> None:
         """Helper to mock successful API responses"""
         default_data = {
             "title": "Test Channel",
@@ -77,7 +77,7 @@ class ChannelUpdateServiceTests(TestCase):
         self.assertIsNotNone(self.channel.last_updated)
         self.assertEqual(self.channel.failed_update_count, 0)
 
-    def test_channel_subscriber_count_update(self):
+    def test_channel_subscriber_count_update(self) -> None:
         """Test channel subscriber count field update"""
         self._mock_successful_api_response({"subscriberCount": "2000"})
         result = self.service.update_channel(self.channel)
@@ -90,7 +90,7 @@ class ChannelUpdateServiceTests(TestCase):
         self.assertIsNotNone(self.channel.last_updated)
         self.assertEqual(self.channel.failed_update_count, 0)
 
-    def test_channel_video_count_update(self):
+    def test_channel_video_count_update(self) -> None:
         """Test channel video count field update"""
         self._mock_successful_api_response({"videoCount": "60"})
         result = self.service.update_channel(self.channel)
@@ -99,7 +99,7 @@ class ChannelUpdateServiceTests(TestCase):
         self.assertEqual(len(result.changes_made), 1)
         self.assertIn("video_count", result.changes_made)
 
-    def test_channel_view_count_update(self):
+    def test_channel_view_count_update(self) -> None:
         """Test channel view count field update"""
         self._mock_successful_api_response({"viewCount": "150000"})
         result = self.service.update_channel(self.channel)
@@ -108,7 +108,7 @@ class ChannelUpdateServiceTests(TestCase):
         self.assertEqual(len(result.changes_made), 1)
         self.assertIn("view_count", result.changes_made)
 
-    def test_channel_multiple_fields_update(self):
+    def test_channel_multiple_fields_update(self) -> None:
         """Test updating multiple channel fields at once"""
         self._mock_successful_api_response({"title": "New Title", "subscriberCount": "2000"})
         result = self.service.update_channel(self.channel)
@@ -118,7 +118,7 @@ class ChannelUpdateServiceTests(TestCase):
         self.assertIn("title", result.changes_made)
         self.assertIn("subscriber_count", result.changes_made)
 
-    def test_channel_no_changes_same_title(self):
+    def test_channel_no_changes_same_title(self) -> None:
         """Test no changes when title remains the same"""
         self._mock_successful_api_response({"title": "Test Channel"})
         result = self.service.update_channel(self.channel)
@@ -126,7 +126,7 @@ class ChannelUpdateServiceTests(TestCase):
         self.assertTrue(result.success)
         self.assertEqual(len(result.changes_made), 0)
 
-    def test_channel_no_changes_same_subscriber_count(self):
+    def test_channel_no_changes_same_subscriber_count(self) -> None:
         """Test no changes when subscriber count remains the same"""
         self._mock_successful_api_response({"subscriberCount": "1000"})
         result = self.service.update_channel(self.channel)
@@ -134,7 +134,7 @@ class ChannelUpdateServiceTests(TestCase):
         self.assertTrue(result.success)
         self.assertEqual(len(result.changes_made), 0)
 
-    def test_youtube_api_quota_exceeded_error(self):
+    def test_youtube_api_quota_exceeded_error(self) -> None:
         """Test handling of YouTube API quota exceeded error"""
         mock_error = HttpError(resp=Mock(status=403), content=b"", uri="test")
         mock_error.error_details = [{"reason": "quotaExceeded"}]
@@ -145,7 +145,7 @@ class ChannelUpdateServiceTests(TestCase):
         self.assertFalse(result.success)
         self.assertIn("API quota exceeded", result.error_message)
 
-    def test_youtube_api_rate_limit_error(self):
+    def test_youtube_api_rate_limit_error(self) -> None:
         """Test handling of YouTube API rate limit error"""
         mock_error = HttpError(resp=Mock(status=403), content=b"", uri="test")
         mock_error.error_details = [{"reason": "rateLimitExceeded"}]
@@ -156,7 +156,7 @@ class ChannelUpdateServiceTests(TestCase):
         self.assertFalse(result.success)
         self.assertIn("Rate limited", result.error_message)
 
-    def test_youtube_api_access_denied_error(self):
+    def test_youtube_api_access_denied_error(self) -> None:
         """Test handling of YouTube API access denied error"""
         mock_error = HttpError(resp=Mock(status=403), content=b"", uri="test")
         mock_error.error_details = [{"reason": "forbidden"}]
@@ -170,7 +170,7 @@ class ChannelUpdateServiceTests(TestCase):
         self.channel.refresh_from_db()
         self.assertEqual(self.channel.failed_update_count, 1)
 
-    def test_youtube_api_not_found_error(self):
+    def test_youtube_api_not_found_error(self) -> None:
         """Test handling of YouTube API not found error"""
         mock_error = HttpError(resp=Mock(status=404), content=b"", uri="test")
         mock_error.error_details = [{"reason": "notFound"}]
@@ -185,7 +185,7 @@ class ChannelUpdateServiceTests(TestCase):
         self.assertFalse(self.channel.is_available)
         self.assertEqual(self.channel.failed_update_count, 1)
 
-    def test_youtube_api_server_error_500(self):
+    def test_youtube_api_server_error_500(self) -> None:
         """Test handling of YouTube API server error (500)"""
         mock_error = HttpError(resp=Mock(status=500), content=b"", uri="test")
         mock_error.error_details = [{"reason": "internalError"}]
@@ -196,7 +196,7 @@ class ChannelUpdateServiceTests(TestCase):
         self.assertFalse(result.success)
         self.assertIn("Rate limited", result.error_message)
 
-    def test_youtube_api_server_error_502(self):
+    def test_youtube_api_server_error_502(self) -> None:
         """Test handling of YouTube API server error (502)"""
         mock_error = HttpError(resp=Mock(status=502), content=b"", uri="test")
         mock_error.error_details = [{"reason": "badGateway"}]
@@ -207,7 +207,7 @@ class ChannelUpdateServiceTests(TestCase):
         self.assertFalse(result.success)
         self.assertIn("Rate limited", result.error_message)
 
-    def test_youtube_api_server_error_503(self):
+    def test_youtube_api_server_error_503(self) -> None:
         """Test handling of YouTube API server error (503)"""
         mock_error = HttpError(resp=Mock(status=503), content=b"", uri="test")
         mock_error.error_details = [{"reason": "serviceUnavailable"}]
@@ -218,7 +218,7 @@ class ChannelUpdateServiceTests(TestCase):
         self.assertFalse(result.success)
         self.assertIn("Rate limited", result.error_message)
 
-    def test_priority_calculation_high_subscriber_threshold(self):
+    def test_priority_calculation_high_subscriber_threshold(self) -> None:
         """Test priority calculation for high subscriber count (1M+)"""
         for count in [2000000, 1500000, 1000000]:
             test_channel = Channel.objects.create(
@@ -230,7 +230,7 @@ class ChannelUpdateServiceTests(TestCase):
             priority = self.service.determine_update_priority(test_channel)
             self.assertEqual(priority, 100, f"High threshold test failed for {count}")
 
-    def test_priority_calculation_medium_subscriber_threshold(self):
+    def test_priority_calculation_medium_subscriber_threshold(self) -> None:
         """Test priority calculation for medium subscriber count (100K-1M)"""
         for count in [999999, 500000, 100000]:
             test_channel = Channel.objects.create(
@@ -242,7 +242,7 @@ class ChannelUpdateServiceTests(TestCase):
             priority = self.service.determine_update_priority(test_channel)
             self.assertEqual(priority, 50, f"Medium threshold test failed for {count}")
 
-    def test_priority_calculation_low_subscriber_threshold(self):
+    def test_priority_calculation_low_subscriber_threshold(self) -> None:
         """Test priority calculation for low subscriber count (10K-100K)"""
         for count in [99999, 50000, 10000]:
             test_channel = Channel.objects.create(
@@ -254,7 +254,7 @@ class ChannelUpdateServiceTests(TestCase):
             priority = self.service.determine_update_priority(test_channel)
             self.assertEqual(priority, 25, f"Low threshold test failed for {count}")
 
-    def test_priority_calculation_below_threshold(self):
+    def test_priority_calculation_below_threshold(self) -> None:
         """Test priority calculation for subscriber count below all thresholds"""
         for count in [9999, 5000, 0]:
             test_channel = Channel.objects.create(
@@ -266,7 +266,7 @@ class ChannelUpdateServiceTests(TestCase):
             priority = self.service.determine_update_priority(test_channel)
             self.assertEqual(priority, 0, f"Below threshold test failed for {count}")
 
-    def test_priority_calculation_no_subscriber_count(self):
+    def test_priority_calculation_no_subscriber_count(self) -> None:
         """Test priority calculation when no subscriber count is available"""
         test_channel = Channel.objects.create(
             channel_id="UC_test_none",
@@ -277,7 +277,7 @@ class ChannelUpdateServiceTests(TestCase):
         priority = self.service.determine_update_priority(test_channel)
         self.assertEqual(priority, 0)
 
-    def test_priority_calculation_no_failure_penalty(self):
+    def test_priority_calculation_no_failure_penalty(self) -> None:
         """Test no priority penalty with zero failures"""
         test_channel = Channel.objects.create(
             channel_id="UC_fail_0",
@@ -289,7 +289,7 @@ class ChannelUpdateServiceTests(TestCase):
         priority = self.service.determine_update_priority(test_channel)
         self.assertEqual(priority, 50)  # No penalty
 
-    def test_priority_calculation_single_failure_penalty(self):
+    def test_priority_calculation_single_failure_penalty(self) -> None:
         """Test priority penalty with one failure"""
         test_channel = Channel.objects.create(
             channel_id="UC_fail_1",
@@ -301,7 +301,7 @@ class ChannelUpdateServiceTests(TestCase):
         priority = self.service.determine_update_priority(test_channel)
         self.assertEqual(priority, 45)  # 50 - 5
 
-    def test_priority_calculation_multiple_failures_penalty(self):
+    def test_priority_calculation_multiple_failures_penalty(self) -> None:
         """Test priority penalty with multiple failures"""
         test_channel = Channel.objects.create(
             channel_id="UC_fail_3",
@@ -313,7 +313,7 @@ class ChannelUpdateServiceTests(TestCase):
         priority = self.service.determine_update_priority(test_channel)
         self.assertEqual(priority, 35)  # 50 - 15
 
-    def test_priority_calculation_high_failures_penalty(self):
+    def test_priority_calculation_high_failures_penalty(self) -> None:
         """Test priority penalty with high failure count"""
         test_channel = Channel.objects.create(
             channel_id="UC_fail_10",
@@ -325,7 +325,7 @@ class ChannelUpdateServiceTests(TestCase):
         priority = self.service.determine_update_priority(test_channel)
         self.assertEqual(priority, 0)  # max(0, 50 - 50)
 
-    def test_priority_calculation_never_updated_bonus(self):
+    def test_priority_calculation_never_updated_bonus(self) -> None:
         """Test priority bonus for never-updated channels"""
         test_channel = Channel.objects.create(
             channel_id="UC_update_test_never", title="Test Channel", last_updated=None
@@ -333,7 +333,7 @@ class ChannelUpdateServiceTests(TestCase):
         priority = self.service.determine_update_priority(test_channel)
         self.assertEqual(priority, 200)  # Never updated bonus
 
-    def test_priority_calculation_recently_updated_no_bonus(self):
+    def test_priority_calculation_recently_updated_no_bonus(self) -> None:
         """Test no priority bonus for recently updated channels"""
         test_channel = Channel.objects.create(
             channel_id="UC_update_test_recent", title="Test Channel", last_updated=timezone.now()
@@ -341,7 +341,7 @@ class ChannelUpdateServiceTests(TestCase):
         priority = self.service.determine_update_priority(test_channel)
         self.assertEqual(priority, 0)  # No bonus for recently updated
 
-    def test_invalid_channel_data_missing_snippet(self):
+    def test_invalid_channel_data_missing_snippet(self) -> None:
         """Test handling of channel data missing snippet section"""
         self.mock_youtube_service.get_channel_details.return_value = {"uploads_playlist_id": "UU_test123"}
 
@@ -360,7 +360,7 @@ class ChannelUpdateServiceTests(TestCase):
         self.assertEqual(self.channel.failed_update_count, 1)
         self.assertTrue(self.channel.is_available)
 
-    def test_invalid_channel_data_missing_statistics(self):
+    def test_invalid_channel_data_missing_statistics(self) -> None:
         """Test handling of channel data missing statistics section"""
         self.mock_youtube_service.get_channel_details.return_value = {"uploads_playlist_id": "UU_test123"}
 
@@ -377,7 +377,7 @@ class ChannelUpdateServiceTests(TestCase):
         self.assertEqual(self.channel.failed_update_count, 1)
         self.assertTrue(self.channel.is_available)
 
-    def test_invalid_channel_data_empty_items(self):
+    def test_invalid_channel_data_empty_items(self) -> None:
         """Test handling of empty items in API response"""
         self.mock_youtube_service.get_channel_details.return_value = {"uploads_playlist_id": "UU_test123"}
 
@@ -394,7 +394,7 @@ class ChannelUpdateServiceTests(TestCase):
         self.assertEqual(self.channel.failed_update_count, 1)
         self.assertTrue(self.channel.is_available)
 
-    def test_invalid_channel_data_completely_empty(self):
+    def test_invalid_channel_data_completely_empty(self) -> None:
         """Test handling of completely empty API response"""
         self.mock_youtube_service.get_channel_details.return_value = {"uploads_playlist_id": "UU_test123"}
 
@@ -407,7 +407,7 @@ class ChannelUpdateServiceTests(TestCase):
         self.assertFalse(result.success)
         self.assertIn("Invalid channel data received from API", result.error_message)
 
-    def test_access_denied_first_failure(self):
+    def test_access_denied_first_failure(self) -> None:
         """Test first access denied failure doesn't mark channel unavailable"""
         self.channel.failed_update_count = 0
         self.channel.save()
@@ -423,7 +423,7 @@ class ChannelUpdateServiceTests(TestCase):
         self.assertEqual(self.channel.failed_update_count, 1)
         self.assertTrue(self.channel.is_available)
 
-    def test_access_denied_fourth_failure(self):
+    def test_access_denied_fourth_failure(self) -> None:
         """Test fourth access denied failure doesn't mark channel unavailable yet"""
         self.channel.failed_update_count = 3
         self.channel.save()
@@ -439,7 +439,7 @@ class ChannelUpdateServiceTests(TestCase):
         self.assertEqual(self.channel.failed_update_count, 4)
         self.assertTrue(self.channel.is_available)
 
-    def test_access_denied_fifth_failure_marks_unavailable(self):
+    def test_access_denied_fifth_failure_marks_unavailable(self) -> None:
         """Test fifth access denied failure marks channel as unavailable"""
         self.channel.failed_update_count = 4
         self.channel.save()
@@ -455,7 +455,7 @@ class ChannelUpdateServiceTests(TestCase):
         self.assertEqual(self.channel.failed_update_count, 5)
         self.assertFalse(self.channel.is_available)
 
-    def test_access_denied_after_threshold_stays_unavailable(self):
+    def test_access_denied_after_threshold_stays_unavailable(self) -> None:
         """Test channels stay unavailable after crossing threshold"""
         self.channel.failed_update_count = 6
         self.channel.is_available = False
@@ -472,7 +472,7 @@ class ChannelUpdateServiceTests(TestCase):
         self.assertEqual(self.channel.failed_update_count, 7)
         self.assertFalse(self.channel.is_available)
 
-    def test_video_fetching_with_playlist_no_videos(self):
+    def test_video_fetching_with_playlist_no_videos(self) -> None:
         """Test video fetching when playlist exists but no new videos"""
         self.mock_youtube_service.get_channel_details.return_value = {"uploads_playlist_id": "UU_test123"}
         self.mock_youtube_service.get_channel_videos.return_value = iter([])
@@ -493,7 +493,7 @@ class ChannelUpdateServiceTests(TestCase):
         self.assertTrue(result.success)
         self.assertEqual(result.new_videos_added, 0)
 
-    def test_video_fetching_no_uploads_playlist(self):
+    def test_video_fetching_no_uploads_playlist(self) -> None:
         """Test video fetching when no uploads playlist is available"""
         # Track calls to distinguish between channel fetch and video fetch
         call_count = 0
@@ -533,7 +533,7 @@ class ChannelUpdateServiceTests(TestCase):
         self.assertEqual(result.new_videos_added, 0)
         mock_print.assert_any_call(f"INFO: No uploads playlist found for channel {self.channel.uuid}")
 
-    def test_successful_update_with_new_videos(self):
+    def test_successful_update_with_new_videos(self) -> None:
         """Test channel update that includes new videos"""
         self.mock_youtube_service.get_channel_details.return_value = {"uploads_playlist_id": "UU_test123"}
 
@@ -581,7 +581,7 @@ class ChannelUpdateServiceTests(TestCase):
         self.assertEqual(video.channel, self.channel)
         self.assertEqual(video.title, "New Video 1")
 
-    def test_video_fetching_stops_at_existing(self):
+    def test_video_fetching_stops_at_existing(self) -> None:
         """Test that video fetching stops when encountering existing video"""
         # Create existing video
         Video.objects.create(channel=self.channel, video_id="existing_video", title="Existing Video")
@@ -662,7 +662,7 @@ class ChannelUpdateServiceTests(TestCase):
         self.assertTrue(Video.objects.filter(video_id="new_video_1").exists())
         self.assertFalse(Video.objects.filter(video_id="should_not_process").exists())
 
-    def test_no_changes_detected(self):
+    def test_no_changes_detected(self) -> None:
         """Test that no save occurs when no changes are detected"""
         # Set an initial last_updated time so the channel isn't considered "never updated"
         initial_time = timezone.now()
