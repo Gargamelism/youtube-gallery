@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, TypedDict, Union, cast
 
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow  # type: ignore
-from googleapiclient.discovery import Resource, build  # type: ignore
+from googleapiclient.discovery import build  # type: ignore
 from videos.services.quota_tracker import QuotaTracker
 
 # Type aliases for better type checking
@@ -22,10 +22,7 @@ class CredentialsData(TypedDict, total=False):
     scopes: List[str]
 
 
-from google_auth_oauthlib.flow import Flow
-from googleapiclient.discovery import Resource, build
 from videos.models import Channel, Video
-from videos.services.quota_tracker import QuotaTracker
 from videos.utils.dateutils import timezone_aware_datetime
 from youtube_gallery.utils.http import http
 

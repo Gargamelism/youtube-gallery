@@ -1,5 +1,4 @@
 import secrets
-from typing import Optional, Dict, Any, List
 from urllib.parse import unquote, urlparse
 
 from django.conf import settings
@@ -17,8 +16,6 @@ from rest_framework.response import Response
 
 from users.models import UserChannel
 from users.utils import get_youtube_credentials
-from videos.services.youtube import YouTubeAuthenticationError, YouTubeService
-from videos.services.user_quota_tracker import UserQuotaTracker
 from videos.services.youtube import YouTubeAuthenticationError, YouTubeService
 from videos.services.user_quota_tracker import UserQuotaTracker
 from datetime import timedelta
