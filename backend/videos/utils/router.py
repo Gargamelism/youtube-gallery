@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 
 from rest_framework.routers import DefaultRouter, Route

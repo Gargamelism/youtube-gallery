@@ -56,3 +56,6 @@
 1. turn quota tracking operations to an enum
 1. fix backend dev hot reload
 1. make navigation clickable with middle click
+1. handle captcha errors
+1. add config lib for frontend
+1. if no channels/no videos auto direct to channels page

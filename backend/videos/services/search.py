@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import List, Optional
 from django.db.models import QuerySet, Count, Q, Exists, OuterRef, Prefetch
 

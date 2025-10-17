@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import secrets
 from datetime import timedelta
 from typing import Any, cast
@@ -183,7 +185,7 @@ def quota_usage_view(request: Request) -> Response:
     )
 
 
-class UserChannelViewSet(viewsets.ModelViewSet[UserChannel]):
+class UserChannelViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
     http_method_names = ["get", "post", "put", "patch", "delete", "head", "options"]
     serializer_class = UserChannelSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -241,7 +243,7 @@ class UserChannelViewSet(viewsets.ModelViewSet[UserChannel]):
         return Response({"error": "Method not allowed"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
-class UserVideoViewSet(viewsets.ModelViewSet[UserVideo]):
+class UserVideoViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
     serializer_class = UserVideoSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -326,7 +328,7 @@ def youtube_auth_callback(request: Request) -> HttpResponse:
     return redirect(redirect_url)
 
 
-class ChannelTagViewSet(viewsets.ModelViewSet[ChannelTag]):
+class ChannelTagViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
     http_method_names = ["get", "post", "put", "patch", "delete", "head", "options"]
     serializer_class = ChannelTagSerializer
     permission_classes = [permissions.IsAuthenticated]
