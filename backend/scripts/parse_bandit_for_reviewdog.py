@@ -2,9 +2,6 @@ import sys
 import json
 from typing import Dict, Any
 from xml.sax.saxutils import escape
-from defusedxml import defuse_stdlib
-
-defuse_stdlib()
 
 
 def bandit_to_checkstyle(bandit_report: Dict[str, Any]) -> None:
