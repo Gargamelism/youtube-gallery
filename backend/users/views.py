@@ -222,7 +222,7 @@ class UserChannelViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
         return Response(serializer.data)
 
     @action(detail=True, methods=["get", "put"], url_path="tags")
-    def channel_tags(self, request: Request, _pk: Any = None) -> Response:
+    def channel_tags(self, request: Request, pk: Any = None) -> Response:
         """Get or assign tags for a channel"""
         user_channel = self.get_object()
 

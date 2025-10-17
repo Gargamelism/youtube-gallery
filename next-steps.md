@@ -59,3 +59,4 @@
 1. handle captcha errors
 1. add config lib for frontend
 1. if no channels/no videos auto direct to channels page
+1. open manage tags modal - auto focus to tag name
