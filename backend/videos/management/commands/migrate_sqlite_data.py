@@ -81,7 +81,7 @@ class Command(BaseCommand):
             if row[5]:  # published_at
                 try:
                     published_at = parser.parse(row[5])
-                except:
+                except (ValueError, TypeError, AttributeError):
                     pass
 
             video, created = Video.objects.get_or_create(

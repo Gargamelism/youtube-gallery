@@ -243,7 +243,7 @@ class ChannelSearchServiceTests(TestCase):
 
     def test_available_channels_respects_is_available_flag(self) -> None:
         """Test that unavailable channels are excluded from available channels"""
-        channel_unavailable = Channel.objects.create(
+        _channel_unavailable = Channel.objects.create(  # noqa: F841
             channel_id="UC_UNAVAIL", title="Unavailable Channel", is_available=False
         )
 
@@ -255,7 +255,9 @@ class ChannelSearchServiceTests(TestCase):
 
     def test_available_channels_respects_is_deleted_flag(self) -> None:
         """Test that deleted channels are excluded from available channels"""
-        channel_deleted = Channel.objects.create(channel_id="UC_DELETED", title="Deleted Channel", is_deleted=True)
+        _channel_deleted = Channel.objects.create(  # noqa: F841
+            channel_id="UC_DELETED", title="Deleted Channel", is_deleted=True
+        )
 
         service = ChannelSearchService(self.user)
         channels = service.search_available_channels()
