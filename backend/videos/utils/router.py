@@ -44,12 +44,12 @@ class KebabCaseRouter(DefaultRouter):
         routes = super().get_routes(viewset)
 
         # Convert action URLs to kebab-case by creating new Route objects
-        converted_routes = []
+        converted_routes: list[Route] = []
         for route in routes:
             if hasattr(route, "url") and route.url:
                 # Convert action names in URLs to kebab-case
                 url_parts = route.url.split("/")
-                converted_parts = []
+                converted_parts: list[str] = []
 
                 for part in url_parts:
                     # Skip empty parts
@@ -60,7 +60,7 @@ class KebabCaseRouter(DefaultRouter):
                         # Only convert underscores outside of template variables
                         # Split by template variables, convert non-template parts
                         template_parts = re.split(r"(\{[^}]+\})", part)
-                        converted_template_parts = []
+                        converted_template_parts: list[str] = []
                         for template_part in template_parts:
                             if template_part.startswith("{") and template_part.endswith("}"):
                                 # This is a template variable, don't convert

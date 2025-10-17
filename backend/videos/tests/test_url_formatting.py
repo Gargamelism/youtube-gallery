@@ -1,43 +1,49 @@
 import unittest
 import pytest
+from collections import namedtuple
+from typing import Any
 
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.request import Request
 from videos.utils.router import KebabCaseRouter
+
+# DRF Route type for proper type hints
+Route = namedtuple("Route", ["url", "mapping", "name", "detail", "initkwargs"])
 
 
 # Test ViewSet for router testing
 class DummyViewSet(viewsets.ViewSet):
     """A dummy ViewSet for testing URL patterns"""
 
-    def list(self) -> None:
+    def list(self, request: Request) -> None:
         pass
 
-    def create(self) -> None:
+    def create(self, request: Request) -> None:
         pass
 
-    def retrieve(self) -> None:
+    def retrieve(self, request: Request, pk: Any = None) -> None:
         pass
 
-    def update(self) -> None:
+    def update(self, request: Request, pk: Any = None) -> None:
         pass
 
-    def partial_update(self) -> None:
+    def partial_update(self, request: Request, pk: Any = None) -> None:
         pass
 
-    def destroy(self) -> None:
-        pass
-
-    @action(detail=True, methods=["post"])
-    def custom_action_name(self) -> None:
+    def destroy(self, request: Request, pk: Any = None) -> None:
         pass
 
     @action(detail=True, methods=["post"])
-    def another_custom_action(self) -> None:
+    def custom_action_name(self, request: Request, pk: Any = None) -> None:
+        pass
+
+    @action(detail=True, methods=["post"])
+    def another_custom_action(self, request: Request, pk: Any = None) -> None:
         pass
 
     @action(detail=False, methods=["get"])
-    def list_something_special(self) -> None:
+    def list_something_special(self, request: Request) -> None:
         pass
 
 
@@ -53,7 +59,7 @@ class TestKebabCaseRouter(unittest.TestCase):
     def test_action_conversion(self) -> None:
         """Test that action method names are converted to kebab-case"""
         # Get the routes and substitute the placeholder values
-        routes = self.router.get_routes(DummyViewSet)
+        routes: list[Route] = self.router.get_routes(DummyViewSet)  # type: ignore[no-untyped-call]
         patterns = []
 
         for route in routes:
