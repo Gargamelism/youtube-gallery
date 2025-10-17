@@ -1,6 +1,8 @@
 import re
+from typing import Any
 
 from rest_framework.routers import DefaultRouter, Route
+from rest_framework.viewsets import ViewSetMixin
 
 
 class KebabCaseRouter(DefaultRouter):
@@ -13,7 +15,7 @@ class KebabCaseRouter(DefaultRouter):
     - update_video_status -> update-video-status
     """
 
-    def get_lookup_regex(self, viewset, lookup_prefix=""):
+    def get_lookup_regex(self, viewset: type[ViewSetMixin], lookup_prefix: str = "") -> str:
         """
         Override to ensure lookup patterns are in kebab-case.
         Uses (?P<pk>...) for named capture groups.
@@ -27,7 +29,7 @@ class KebabCaseRouter(DefaultRouter):
             return lookup_url.replace("{pk}", "(?P<pk>[^/.]+)")
         return lookup_url
 
-    def get_default_basename(self, viewset):
+    def get_default_basename(self, viewset: type[ViewSetMixin]) -> str:
         """
         Override to convert the basename to kebab-case.
         """
@@ -37,7 +39,7 @@ class KebabCaseRouter(DefaultRouter):
 
         return self._to_kebab_case(basename)
 
-    def get_routes(self, viewset):
+    def get_routes(self, viewset: type[ViewSetMixin]) -> list[Route]:
         """
         Override get_routes to convert action URLs to kebab-case.
         """

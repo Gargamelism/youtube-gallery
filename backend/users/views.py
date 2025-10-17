@@ -1,9 +1,12 @@
 import secrets
+from datetime import timedelta
+from typing import Any, cast
 from urllib.parse import unquote, urlparse
 
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
 from django.db.models import QuerySet
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpRequest
 from django.shortcuts import redirect
 from django.utils import timezone
 from django.utils import timezone as dj_tz
@@ -13,12 +16,12 @@ from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.serializers import BaseSerializer
 
-from users.models import UserChannel
+from users.models import User, UserChannel
 from users.utils import get_youtube_credentials
 from videos.services.youtube import YouTubeAuthenticationError, YouTubeService
 from videos.services.user_quota_tracker import UserQuotaTracker
-from datetime import timedelta
 
 from .authentication import CookieTokenAuthentication
 from .models import UserVideo, ChannelTag, UserChannelTag, UserYouTubeCredentials
@@ -36,7 +39,7 @@ from videos.serializers import ChannelSerializer
 from youtube_gallery.utils.http import http
 
 
-def _is_safe_url(url, request):
+def _is_safe_url(url: str, request: HttpRequest) -> bool:
     """
     Validate that a redirect URL is safe to prevent open redirect attacks
     """
@@ -52,7 +55,7 @@ def _is_safe_url(url, request):
         return False
 
 
-def validate_recaptcha_v3(token, action, threshold=0.5):
+def validate_recaptcha_v3(token: str | None, action: str, threshold: float = 0.5) -> bool:
     """
     Validate reCAPTCHA v3 token
 
@@ -117,7 +120,7 @@ def register_view(request: Request) -> Response:
 
 @api_view(["POST"])
 @permission_classes([permissions.AllowAny])
-def login_view(request):
+def login_view(request: Request) -> Response:
     captcha_token = request.data.get("captcha_token")
     if not validate_recaptcha_v3(captcha_token, "login"):
         return Response({"error": "Invalid captcha"}, status=status.HTTP_400_BAD_REQUEST)
@@ -138,7 +141,7 @@ def login_view(request):
 
 @api_view(["POST"])
 @permission_classes([permissions.IsAuthenticated])
-def logout_view(request):
+def logout_view(request: Request) -> Response:
     try:
         request.user.auth_token.delete()
     except:
@@ -154,13 +157,13 @@ def logout_view(request):
 
 @api_view(["GET"])
 @permission_classes([permissions.IsAuthenticated])
-def profile_view(request):
+def profile_view(request: Request) -> Response:
     return Response(UserSerializer(request.user).data)
 
 
 @api_view(["GET"])
 @permission_classes([permissions.IsAuthenticated])
-def quota_usage_view(request):
+def quota_usage_view(request: Request) -> Response:
     """Get current user's quota usage information"""
     user_quota_tracker = UserQuotaTracker(user=request.user)
     usage_info = user_quota_tracker.get_user_usage_summary()
@@ -181,28 +184,30 @@ def quota_usage_view(request):
     )
 
 
-class UserChannelViewSet(viewsets.ModelViewSet):
+class UserChannelViewSet(viewsets.ModelViewSet[UserChannel]):
     http_method_names = ["get", "post", "put", "patch", "delete", "head", "options"]
     serializer_class = UserChannelSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self) -> QuerySet[UserChannel]:
         search_params = ChannelSearchParams.from_request(self.request)
-        search_service = ChannelSearchService(self.request.user)
+        user = cast(User, self.request.user)
+        search_service = ChannelSearchService(user)
         return search_service.search_user_channels(
             tag_names=search_params.tags,
             tag_mode=search_params.tag_mode,
             search_query=search_params.search_query,
         )
 
-    def perform_create(self, serializer) -> None:
+    def perform_create(self, serializer: BaseSerializer[Any]) -> None:
         serializer.save(user=self.request.user)
 
     @action(detail=False, methods=["get"], url_path="available")
-    def available_channels(self, request):
+    def available_channels(self, request: Request) -> Response:
         """Get paginated list of available (non-subscribed) channels"""
         search_params = ChannelSearchParams.from_request(request)
-        search_service = ChannelSearchService(request.user)
+        user = cast(User, request.user)
+        search_service = ChannelSearchService(user)
         channels = search_service.search_available_channels(
             search_query=search_params.search_query,
         )
@@ -216,7 +221,7 @@ class UserChannelViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @action(detail=True, methods=["get", "put"], url_path="tags")
-    def channel_tags(self, request, pk=None):
+    def channel_tags(self, request: Request, _pk: Any = None) -> Response:
         """Get or assign tags for a channel"""
         user_channel = self.get_object()
 
@@ -226,26 +231,29 @@ class UserChannelViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
 
         elif request.method == "PUT":
-            params = TagAssignmentParams.from_request(request)
+            params = TagAssignmentParams.from_request(request)  # type: ignore[no-untyped-call]
             UserChannelTag.objects.filter(user_channel=user_channel).delete()
             tags = ChannelTag.objects.filter(user=request.user, id__in=params.tag_ids)
             tag_assignments = [UserChannelTag(user_channel=user_channel, tag=tag) for tag in tags]
             UserChannelTag.objects.bulk_create(tag_assignments)
-            serializer = self.get_serializer(user_channel)
+            serializer: UserChannelSerializer = cast(UserChannelSerializer, self.get_serializer(user_channel))
             return Response(serializer.data)
 
+        return Response({"error": "Method not allowed"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-class UserVideoViewSet(viewsets.ModelViewSet):
+
+class UserVideoViewSet(viewsets.ModelViewSet[UserVideo]):
     serializer_class = UserVideoSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        return UserVideo.objects.filter(user=self.request.user)
+    def get_queryset(self) -> QuerySet[UserVideo]:
+        user = cast(User, self.request.user)
+        return UserVideo.objects.filter(user=user)
 
-    def perform_create(self, serializer):
+    def perform_create(self, serializer: BaseSerializer[Any]) -> None:
         serializer.save(user=self.request.user)
 
-    def perform_update(self, serializer):
+    def perform_update(self, serializer: BaseSerializer[Any]) -> None:
         if serializer.validated_data.get("is_watched") and not serializer.instance.watched_at:
             serializer.save(watched_at=timezone.now())
         else:
@@ -254,16 +262,16 @@ class UserVideoViewSet(viewsets.ModelViewSet):
 
 @api_view(["GET"])
 @permission_classes([permissions.IsAuthenticated])
-def youtube_auth_url(request):
+def youtube_auth_url(request: Request) -> Response:
     """Get YouTube OAuth URL for authenticated user"""
     # Check if user already has valid credentials
-    existing_credentials = get_youtube_credentials(request.user)
+    existing_credentials = get_youtube_credentials(request.user)  # type: ignore[no-untyped-call]
     if existing_credentials:
         return Response({"message": "Already authenticated", "authenticated": True})
 
     # Store return URL in session for post-auth redirect
     return_url = request.GET.get("return_url")
-    if return_url and _is_safe_url(return_url, request):
+    if return_url and _is_safe_url(return_url, request._request):  # type: ignore[attr-defined]
         request.session["auth_return_url"] = return_url
 
     redirect_uri = request.GET.get("redirect_uri")
@@ -291,7 +299,7 @@ def youtube_auth_url(request):
 
 @api_view(["GET"])
 @permission_classes([permissions.IsAuthenticated])
-def youtube_auth_callback(request):
+def youtube_auth_callback(request: Request) -> HttpResponse:
     """Handle OAuth callback and store credentials in database"""
     # Validate state parameter for CSRF protection
     state = request.GET.get("state")
@@ -309,7 +317,7 @@ def youtube_auth_callback(request):
 
     try:
         credentials = YouTubeService.handle_oauth_callback(authorization_code, redirect_uri)
-        UserYouTubeCredentials.from_credentials_data(request.user, credentials)
+        UserYouTubeCredentials.from_credentials_data(request.user, credentials)  # type: ignore[no-untyped-call]
     except YouTubeAuthenticationError as e:
         return HttpResponse(f"Authentication failed: {str(e)}", status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
@@ -319,13 +327,14 @@ def youtube_auth_callback(request):
     return redirect(redirect_url)
 
 
-class ChannelTagViewSet(viewsets.ModelViewSet):
+class ChannelTagViewSet(viewsets.ModelViewSet[ChannelTag]):
     http_method_names = ["get", "post", "put", "patch", "delete", "head", "options"]
     serializer_class = ChannelTagSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        return ChannelTag.objects.filter(user=self.request.user).prefetch_related("channel_assignments")
+    def get_queryset(self) -> QuerySet[ChannelTag]:
+        user = cast(User, self.request.user)
+        return ChannelTag.objects.filter(user=user).prefetch_related("channel_assignments")
 
-    def perform_create(self, serializer):
+    def perform_create(self, serializer: BaseSerializer[Any]) -> None:
         serializer.save(user=self.request.user)

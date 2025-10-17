@@ -6,6 +6,7 @@ from typing import Any
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.request import Request
+from rest_framework.response import Response
 from videos.utils.router import KebabCaseRouter
 
 # DRF Route type for proper type hints
@@ -35,16 +36,16 @@ class DummyViewSet(viewsets.ViewSet):
         pass
 
     @action(detail=True, methods=["post"])
-    def custom_action_name(self, request: Request, pk: Any = None) -> None:
-        pass
+    def custom_action_name(self, request: Request, pk: Any = None) -> Response:
+        return Response()
 
     @action(detail=True, methods=["post"])
-    def another_custom_action(self, request: Request, pk: Any = None) -> None:
-        pass
+    def another_custom_action(self, request: Request, pk: Any = None) -> Response:
+        return Response()
 
     @action(detail=False, methods=["get"])
-    def list_something_special(self, request: Request) -> None:
-        pass
+    def list_something_special(self, request: Request) -> Response:
+        return Response()
 
 
 class TestKebabCaseRouter(unittest.TestCase):
