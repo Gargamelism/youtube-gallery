@@ -9,19 +9,16 @@ from __future__ import annotations
 import time
 from typing import Any
 
-from django.contrib.auth import get_user_model
 from django.db import connection
 from django.db.models import QuerySet
 from django.test import TestCase
 from django.test.utils import override_settings
 from faker import Faker
 
-from users.models import ChannelTag, UserChannel, UserChannelTag
+from users.models import ChannelTag, UserChannel, UserChannelTag, User
 from users.services.channel_search import ChannelSearchService
 from videos.models import Channel
 from videos.validators import TagMode
-
-User = get_user_model()
 
 
 class ChannelPerformanceTestCase(TestCase):

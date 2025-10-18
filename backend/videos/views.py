@@ -45,7 +45,7 @@ class ChannelViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
         try:
             user = cast(User, request.user)
             user_quota_tracker = UserQuotaTracker(user=user)
-            youtube_service = YouTubeService(credentials=request.youtube_credentials, quota_tracker=user_quota_tracker)  # type: ignore[attr-defined]
+            youtube_service = YouTubeService(credentials=request.youtube_credentials, quota_tracker=user_quota_tracker)
             channel = youtube_service.import_or_create_channel(channel_id)
             serializer = self.get_serializer(channel, context={"request": request})
             return Response(serializer.data)

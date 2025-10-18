@@ -17,7 +17,7 @@ class KebabCaseEndpointsMixin(ViewSetMixin):
         """
         Convert action names from snake_case to kebab-case in URLs.
         """
-        url_map = super().get_url_map()
+        url_map = super().get_url_map()  # type: ignore[misc]
         return {action: self._to_kebab_case(url_name) for action, url_name in url_map.items()}
 
     def _to_kebab_case(self, value: str) -> str:

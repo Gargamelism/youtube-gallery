@@ -1,7 +1,6 @@
 import uuid
 from django.db import IntegrityError
 from django.test import TestCase
-from django.contrib.auth import get_user_model
 from rest_framework.test import APITestCase
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -9,16 +8,17 @@ from unittest.mock import patch
 from videos.models import Channel, Video
 from videos.services.search import VideoSearchService
 from videos.validators import TagMode, WatchStatus
-from ..models import ChannelTag, UserChannel, UserChannelTag, UserVideo
-
-User = get_user_model()
+from users.models import ChannelTag, UserChannel, UserChannelTag, UserVideo, User
 
 
 class ChannelTagModelTests(TestCase):
     """Unit tests for ChannelTag model"""
 
+    user: User
+    user2: User
+
     @classmethod
-    def setUpTestData(cls):
+    def setUpTestData(cls) -> None:
         """Create test data once for the entire test class"""
         cls.user = User.objects.create_user(
             username="testuser",
@@ -81,8 +81,13 @@ class ChannelTagModelTests(TestCase):
 class UserChannelTagModelTests(TestCase):
     """Unit tests for UserChannelTag model"""
 
+    user: User
+    channel: Channel
+    user_channel: UserChannel
+    tag: ChannelTag
+
     @classmethod
-    def setUpTestData(cls):
+    def setUpTestData(cls) -> None:
         """Create test data once for the entire test class"""
         cls.user = User.objects.create_user(
             username="testuser",
@@ -116,8 +121,11 @@ class UserChannelTagModelTests(TestCase):
 class ChannelTagAPITests(APITestCase):
     """API tests for channel tag operations"""
 
+    user: User
+    other_user: User
+
     @classmethod
-    def setUpTestData(cls):
+    def setUpTestData(cls) -> None:
         """Create test data once for the entire test class"""
         cls.user = User.objects.create_user(
             username="testuser",
@@ -283,8 +291,13 @@ class ChannelTagAPITests(APITestCase):
 class TagAssignmentAPITests(APITestCase):
     """API tests for tag assignment to channels"""
 
+    user: User
+    other_user: User
+    channel: Channel
+    user_channel: UserChannel
+
     @classmethod
-    def setUpTestData(cls):
+    def setUpTestData(cls) -> None:
         """Create test data once for the entire test class"""
         cls.user = User.objects.create_user(
             username="testuser",
@@ -338,7 +351,7 @@ class TagAssignmentAPITests(APITestCase):
         UserChannelTag.objects.create(user_channel=self.user_channel, tag=self.tag1)
         self.assertEqual(UserChannelTag.objects.filter(user_channel=self.user_channel).count(), 1)
 
-        data = {"tag_ids": []}
+        data: dict[str, list[str]] = {"tag_ids": []}
 
         response = self.client.put(f"/api/auth/channels/{self.user_channel.id}/tags", data, format="json")
 
@@ -411,6 +424,7 @@ class TagAssignmentAPITests(APITestCase):
 
         # Verify only tag2 is assigned
         remaining_assignment = UserChannelTag.objects.filter(user_channel=self.user_channel).first()
+        self.assertIsNotNone(remaining_assignment)
         self.assertEqual(remaining_assignment.tag, self.tag2)
 
     def test_assign_tags_to_nonexistent_channel(self) -> None:
@@ -427,8 +441,19 @@ class TagAssignmentAPITests(APITestCase):
 class VideoTagFilteringAPITests(APITestCase):
     """API tests for video filtering by tags"""
 
+    user: User
+    tech_channel: Channel
+    gaming_channel: Channel
+    mixed_channel: Channel
+    user_tech_channel: UserChannel
+    user_gaming_channel: UserChannel
+    user_mixed_channel: UserChannel
+    tech_video: Video
+    gaming_video: Video
+    mixed_video: Video
+
     @classmethod
-    def setUpTestData(cls):
+    def setUpTestData(cls) -> None:
         """Create test data once for the entire test class"""
         cls.user = User.objects.create_user(
             username="testuser",
@@ -642,8 +667,13 @@ class VideoTagFilteringAPITests(APITestCase):
 class SearchServiceIntegrationTests(TestCase):
     """Integration tests for VideoSearchService"""
 
+    user: User
+    channel: Channel
+    user_channel: UserChannel
+    video: Video
+
     @classmethod
-    def setUpTestData(cls):
+    def setUpTestData(cls) -> None:
         """Create test data once for the entire test class"""
         cls.user = User.objects.create_user(
             username="testuser",

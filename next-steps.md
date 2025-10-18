@@ -45,6 +45,9 @@
     1. frontend
     1. backend
 1. Deployment!: 
+    1. review legal requirements:
+        1. pp/tos
+        1. cookies modal
     1. monitoring!
     1. admin system
     1. choose hosting for db/fe/be

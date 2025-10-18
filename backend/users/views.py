@@ -143,8 +143,9 @@ def login_view(request: Request) -> Response:
 @api_view(["POST"])
 @permission_classes([permissions.IsAuthenticated])
 def logout_view(request: Request) -> Response:
+    user = cast(User, request.user)
     try:
-        request.user.auth_token.delete()
+        user.auth_token.delete()
     except Exception:
         pass
 
@@ -234,11 +235,12 @@ class UserChannelViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
         elif request.method == "PUT":
             params = TagAssignmentParams.from_request(request)  # type: ignore[no-untyped-call]
             UserChannelTag.objects.filter(user_channel=user_channel).delete()
-            tags = ChannelTag.objects.filter(user=request.user, id__in=params.tag_ids)
+            user = cast(User, request.user)
+            tags = ChannelTag.objects.filter(user=user, id__in=params.tag_ids)
             tag_assignments = [UserChannelTag(user_channel=user_channel, tag=tag) for tag in tags]
             UserChannelTag.objects.bulk_create(tag_assignments)
-            serializer: UserChannelSerializer = cast(UserChannelSerializer, self.get_serializer(user_channel))
-            return Response(serializer.data)
+            channel_serializer: UserChannelSerializer = cast(UserChannelSerializer, self.get_serializer(user_channel))
+            return Response(channel_serializer.data)
 
         return Response({"error": "Method not allowed"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
@@ -255,7 +257,8 @@ class UserVideoViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
         serializer.save(user=self.request.user)
 
     def perform_update(self, serializer: BaseSerializer[Any]) -> None:
-        if serializer.validated_data.get("is_watched") and not serializer.instance.watched_at:
+        instance = serializer.instance
+        if serializer.validated_data.get("is_watched") and instance and not instance.watched_at:
             serializer.save(watched_at=timezone.now())
         else:
             serializer.save()
