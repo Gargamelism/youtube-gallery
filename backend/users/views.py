@@ -51,7 +51,8 @@ def _is_safe_url(url: str, request: HttpRequest) -> bool:
             return True
         # Allow frontend URL from settings
         frontend_parsed = urlparse(settings.FRONTEND_URL)
-        return parsed_url.netloc == frontend_parsed.netloc
+        result: bool = parsed_url.netloc == frontend_parsed.netloc
+        return result
     except Exception:
         return False
 
@@ -84,7 +85,8 @@ def validate_recaptcha_v3(token: str | None, action: str, threshold: float = 0.5
 
         # Check if the score meets the threshold
         score = result.get("score", 0.0)
-        return score >= threshold
+        is_valid: bool = score >= threshold
+        return is_valid
 
     except Exception as e:
         # Log the error in production

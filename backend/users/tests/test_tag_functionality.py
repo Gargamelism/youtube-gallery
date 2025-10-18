@@ -609,6 +609,7 @@ class VideoTagFilteringAPITests(APITestCase):
                 break
 
         self.assertIsNotNone(tech_video_data)
+        assert tech_video_data is not None  # Type narrowing for mypy
         self.assertIn("channel_tags", tech_video_data)
 
         # Check that channel tags are included

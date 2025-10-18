@@ -1,20 +1,28 @@
 from django.test import TestCase
-from django.contrib.auth import get_user_model
 from django.db import connection
 from rest_framework.test import APIRequestFactory
 from videos.models import Channel, Video
 from videos.serializers import VideoListSerializer
 from videos.services.search import VideoSearchService
-from users.models import UserChannel, UserVideo, ChannelTag, UserChannelTag
-
-User = get_user_model()
+from videos.validators import TagMode, WatchStatus
+from users.models import UserChannel, UserVideo, ChannelTag, UserChannelTag, User
 
 
 class VideoSerializerOptimizationTests(TestCase):
     """Test VideoListSerializer query optimization with prefetch_related"""
 
+    user: User
+    channel1: Channel
+    channel2: Channel
+    user_channel1: UserChannel
+    user_channel2: UserChannel
+    tech_tag: ChannelTag
+    tutorial_tag: ChannelTag
+    video1: Video
+    video2: Video
+
     @classmethod
-    def setUpTestData(cls):
+    def setUpTestData(cls) -> None:
         """Create test data once for the entire test class"""
         cls.user = User.objects.create_user(
             username="testuser", email="test@example.com", password="testpass123"  # nosec B105 - test-only password
@@ -121,7 +129,7 @@ class VideoSerializerOptimizationTests(TestCase):
         connection.queries_log.clear()
 
         # Perform complex search with tag filtering
-        results = list(search_service.search_videos(tag_names=["Tech"], tag_mode="any", watch_status="all"))
+        results = list(search_service.search_videos(tag_names=["Tech"], tag_mode=TagMode.ANY, watch_status=WatchStatus.ALL))
 
         # Count queries for the search operation
         query_count = len(connection.queries)
