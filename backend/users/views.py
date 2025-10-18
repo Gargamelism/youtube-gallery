@@ -162,7 +162,8 @@ def logout_view(request: Request) -> Response:
 @api_view(["GET"])
 @permission_classes([permissions.IsAuthenticated])
 def profile_view(request: Request) -> Response:
-    return Response(UserSerializer(request.user).data)
+    user = cast(User, request.user)
+    return Response(UserSerializer(user).data)
 
 
 @api_view(["GET"])

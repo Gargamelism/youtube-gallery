@@ -1,9 +1,9 @@
-from typing import Any
 from django.conf import settings
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpResponse
 from rest_framework.authentication import TokenAuthentication
 from rest_framework import exceptions
 from rest_framework.authtoken.models import Token
+from rest_framework.request import Request
 from users.models import User
 
 
@@ -20,7 +20,7 @@ class CookieTokenAuthentication(TokenAuthentication):
     def cookie_name(self) -> str:
         return settings.AUTH_COOKIE_NAME
 
-    def authenticate(self, request: HttpRequest) -> tuple[User, Token] | None:
+    def authenticate(self, request: Request) -> tuple[User, Token] | None:
         """
         Authenticate user using token from HTTP-only cookie.
 
@@ -36,7 +36,7 @@ class CookieTokenAuthentication(TokenAuthentication):
         # Fallback to header authentication for backward compatibility
         return super().authenticate(request)
 
-    def get_token_from_cookie(self, request: HttpRequest) -> str | None:
+    def get_token_from_cookie(self, request: Request) -> str | None:
         """
         Extract authentication token from HTTP-only cookie.
 

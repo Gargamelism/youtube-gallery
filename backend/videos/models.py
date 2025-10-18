@@ -22,7 +22,7 @@ class UpdateFrequency(TimestampMixin):
     description = models.CharField(max_length=100, blank=True, null=True)
     is_active = models.BooleanField(default=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
     class Meta:
@@ -46,7 +46,7 @@ class Channel(DirtyFieldsMixin, TimestampMixin):
     is_deleted = models.BooleanField(default=False)
     failed_update_count = models.IntegerField(default=0)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.title or self.channel_id
 
     class Meta:
@@ -89,7 +89,7 @@ class Video(TimestampMixin):
     # custom fields
     duration = YouTubeDurationField(blank=True, null=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.title or self.video_id
 
     class Meta:

@@ -4,7 +4,6 @@ from django.contrib.auth.password_validation import validate_password
 from django.db.utils import IntegrityError
 from django.db import transaction
 from rest_framework import serializers
-from rest_framework.serializers import ReturnDict
 
 from .models import User, UserChannel, UserVideo, ChannelTag
 
@@ -84,10 +83,10 @@ class UserChannelSerializer(serializers.ModelSerializer[UserChannel]):
         fields = ("id", "channel", "channel_title", "channel_id", "is_active", "tags", "subscribed_at", "created_at")
         read_only_fields = ("id", "created_at", "subscribed_at")
 
-    def get_tags(self, user_channel: UserChannel) -> ReturnDict:
+    def get_tags(self, user_channel: UserChannel) -> list[dict[str, Any]]:
         user_channel_tags = user_channel.channel_tags.select_related("tag").all()
         tag_objects = [user_channel_tag.tag for user_channel_tag in user_channel_tags]
-        return ChannelTagSerializer(tag_objects, many=True).data
+        return ChannelTagSerializer(tag_objects, many=True).data  # type: ignore[return-value]
 
 
 class UserVideoSerializer(serializers.ModelSerializer[UserVideo]):

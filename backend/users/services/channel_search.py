@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import List, Optional, Union
+from typing import List, Optional
 
 from django.db.models import Count, Exists, OuterRef, Q, QuerySet
 
@@ -64,7 +64,7 @@ class ChannelSearchService:
         )
 
         if search_query:
-            queryset = self._apply_search_filter(queryset, search_query, ChannelFieldPrefix.DIRECT)
+            queryset = self._apply_search_filter(queryset, search_query, ChannelFieldPrefix.DIRECT)  # type: ignore[assignment]
 
         return queryset.order_by("title")
 

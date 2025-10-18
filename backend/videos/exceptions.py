@@ -19,7 +19,7 @@ class QuotaInfo(TypedDict):
 class ChannelUpdateError(Exception):
     """Base exception for channel update errors"""
 
-    def __init__(self, message: str, channel_uuid: str = None, retry_after: int = None):
+    def __init__(self, message: str, channel_uuid: Optional[str] = None, retry_after: Optional[int] = None):
         super().__init__(message)
         self.channel_uuid = channel_uuid
         self.retry_after = retry_after

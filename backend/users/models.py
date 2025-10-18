@@ -90,7 +90,7 @@ class ChannelTag(TimestampMixin):
     color = models.CharField(max_length=7, default="#3B82F6")  # Hex color code
     description = models.TextField(blank=True, null=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
     class Meta:
@@ -106,7 +106,7 @@ class UserChannelTag(TimestampMixin):
     user_channel = models.ForeignKey("UserChannel", on_delete=models.CASCADE, related_name="channel_tags")
     tag = models.ForeignKey("ChannelTag", on_delete=models.CASCADE, related_name="channel_assignments")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.user_channel} -> {self.tag}"
 
     class Meta:
@@ -134,7 +134,7 @@ class UserDailyQuota(TimestampMixin):
             models.CheckConstraint(check=models.Q(quota_used__gte=0), name="user_daily_quota_used_gte_0"),
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.user.email} - {self.date}: {self.quota_used} quota used"
 
 
@@ -278,5 +278,5 @@ class UserYouTubeCredentials(TimestampMixin):
 
         return user_credentials
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"YouTube credentials for {self.user.email}"

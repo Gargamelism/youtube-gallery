@@ -8,6 +8,26 @@ disallow_untyped_defs = true
 warn_unused_ignores = true
 show_error_codes = true
 pretty = true
+exclude = [
+    "^.*/migrations/.*\\.py$",
+    "^.*/tests/.*\\.py$",
+    "^.*/management/commands/.*\\.py$",
+    "^scripts/.*\\.py$",
+    "^manage\\.py$",
+    "^conftest\\.py$",
+]
+
+# Per-module options for third-party libraries without stubs
+[[tool.mypy.overrides]]
+module = [
+    "decouple",
+    "dirtyfields",
+    "redis_om",
+    "googleapiclient.*",
+    "google_auth_oauthlib.*",
+    "django_celery_beat.*",
+]
+ignore_missing_imports = true
 
 [tool.django-stubs]
 django_settings_module = "youtube_gallery.settings"

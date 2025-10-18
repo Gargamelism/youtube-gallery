@@ -1,6 +1,6 @@
+from typing import Any, Optional
 from celery import shared_task
 from django.conf import settings
-from typing import List
 
 from videos.models import Channel
 from videos.services.channel_updater import ChannelUpdateService
@@ -15,18 +15,19 @@ BASE_BACKOFF_SECONDS = 60
 
 def calculate_exponential_backoff(retry_count: int, base_seconds: int = BASE_BACKOFF_SECONDS) -> int:
     """Calculate exponential backoff delay for task retries"""
-    return base_seconds * (2**retry_count)
+    result: int = base_seconds * (2**retry_count)
+    return result
 
 
 @shared_task(bind=True)
-def debug_celery_task(self):
+def debug_celery_task(self) -> dict[str, Any]:  # type: ignore[misc]
     """Simple debug task to test Celery worker connectivity"""
     print(f"Debug task executed with request: {self.request}")
     return {"status": "success", "message": "Celery is working!", "task_id": self.request.id}
 
 
 @shared_task(bind=True, name="videos.tasks.update_single_channel")
-def update_single_channel(self, channel_uuid: str):
+def update_single_channel(self, channel_uuid: str) -> dict[str, Any]:  # type: ignore[misc]
     """Update a single channel with error recovery and retry logic"""
     try:
         try:
@@ -71,7 +72,7 @@ def update_single_channel(self, channel_uuid: str):
 
 
 @shared_task(bind=True, name="videos.tasks.update_channels_batch")
-def update_channels_batch(self, channel_uuids: List[str] = None):
+def update_channels_batch(self, channel_uuids: Optional[list[str]] = None) -> dict[str, Any]:  # type: ignore[misc]
     """Batch update channels with quota management and dynamic sizing"""
     try:
         if not channel_uuids:
@@ -106,7 +107,7 @@ def update_channels_batch(self, channel_uuids: List[str] = None):
 
 
 @shared_task(bind=True, name="videos.tasks.update_priority_channels_async")
-def update_priority_channels_async(self, max_channels: int = 50):
+def update_priority_channels_async(self, max_channels: int = 50) -> dict[str, Any]:  # type: ignore[misc]
     """Update high-priority channels based on user engagement and subscriber count"""
     try:
         youtube_service = YouTubeService(api_key=settings.YOUTUBE_API_KEY)
@@ -156,7 +157,7 @@ def update_priority_channels_async(self, max_channels: int = 50):
 
 
 @shared_task(bind=True, name="videos.tasks.cleanup_orphaned_channels")
-def cleanup_orphaned_channels(self, max_channels: int = 50):
+def cleanup_orphaned_channels(self, max_channels: int = 50) -> dict[str, Any]:  # type: ignore[misc]
     """
     Clean up orphaned channels with selective video preservation based on user interaction
 
