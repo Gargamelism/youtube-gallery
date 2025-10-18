@@ -1,11 +1,19 @@
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import List, Optional, TypedDict
 from django.db.models import QuerySet, Count, Q, Exists, OuterRef, Prefetch
 
 from ..models import Video
 from ..validators import TagMode, WatchStatus
 from users.models import User, UserChannel, UserVideo, UserChannelTag
+
+
+class VideoStats(TypedDict):
+    """Video statistics including total, watched, and unwatched counts"""
+
+    total: int
+    watched: int
+    unwatched: int
 
 
 class VideoSearchService:
@@ -110,7 +118,7 @@ class VideoSearchService:
                 # No filtering needed for "all"
                 return queryset
 
-    def get_video_stats(self) -> dict:
+    def get_video_stats(self) -> VideoStats:
         """Get video statistics using a single query with annotations"""
         base_queryset = Video.objects.filter(
             channel__user_subscriptions__user=self.user, channel__user_subscriptions__is_active=True

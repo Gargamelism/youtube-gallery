@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from django.db.models import Count, Exists, OuterRef, Q, QuerySet
 
@@ -68,7 +68,9 @@ class ChannelSearchService:
 
         return queryset.order_by("title")
 
-    def _apply_search_filter(self, queryset: QuerySet, search_query: str, prefix: ChannelFieldPrefix) -> QuerySet:
+    def _apply_search_filter(
+        self, queryset: QuerySet[UserChannel] | QuerySet[Channel], search_query: str, prefix: ChannelFieldPrefix
+    ) -> QuerySet[UserChannel] | QuerySet[Channel]:
         """Apply search query filter to queryset"""
         prefix_str = prefix.value
         return queryset.filter(

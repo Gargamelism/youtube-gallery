@@ -425,6 +425,7 @@ class TagAssignmentAPITests(APITestCase):
         # Verify only tag2 is assigned
         remaining_assignment = UserChannelTag.objects.filter(user_channel=self.user_channel).first()
         self.assertIsNotNone(remaining_assignment)
+        assert remaining_assignment is not None  # Type narrowing for mypy
         self.assertEqual(remaining_assignment.tag, self.tag2)
 
     def test_assign_tags_to_nonexistent_channel(self) -> None:

@@ -16,7 +16,7 @@
 1. tag limits
 1. bottom subscribed channels page separator looks weird
 1. Create design system: 
-    1. use Dribbble.com for insparation 
+    1. use Dribbble.com + mobbin for insparation 
     1. work with chatgpt/claude to decide on what needs to be defined and how for the design system
     1. choose two main colors
     1. add a background gradient based on the tag and have cards with frosted glass
