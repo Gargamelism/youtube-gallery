@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timedelta
-from typing import TypeVar
+from typing import Any, TypeVar
 from cryptography.fernet import Fernet
 
 from django.conf import settings
@@ -159,7 +159,7 @@ class UserYouTubeCredentials(TimestampMixin):
     class Meta:
         db_table = "user_youtube_credentials"
 
-    def encrypt_token(self, token_value):
+    def encrypt_token(self, token_value: str | None) -> str | None:
         """Encrypt a token value using key from settings"""
         if not token_value:
             return None
@@ -167,7 +167,7 @@ class UserYouTubeCredentials(TimestampMixin):
         fernet = Fernet(settings.YOUTUBE_ENCRYPTION_TOKEN.encode())
         return fernet.encrypt(token_value.encode()).decode()
 
-    def decrypt_token(self, encrypted_token):
+    def decrypt_token(self, encrypted_token: str | None) -> str | None:
         """Decrypt a token value using key from settings"""
         if not encrypted_token:
             return None
@@ -175,23 +175,23 @@ class UserYouTubeCredentials(TimestampMixin):
         fernet = Fernet(settings.YOUTUBE_ENCRYPTION_TOKEN.encode())
         return fernet.decrypt(encrypted_token.encode()).decode()
 
-    def set_access_token(self, token):
+    def set_access_token(self, token: str | None) -> None:
         """Set encrypted access token"""
         self.encrypted_access_token = self.encrypt_token(token)
 
-    def get_access_token(self):
+    def get_access_token(self) -> str | None:
         """Get decrypted access token"""
         return self.decrypt_token(self.encrypted_access_token)
 
-    def set_refresh_token(self, token):
+    def set_refresh_token(self, token: str | None) -> None:
         """Set encrypted refresh token"""
         self.encrypted_refresh_token = self.encrypt_token(token)
 
-    def get_refresh_token(self):
+    def get_refresh_token(self) -> str | None:
         """Get decrypted refresh token"""
         return self.decrypt_token(self.encrypted_refresh_token)
 
-    def get_tz_unaware_expiry(self):
+    def get_tz_unaware_expiry(self) -> datetime | None:
         """Return timezone-unaware expiry for compatibility"""
         if not self.token_expiry:
             return None
@@ -201,7 +201,7 @@ class UserYouTubeCredentials(TimestampMixin):
 
         return self.token_expiry
 
-    def to_google_credentials(self):
+    def to_google_credentials(self) -> Any:
         """Build Google Credentials object from this database model"""
         client_config = YouTubeService.get_client_config()
 
@@ -215,7 +215,7 @@ class UserYouTubeCredentials(TimestampMixin):
             expiry=self.get_tz_unaware_expiry(),
         )
 
-    def update_from_credentials(self, credentials):
+    def update_from_credentials(self, credentials: Any) -> None:
         """Update this model with refreshed credentials"""
         self.set_access_token(credentials.token)
         if credentials.refresh_token:
@@ -224,7 +224,7 @@ class UserYouTubeCredentials(TimestampMixin):
         self.save()
 
     @classmethod
-    def from_credentials_data(cls, user, credentials_data):
+    def from_credentials_data(cls, user: User, credentials_data: dict[str, Any] | Any) -> "UserYouTubeCredentials":
         """Create or update user credentials from OAuth data"""
         client_config = YouTubeService.get_client_config()
 

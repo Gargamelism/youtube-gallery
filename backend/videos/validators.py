@@ -16,7 +16,7 @@ class TagMode(str, Enum):
     ALL = "all"
 
     @classmethod
-    def from_param(cls, value: Optional[str]) -> Self:
+    def from_param(cls, value: Optional[str]) -> "TagMode":
         """Parse tag mode from parameter with fallback to ANY"""
         try:
             return cls(value)
@@ -152,7 +152,7 @@ class TagAssignmentParams(BaseModel):
 
     @field_validator("tag_ids")
     @classmethod
-    def validate_tag_ids_format(cls, tag_ids):
+    def validate_tag_ids_format(cls, tag_ids: List[str]) -> List[str]:
         if not isinstance(tag_ids, list):
             raise ValueError("tag_ids must be an array")
 
@@ -166,7 +166,7 @@ class TagAssignmentParams(BaseModel):
 
     @field_validator("tag_ids")
     @classmethod
-    def validate_tags_belong_to_user(cls, tag_ids, info):
+    def validate_tags_belong_to_user(cls, tag_ids: List[str], info: ValidationInfo) -> List[str]:
         if not tag_ids or not info.context or not info.context.get("user"):
             return tag_ids
 
@@ -180,7 +180,7 @@ class TagAssignmentParams(BaseModel):
         return tag_ids
 
     @classmethod
-    def from_request(cls, request):
+    def from_request(cls, request: Request) -> Self:
         """Create TagAssignmentParams from Django request with proper error handling"""
         try:
             return cls.model_validate(

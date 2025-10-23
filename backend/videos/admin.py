@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 from django.contrib import admin
 
 from .models import Channel, Video
 
 
 @admin.register(Channel)
-class ChannelAdmin(admin.ModelAdmin):
+class ChannelAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
     list_display = ["title", "channel_id", "created_at"]
     search_fields = ["title", "channel_id", "description"]
     list_filter = ["created_at"]
@@ -12,7 +14,7 @@ class ChannelAdmin(admin.ModelAdmin):
 
 
 @admin.register(Video)
-class VideoAdmin(admin.ModelAdmin):
+class VideoAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
     list_display = ["title", "channel", "published_at", "view_count"]
     list_filter = ["published_at", "channel"]
     search_fields = ["title", "description", "video_id"]

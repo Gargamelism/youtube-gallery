@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Any
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
@@ -8,7 +10,7 @@ from rest_framework import serializers
 from .models import User, UserChannel, UserVideo, ChannelTag
 
 
-class UserRegistrationSerializer(serializers.ModelSerializer[User]):
+class UserRegistrationSerializer(serializers.ModelSerializer):  # type: ignore[type-arg]
     password = serializers.CharField(write_only=True, validators=[validate_password])
     password_confirm = serializers.CharField(write_only=True)
 
@@ -27,7 +29,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer[User]):
         return user
 
 
-class UserLoginSerializer(serializers.Serializer[None]):
+class UserLoginSerializer(serializers.Serializer):  # type: ignore[type-arg]
     email = serializers.EmailField()
     password = serializers.CharField()
 
@@ -47,14 +49,14 @@ class UserLoginSerializer(serializers.Serializer[None]):
             raise serializers.ValidationError("Email and password are required")
 
 
-class UserSerializer(serializers.ModelSerializer[User]):
+class UserSerializer(serializers.ModelSerializer):  # type: ignore[type-arg]
     class Meta:
         model = User
         fields = ("id", "email", "username", "first_name", "last_name", "is_staff", "created_at")
         read_only_fields = ("id", "created_at")
 
 
-class ChannelTagSerializer(serializers.ModelSerializer[ChannelTag]):
+class ChannelTagSerializer(serializers.ModelSerializer):  # type: ignore[type-arg]
     channel_count = serializers.SerializerMethodField()
 
     class Meta:
@@ -73,7 +75,7 @@ class ChannelTagSerializer(serializers.ModelSerializer[ChannelTag]):
             raise serializers.ValidationError({"name": ["Tag with this name already exists."]})
 
 
-class UserChannelSerializer(serializers.ModelSerializer[UserChannel]):
+class UserChannelSerializer(serializers.ModelSerializer):  # type: ignore[type-arg]
     channel_title = serializers.CharField(source="channel.title", read_only=True)
     channel_id = serializers.CharField(source="channel.channel_id", read_only=True)
     tags = serializers.SerializerMethodField()
@@ -89,7 +91,7 @@ class UserChannelSerializer(serializers.ModelSerializer[UserChannel]):
         return ChannelTagSerializer(tag_objects, many=True).data  # type: ignore[return-value]
 
 
-class UserVideoSerializer(serializers.ModelSerializer[UserVideo]):
+class UserVideoSerializer(serializers.ModelSerializer):  # type: ignore[type-arg]
     video_title = serializers.CharField(source="video.title", read_only=True)
     video_id = serializers.CharField(source="video.video_id", read_only=True)
 

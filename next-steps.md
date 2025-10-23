@@ -4,10 +4,6 @@
 1. code quality
     1. checkout pyscn/integrate maybe github actions?
     1. find similar code quality analyzer for FE
-1. import issues:
-    1. @PASHUTwellness
-    1. @nunu_Official
-    1. @TheAdamConover
 1. add "not interested" option - and filtering based on it
 1. add sidebar filtering videos by channels
 1. keep filters state when moving between pages
