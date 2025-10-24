@@ -14,7 +14,7 @@ class UserAdmin(BaseUserAdmin):  # type: ignore[type-arg]
     readonly_fields = ["id", "created_at", "updated_at"]
     ordering = ["email"]
 
-    fieldsets = BaseUserAdmin.fieldsets + (("Timestamps", {"fields": ("created_at", "updated_at")}),)  # type: ignore[assignment]
+    fieldsets = BaseUserAdmin.fieldsets + (("Timestamps", {"fields": ("created_at", "updated_at")}),)  # type: ignore[assignment,operator]
 
 
 @admin.register(UserChannel)

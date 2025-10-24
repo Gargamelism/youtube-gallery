@@ -5,6 +5,7 @@ Service for updating channel metadata from YouTube API.
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
+from django.db.models import QuerySet
 from django.utils import timezone
 from googleapiclient.errors import HttpError
 from rest_framework import status
@@ -117,7 +118,7 @@ class ChannelUpdateService:
                 if field not in channel_data:
                     raise InvalidChannelDataError(f"Missing {field} in channel data")
 
-            return channel_data
+            return channel_data  # type: ignore[no-any-return]
 
         except HttpError as e:
             error_details = e.error_details[0] if e.error_details else {}
@@ -388,7 +389,7 @@ class ChannelUpdateService:
 
         return max(0, priority)
 
-    def update_channels_batch(self, channels) -> Dict[str, Any]:
+    def update_channels_batch(self, channels: QuerySet[Channel]) -> Dict[str, Any]:
         """Update multiple channels with quota optimization"""
         if not channels:
             return {

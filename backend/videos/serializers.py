@@ -51,7 +51,7 @@ class VideoSerializer(serializers.ModelSerializer):  # type: ignore[type-arg]
             raise serializers.ValidationError("Channel not found")
 
         validated_data["channel"] = channel
-        return super().create(validated_data)
+        return super().create(validated_data)  # type: ignore[no-any-return]
 
 
 class VideoListSerializer(serializers.ModelSerializer):  # type: ignore[type-arg]
@@ -90,7 +90,7 @@ class VideoListSerializer(serializers.ModelSerializer):  # type: ignore[type-arg
         user_video = obj.user_videos.first()
         return user_video.watched_at if user_video else None
 
-    def get_notes(self, obj: Video) -> str:
+    def get_notes(self, obj: Video) -> str | None:
         user_video = obj.user_videos.first()
         return user_video.notes if user_video else None
 

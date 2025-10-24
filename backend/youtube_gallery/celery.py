@@ -52,8 +52,8 @@ if CELERY_ENABLED:
         beat_scheduler="django_celery_beat.schedulers:DatabaseScheduler",
     )
 
-    @app.task(bind=True)
-    def debug_task(self) -> str:
+    @app.task(bind=True)  # type: ignore[misc]
+    def debug_task(self) -> str:  # type: ignore[no-untyped-def]
         """Debug task for testing Celery worker connectivity"""
         print(f"Request: {self.request!r}")
         return "Celery is working!"

@@ -1,9 +1,10 @@
 from functools import wraps
-from typing import Callable, TypeVar, ParamSpec
+from typing import Any, Callable, ParamSpec, TypeVar
 
-from google.auth.transport.requests import Request
+from google.auth.transport.requests import Request  # type: ignore[import-untyped]
 from rest_framework import status
 from rest_framework.response import Response
+
 from users.models import UserYouTubeCredentials
 
 P = ParamSpec("P")
@@ -13,10 +14,10 @@ R = TypeVar("R")
 def youtube_auth_required(view_func: Callable[P, R]) -> Callable[P, R | Response]:
     @wraps(view_func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> R | Response:
-        request = args[1] if len(args) > 1 else kwargs.get("request")
+        request: Any = args[1] if len(args) > 1 else kwargs.get("request")
 
         try:
-            user_credentials = UserYouTubeCredentials.objects.get(user=request.user)
+            user_credentials = UserYouTubeCredentials.objects.get(user=request.user)  # type: ignore[attr-defined]
         except UserYouTubeCredentials.DoesNotExist:
             return Response(
                 {
@@ -32,7 +33,7 @@ def youtube_auth_required(view_func: Callable[P, R]) -> Callable[P, R | Response
 
             if not credentials.valid:
                 if credentials.expired and credentials.refresh_token:
-                    credentials.refresh(Request())
+                    credentials.refresh(Request())  # type: ignore[no-untyped-call]
                     user_credentials.update_from_credentials(credentials)
                 else:
                     return Response(
@@ -44,7 +45,7 @@ def youtube_auth_required(view_func: Callable[P, R]) -> Callable[P, R | Response
                         status=status.HTTP_403_FORBIDDEN,
                     )
 
-            request.youtube_credentials = credentials
+            request.youtube_credentials = credentials  # type: ignore[attr-defined]
 
         except Exception:
             return Response(

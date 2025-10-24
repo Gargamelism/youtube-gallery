@@ -46,7 +46,13 @@ class GoogleCredentialsData(TypedDict, total=False):
 class YouTubeAuthenticationError(Exception):
     """Custom exception for YouTube authentication errors that require user intervention"""
 
-    def __init__(self, message, auth_url=None, verification_url=None, user_code=None):
+    def __init__(
+        self,
+        message: str,
+        auth_url: Optional[str] = None,
+        verification_url: Optional[str] = None,
+        user_code: Optional[str] = None,
+    ) -> None:
         super().__init__(message)
         self.auth_url = auth_url
         self.verification_url = verification_url
@@ -77,7 +83,7 @@ class YouTubeService:
         else:
             # Neither provided - require OAuth
             auth_url = YouTubeService._generate_oauth_url(redirect_uri)
-            raise YouTubeAuthenticationError("YouTube credentials are required", auth_url=auth_url)
+            raise YouTubeAuthenticationError("YouTube credentials are required", auth_url=auth_url)  # type: ignore[no-untyped-call]
 
     @staticmethod
     def get_client_config() -> YouTubeClientConfig:
@@ -92,7 +98,7 @@ class YouTubeService:
             client_config = json.load(secrets_file)
             client_info = client_config.get("web")
 
-        return client_info
+        return client_info  # type: ignore[no-any-return]
 
     @staticmethod
     def _generate_oauth_url(redirect_uri: Optional[str] = None, state: Optional[str] = None) -> Optional[str]:
@@ -116,7 +122,7 @@ class YouTubeService:
 
             authorization_url, _ = flow.authorization_url(**auth_params)
 
-            return authorization_url
+            return authorization_url  # type: ignore[no-any-return]
         except Exception as e:
             print(f"OAuth URL generation failed: {e}")
             return None
@@ -135,13 +141,13 @@ class YouTubeService:
             "grant_type": "authorization_code",
         }
         try:
-            response = http.post(url=token_uri, data=data)
+            response = http.post(url=token_uri, data=data)  # type: ignore[arg-type]
             response.raise_for_status()
             token_data = response.json()
         except Exception as e:
-            raise YouTubeAuthenticationError(f"Token exchange failed: {e}")
+            raise YouTubeAuthenticationError(f"Token exchange failed: {e}")  # type: ignore[no-untyped-call]
 
-        return token_data
+        return token_data  # type: ignore[no-any-return]
 
     @classmethod
     def create_credentials(cls, credentials_data: Union[str, CredentialsData]) -> Credentials:
@@ -157,7 +163,7 @@ class YouTubeService:
         if credentials_info.get("expiry"):
             expiry = datetime.fromisoformat(credentials_info["expiry"])
 
-        return Credentials(
+        return Credentials(  # type: ignore[no-untyped-call]
             token=credentials_info.get("token"),
             refresh_token=credentials_info.get("refresh_token"),
             token_uri=credentials_info.get("token_uri"),
@@ -179,7 +185,7 @@ class YouTubeService:
         if not response["items"]:
             return None
 
-        return response["items"]
+        return response["items"]  # type: ignore[no-any-return]
 
     def _get_channel_by_handle(self, handle: str) -> Optional[Dict[str, Any]]:
         """Get channel details using username (without @ symbol)"""
@@ -193,7 +199,7 @@ class YouTubeService:
         if response["pageInfo"]["totalResults"] == 0:
             return None
 
-        return response["items"][0]
+        return response["items"][0]  # type: ignore[no-any-return]
 
     def _search_channel_by_handle(self, handle: str) -> Optional[Dict[str, Any]]:
         """Search for channel ID using handle via search API"""
@@ -246,7 +252,10 @@ class YouTubeService:
             return None
 
         for channel in channels_info:
-            custom_url = channel["snippet"].get("customUrl")
+            if not isinstance(channel, dict):
+                continue
+            snippet = channel.get("snippet", {})
+            custom_url = snippet.get("customUrl") if isinstance(snippet, dict) else None
             if custom_url and custom_url.lower() == handle.lower():
                 return channel
 
@@ -276,10 +285,10 @@ class YouTubeService:
                         return None
             else:
                 # Handle regular channel ID
-                channel_info = self._get_channels_by_ids(channel_identifier)
-                if not channel_info:
+                channels = self._get_channels_by_ids(channel_identifier)
+                if not channels or not isinstance(channels, list) or len(channels) == 0:
                     return None
-                channel_info = channel_info[0]
+                channel_info = channels[0]
 
             return self._format_channel_response(channel_info)
 
@@ -287,7 +296,7 @@ class YouTubeService:
             # Error fetching channel details
             return None
 
-    def get_channel_videos(self, uploads_playlist_id: str):
+    def get_channel_videos(self, uploads_playlist_id: str) -> Any:
         """Generator that yields pages of video data"""
         next_page_token = None
 

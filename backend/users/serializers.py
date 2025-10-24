@@ -70,7 +70,7 @@ class ChannelTagSerializer(serializers.ModelSerializer):  # type: ignore[type-ar
     def create(self, validated_data: dict[str, Any]) -> ChannelTag:
         try:
             with transaction.atomic():
-                return super().create(validated_data)
+                return super().create(validated_data)  # type: ignore[no-any-return]
         except IntegrityError:
             raise serializers.ValidationError({"name": ["Tag with this name already exists."]})
 

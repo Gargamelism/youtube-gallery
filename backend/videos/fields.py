@@ -1,28 +1,33 @@
 import re
+from typing import Any, Optional
 
 from django.db import models
+from django.db.backends.base.base import BaseDatabaseWrapper
+from django.db.models.expressions import Expression
 
 
-class YouTubeDurationField(models.CharField):
+class YouTubeDurationField(models.CharField):  # type: ignore[type-arg]
     """
     Custom field to handle YouTube duration format (PT1H2M3S) and convert to readable format
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         kwargs["max_length"] = 20  # Enough for formatted duration
         super().__init__(*args, **kwargs)
 
-    def from_db_value(self, value, expression, connection):
+    def from_db_value(
+        self, value: Optional[str], expression: Expression, connection: BaseDatabaseWrapper
+    ) -> Optional[str]:
         if value is None:
             return value
         return self.format_duration(value)
 
-    def to_python(self, value):
+    def to_python(self, value: Any) -> Optional[str]:
         if isinstance(value, str):
             return self.format_duration(value)
         return value
 
-    def get_prep_value(self, value):
+    def get_prep_value(self, value: Any) -> Optional[str]:
         # Store the original YouTube format in database
         if isinstance(value, str):
             # If it's already in YouTube format, keep it
@@ -32,7 +37,7 @@ class YouTubeDurationField(models.CharField):
             return self.parse_formatted_duration(value)
         return value
 
-    def format_duration(self, youtube_duration):
+    def format_duration(self, youtube_duration: Optional[str]) -> Optional[str]:
         """
         Convert YouTube duration format (PT1H2M3S) to readable format (1:02:03)
         """
@@ -53,7 +58,7 @@ class YouTubeDurationField(models.CharField):
         else:
             return f"{minutes}:{seconds:02d}"
 
-    def parse_formatted_duration(self, formatted_duration):
+    def parse_formatted_duration(self, formatted_duration: Optional[str]) -> Optional[str]:
         """
         Convert readable format back to YouTube format (optional)
         """

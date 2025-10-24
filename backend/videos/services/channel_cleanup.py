@@ -30,7 +30,7 @@ class BatchCleanupResult(TypedDict):
 class ChannelCleanupService:
     """Service for detecting and cleaning up orphaned channels with selective video preservation"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.logger = get_task_logger(__name__)
 
     def find_orphaned_channels(self) -> List[Channel]:
@@ -243,26 +243,42 @@ class ChannelCleanupService:
             # Process each orphaned channel
             for channel in orphaned_channels:
                 cleanup_result = self.cleanup_channel_selectively(channel)
-                batch_result["cleanup_details"].append(cleanup_result)  # type: ignore
-                batch_result["channels_processed"] = int(batch_result["channels_processed"]) + 1
+                batch_result["cleanup_details"].append(cleanup_result)  # type: ignore[union-attr]
+                channels_processed = batch_result.get("channels_processed", 0)
+                batch_result["channels_processed"] = int(channels_processed) + 1 if channels_processed is not None else 1
 
                 if cleanup_result["success"]:
                     if cleanup_result["cleanup_type"] == "soft_delete":
-                        batch_result["soft_deletions"] = int(batch_result["soft_deletions"]) + 1
-                        batch_result["total_videos_preserved"] = int(batch_result["total_videos_preserved"]) + int(
-                            cleanup_result["videos_preserved"]
+                        soft_deletions = batch_result.get("soft_deletions", 0)
+                        batch_result["soft_deletions"] = int(soft_deletions) + 1 if soft_deletions is not None else 1
+
+                        total_preserved = batch_result.get("total_videos_preserved", 0)
+                        videos_preserved = cleanup_result.get("videos_preserved", 0)
+                        batch_result["total_videos_preserved"] = (
+                            int(total_preserved) + int(videos_preserved)
+                            if total_preserved is not None and videos_preserved is not None
+                            else 0
                         )
                     else:
-                        batch_result["hard_deletions"] = int(batch_result["hard_deletions"]) + 1
+                        hard_deletions = batch_result.get("hard_deletions", 0)
+                        batch_result["hard_deletions"] = int(hard_deletions) + 1 if hard_deletions is not None else 1
 
-                    batch_result["total_videos_deleted"] = int(batch_result["total_videos_deleted"]) + int(
-                        cleanup_result["videos_deleted"]
+                    total_deleted = batch_result.get("total_videos_deleted", 0)
+                    videos_deleted = cleanup_result.get("videos_deleted", 0)
+                    batch_result["total_videos_deleted"] = (
+                        int(total_deleted) + int(videos_deleted) if total_deleted is not None and videos_deleted is not None else 0
                     )
-                    batch_result["total_user_videos_deleted"] = int(batch_result["total_user_videos_deleted"]) + int(
-                        cleanup_result["user_video_entries_deleted"]
+
+                    total_user_deleted = batch_result.get("total_user_videos_deleted", 0)
+                    user_entries_deleted = cleanup_result.get("user_video_entries_deleted", 0)
+                    batch_result["total_user_videos_deleted"] = (
+                        int(total_user_deleted) + int(user_entries_deleted)
+                        if total_user_deleted is not None and user_entries_deleted is not None
+                        else 0
                     )
                 else:
-                    batch_result["failed_cleanups"] += 1
+                    failed = batch_result.get("failed_cleanups", 0)
+                    batch_result["failed_cleanups"] = failed + 1 if isinstance(failed, int) else 1
 
             self.logger.info(
                 "Batch cleanup completed: {} soft deletions, {} hard deletions, {} failed out of {} total".format(

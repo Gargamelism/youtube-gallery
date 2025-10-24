@@ -1,6 +1,6 @@
 from typing import Any
 
-from google.auth.transport.requests import Request
+from google.auth.transport.requests import Request  # type: ignore[import-untyped]
 
 from .models import User, UserYouTubeCredentials
 
@@ -14,7 +14,7 @@ def get_youtube_credentials(user: User) -> Any | None:
         if credentials.valid:
             return credentials
         elif credentials.expired and credentials.refresh_token:
-            credentials.refresh(Request())
+            credentials.refresh(Request())  # type: ignore[no-untyped-call]
             user_credentials.update_from_credentials(credentials)
             return credentials
 

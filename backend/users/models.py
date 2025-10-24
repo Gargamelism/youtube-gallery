@@ -1,16 +1,16 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, TypeVar
-from cryptography.fernet import Fernet
 
+from cryptography.fernet import Fernet  # type: ignore[import-untyped]
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import Prefetch, QuerySet
 from django.utils import timezone as dj_tz
-from google.oauth2.credentials import Credentials
+from google.oauth2.credentials import Credentials  # type: ignore[import-untyped]
 
 from videos.services.youtube import YOUTUBE_SCOPES, YouTubeService
 
@@ -205,7 +205,7 @@ class UserYouTubeCredentials(TimestampMixin):
         """Build Google Credentials object from this database model"""
         client_config = YouTubeService.get_client_config()
 
-        return Credentials(
+        return Credentials(  # type: ignore[no-untyped-call]
             token=self.get_access_token(),
             refresh_token=self.get_refresh_token(),
             token_uri=self.token_uri,
@@ -250,7 +250,7 @@ class UserYouTubeCredentials(TimestampMixin):
                     else credentials_data["expiry"]
                 )
                 if expiry and dj_tz.is_naive(expiry):
-                    expiry = dj_tz.make_aware(expiry, dj_tz.utc)
+                    expiry = dj_tz.make_aware(expiry, timezone.utc)
             else:
                 expiry = None
 

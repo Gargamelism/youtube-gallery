@@ -4,13 +4,15 @@ Per-user YouTube API quota tracking and management.
 Extends the existing global QuotaTracker with per-user daily limits.
 """
 
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
+
 from django.db import transaction
 from django.utils import timezone as dj_tz
 
-from .quota_tracker import QuotaTracker
+from users.models import User, UserDailyQuota
+
 from ..exceptions import UserQuotaExceededError
-from users.models import UserDailyQuota
+from .quota_tracker import QuotaTracker
 
 
 class UserQuotaTracker(QuotaTracker):
@@ -18,7 +20,7 @@ class UserQuotaTracker(QuotaTracker):
 
     DEFAULT_USER_DAILY_LIMIT = 1000  # Conservative per-user limit
 
-    def __init__(self, user, user_daily_limit: Optional[int] = None):
+    def __init__(self, user: User, user_daily_limit: Optional[int] = None) -> None:
         super().__init__(daily_quota_limit=10000)  # Keep global limit
         self.user = user
         self.user_daily_limit = user_daily_limit or self.DEFAULT_USER_DAILY_LIMIT
@@ -29,12 +31,12 @@ class UserQuotaTracker(QuotaTracker):
         user_ok = self._can_user_make_request(operation)
         return global_ok and user_ok
 
-    def record_usage(self, operation: str = "channels.list", quota_cost: int = None):
+    def record_usage(self, operation: str = "channels.list", quota_cost: Optional[int] = None) -> None:
         """Record both global and user usage"""
         super().record_usage(operation, quota_cost)
         self._record_user_usage(operation, quota_cost)
 
-    def get_user_usage_summary(self) -> Dict:
+    def get_user_usage_summary(self) -> Dict[str, Any]:
         """Get comprehensive user quota usage information"""
         user_quota_record = self._get_or_create_user_quota()
         percentage_used = (user_quota_record.quota_used / self.user_daily_limit) * 100
@@ -57,15 +59,15 @@ class UserQuotaTracker(QuotaTracker):
         can_proceed = (user_quota_record.quota_used + quota_cost) <= effective_limit
 
         if not can_proceed:
-            quota_info = self.get_user_usage_summary()
+            quota_info_dict = self.get_user_usage_summary()
             raise UserQuotaExceededError(
-                f"Daily user quota limit exceeded. Used {quota_info['daily_usage']}/{quota_info['daily_limit']} units.",
-                quota_info=quota_info,
+                f"Daily user quota limit exceeded. Used {quota_info_dict['daily_usage']}/{quota_info_dict['daily_limit']} units.",
+                quota_info=quota_info_dict,  # type: ignore[arg-type]
             )
 
         return can_proceed
 
-    def _record_user_usage(self, operation: str, quota_cost: Optional[int] = None):
+    def _record_user_usage(self, operation: str, quota_cost: Optional[int] = None) -> None:
         """Record quota usage for the user"""
         if quota_cost is None:
             quota_cost = self.QUOTA_COSTS.get(operation, 1)

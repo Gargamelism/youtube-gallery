@@ -3,7 +3,7 @@ import uuid
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 from django.db.models import Q
-from dirtyfields import DirtyFieldsMixin
+from dirtyfields import DirtyFieldsMixin  # type: ignore[import-untyped]
 
 from .fields import YouTubeDurationField
 
@@ -30,7 +30,7 @@ class UpdateFrequency(TimestampMixin):
         verbose_name_plural = "update frequencies"
 
 
-class Channel(DirtyFieldsMixin, TimestampMixin):
+class Channel(DirtyFieldsMixin, TimestampMixin):  # type: ignore[misc]
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     channel_id = models.CharField(max_length=255, unique=True)
     title = models.CharField(max_length=500, blank=True, null=True)
@@ -87,7 +87,7 @@ class Video(TimestampMixin):
     channel = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name="videos")
 
     # custom fields
-    duration = YouTubeDurationField(blank=True, null=True)
+    duration = YouTubeDurationField(blank=True, null=True)  # type: ignore[no-untyped-call]
 
     def __str__(self) -> str:
         return self.title or self.video_id

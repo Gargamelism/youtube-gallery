@@ -1,11 +1,13 @@
-from django.http import HttpResponsePermanentRedirect
+from typing import Any, Callable
+
+from django.http import HttpRequest, HttpResponse, HttpResponsePermanentRedirect
 
 
 class SlashlessMiddleware:
-    def __init__(self, get_response):
+    def __init__(self, get_response: Callable[[HttpRequest], HttpResponse]) -> None:
         self.get_response = get_response
 
-    def __call__(self, request):
+    def __call__(self, request: HttpRequest) -> HttpResponse:
         # If URL ends with / but isn't the root, redirect to non-slash version
         if request.path != "/" and request.path.endswith("/"):
             new_path = request.path[:-1]

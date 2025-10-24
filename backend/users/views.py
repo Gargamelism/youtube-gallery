@@ -236,7 +236,7 @@ class UserChannelViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
             return Response(serializer.data)
 
         elif request.method == "PUT":
-            params = TagAssignmentParams.from_request(request)  # type: ignore[no-untyped-call]
+            params = TagAssignmentParams.from_request(request)
             UserChannelTag.objects.filter(user_channel=user_channel).delete()
             user = cast(User, request.user)
             tags = ChannelTag.objects.filter(user=user, id__in=params.tag_ids)
@@ -272,7 +272,7 @@ class UserVideoViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
 def youtube_auth_url(request: Request) -> Response:
     """Get YouTube OAuth URL for authenticated user"""
     # Check if user already has valid credentials
-    existing_credentials = get_youtube_credentials(request.user)  # type: ignore[no-untyped-call]
+    existing_credentials = get_youtube_credentials(request.user)  # type: ignore[arg-type]
     if existing_credentials:
         return Response({"message": "Already authenticated", "authenticated": True})
 
@@ -324,7 +324,7 @@ def youtube_auth_callback(request: Request) -> HttpResponse:
 
     try:
         credentials = YouTubeService.handle_oauth_callback(authorization_code, redirect_uri)
-        UserYouTubeCredentials.from_credentials_data(request.user, credentials)  # type: ignore[no-untyped-call]
+        UserYouTubeCredentials.from_credentials_data(request.user, credentials)  # type: ignore[arg-type]
     except YouTubeAuthenticationError as e:
         return HttpResponse(f"Authentication failed: {str(e)}", status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
