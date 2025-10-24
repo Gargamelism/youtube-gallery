@@ -133,5 +133,5 @@ jobs:
       - name: Run Migrations
         run: python manage.py migrate --noinput
 
-      - name: Unit Tests (pytest)
-        run: pytest
+      - name: Unit Tests (Django)
+        run: python manage.py test --verbosity=2 --keepdb --noinput

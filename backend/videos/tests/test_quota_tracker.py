@@ -7,7 +7,7 @@ from unittest.mock import Mock, patch, call
 
 from django.test import TestCase
 
-from videos.services.quota_tracker import QuotaTracker, QuotaUsageModel
+from videos.services.quota_tracker import QuotaTracker, DailyQuotaUsage
 
 
 class QuotaTrackerTests(TestCase):
@@ -43,7 +43,7 @@ class QuotaTrackerTests(TestCase):
         self.assertEqual(self.quota_tracker.BATCH_RESERVE_FACTOR, 0.8)
         self.assertEqual(self.quota_tracker.ALERT_THRESHOLD, 0.8)
 
-    @patch("videos.services.quota_tracker.QuotaUsageModel")
+    @patch("videos.services.quota_tracker.DailyQuotaUsage")
     def test_can_make_request_with_sufficient_quota(self, mock_model) -> None:
         """Test can_make_request returns True when quota is available"""
         mock_usage = Mock()
@@ -53,7 +53,7 @@ class QuotaTrackerTests(TestCase):
         result = self.quota_tracker.can_make_request("channels.list")
         self.assertTrue(result)
 
-    @patch("videos.services.quota_tracker.QuotaUsageModel")
+    @patch("videos.services.quota_tracker.DailyQuotaUsage")
     def test_can_make_request_with_insufficient_quota(self, mock_model) -> None:
         """Test can_make_request returns False when quota is insufficient"""
         mock_usage = Mock()
@@ -64,7 +64,7 @@ class QuotaTrackerTests(TestCase):
         self.assertFalse(result)
 
     @patch("builtins.print")
-    @patch("videos.services.quota_tracker.QuotaUsageModel")
+    @patch("videos.services.quota_tracker.DailyQuotaUsage")
     def test_can_make_request_with_unknown_operation(self, mock_model, mock_print) -> None:
         """Test can_make_request handles unknown operations with warning"""
         mock_usage = Mock()
@@ -77,7 +77,7 @@ class QuotaTrackerTests(TestCase):
             "WARNING: Operation 'unknown.operation' doesn't have a quota cost defined, using default cost of 1"
         )
 
-    @patch("videos.services.quota_tracker.QuotaUsageModel")
+    @patch("videos.services.quota_tracker.DailyQuotaUsage")
     def test_record_usage_increments_quota(self, mock_model) -> None:
         """Test record_usage correctly increments quota usage"""
         mock_usage = Mock()
@@ -91,7 +91,7 @@ class QuotaTrackerTests(TestCase):
         self.assertEqual(mock_usage.daily_usage, 101)
         self.assertEqual(mock_usage.operations_count["channels.list"], 1)
 
-    @patch("videos.services.quota_tracker.QuotaUsageModel")
+    @patch("videos.services.quota_tracker.DailyQuotaUsage")
     def test_record_usage_with_custom_cost(self, mock_model) -> None:
         """Test record_usage accepts custom quota cost"""
         mock_usage = Mock()
@@ -106,7 +106,7 @@ class QuotaTrackerTests(TestCase):
         self.assertEqual(mock_usage.operations_count["channels.list"], 1)
 
     @patch("builtins.print")
-    @patch("videos.services.quota_tracker.QuotaUsageModel")
+    @patch("videos.services.quota_tracker.DailyQuotaUsage")
     def test_record_usage_with_unknown_operation(self, mock_model, mock_print) -> None:
         """Test record_usage handles unknown operations with warning"""
         mock_usage = Mock()
@@ -124,7 +124,7 @@ class QuotaTrackerTests(TestCase):
         self.assertIn(warning_call, mock_print.call_args_list)
 
     @patch("builtins.print")
-    @patch("videos.services.quota_tracker.QuotaUsageModel")
+    @patch("videos.services.quota_tracker.DailyQuotaUsage")
     def test_record_usage_triggers_alert_at_threshold(self, mock_model, mock_print) -> None:
         """Test record_usage triggers alert when approaching quota limit"""
         mock_usage = Mock()
@@ -137,7 +137,7 @@ class QuotaTrackerTests(TestCase):
 
         mock_print.assert_any_call("WARNING: Quota usage high - 800/1000 (80.0%)")
 
-    @patch("videos.services.quota_tracker.QuotaUsageModel")
+    @patch("videos.services.quota_tracker.DailyQuotaUsage")
     def test_get_current_usage(self, mock_model) -> None:
         """Test get_current_usage returns correct daily usage"""
         mock_usage = Mock()
@@ -161,7 +161,7 @@ class QuotaTrackerTests(TestCase):
         result = self.quota_tracker.get_remaining_quota()
         self.assertEqual(result, 0)
 
-    @patch("videos.services.quota_tracker.QuotaUsageModel")
+    @patch("videos.services.quota_tracker.DailyQuotaUsage")
     def test_get_usage_summary(self, mock_model) -> None:
         """Test get_usage_summary returns comprehensive data"""
         mock_usage = Mock()
@@ -248,7 +248,7 @@ class QuotaTrackerTests(TestCase):
         result = self.quota_tracker._get_quota_status(97.0)
         self.assertEqual(result, "critical")
 
-    @patch("videos.services.quota_tracker.QuotaUsageModel")
+    @patch("videos.services.quota_tracker.DailyQuotaUsage")
     def test_fallback_data_when_redis_unavailable(self, mock_model) -> None:
         """Test fallback behavior when Redis is unavailable"""
         self.quota_tracker.use_redis_om = False
@@ -265,7 +265,7 @@ class QuotaTrackerTests(TestCase):
         mock_model.assert_called_with(pk=self.quota_tracker.quota_key, daily_usage=0, operations_count={})
 
     @patch("builtins.print")
-    @patch("videos.services.quota_tracker.QuotaUsageModel")
+    @patch("videos.services.quota_tracker.DailyQuotaUsage")
     def test_force_reset_quota(self, mock_model, mock_print) -> None:
         """Test force_reset_quota deletes existing data"""
         mock_existing = Mock()
@@ -297,20 +297,20 @@ class QuotaTrackerTests(TestCase):
             mock_expire.assert_called_with(expected_seconds)
 
 
-class QuotaUsageModelTests(TestCase):
-    """Test cases for QuotaUsageModel"""
+class DailyQuotaUsageTests(TestCase):
+    """Test cases for DailyQuotaUsage"""
 
     def test_model_default_values(self) -> None:
-        """Test QuotaUsageModel has correct default values"""
-        model = Mock(spec=QuotaUsageModel)
+        """Test DailyQuotaUsage has correct default values"""
+        model = Mock(spec=DailyQuotaUsage)
         model.daily_usage = 0
         model.operations_count = {}
         self.assertEqual(model.daily_usage, 0)
         self.assertEqual(model.operations_count, {})
 
     def test_model_field_types(self) -> None:
-        """Test QuotaUsageModel field types are correct"""
-        model = Mock(spec=QuotaUsageModel)
+        """Test DailyQuotaUsage field types are correct"""
+        model = Mock(spec=DailyQuotaUsage)
         model.daily_usage = 100
         model.operations_count = {"channels.list": 5}
         self.assertIsInstance(model.daily_usage, int)

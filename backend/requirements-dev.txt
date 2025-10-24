@@ -2,6 +2,7 @@
 debugpy==1.8.0
 django-extensions==3.2.3
 pytest==8.4.2
+pytest-django==4.9.*
 faker==33.1.0
 
 # Code quality
