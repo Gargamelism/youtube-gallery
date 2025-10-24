@@ -17,7 +17,7 @@ def youtube_auth_required(view_func: Callable[P, R]) -> Callable[P, R | Response
         request: Any = args[1] if len(args) > 1 else kwargs.get("request")
 
         try:
-            user_credentials = UserYouTubeCredentials.objects.get(user=request.user)  # type: ignore[attr-defined]
+            user_credentials = UserYouTubeCredentials.objects.get(user=request.user)
         except UserYouTubeCredentials.DoesNotExist:
             return Response(
                 {
@@ -45,7 +45,7 @@ def youtube_auth_required(view_func: Callable[P, R]) -> Callable[P, R | Response
                         status=status.HTTP_403_FORBIDDEN,
                     )
 
-            request.youtube_credentials = credentials  # type: ignore[attr-defined]
+            request.youtube_credentials = credentials
 
         except Exception:
             return Response(
@@ -59,4 +59,4 @@ def youtube_auth_required(view_func: Callable[P, R]) -> Callable[P, R | Response
 
         return view_func(*args, **kwargs)
 
-    return wrapper  # type: ignore[return-value]
+    return wrapper

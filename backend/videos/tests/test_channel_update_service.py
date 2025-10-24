@@ -1,6 +1,7 @@
 """
 Comprehensive unit tests for ChannelUpdateService.
 """
+
 from __future__ import annotations
 
 from unittest.mock import Mock, patch

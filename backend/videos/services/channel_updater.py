@@ -5,7 +5,6 @@ Service for updating channel metadata from YouTube API.
 from dataclasses import dataclass
 from typing import Any, Dict, Iterable, Optional
 
-from django.db.models import QuerySet
 from django.utils import timezone
 from googleapiclient.errors import HttpError
 from rest_framework import status

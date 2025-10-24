@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
@@ -14,7 +16,9 @@ class UserAdmin(BaseUserAdmin):  # type: ignore[type-arg]
     readonly_fields = ["id", "created_at", "updated_at"]
     ordering = ["email"]
 
-    fieldsets = BaseUserAdmin.fieldsets + (("Timestamps", {"fields": ("created_at", "updated_at")}),)
+    @property
+    def fieldsets(self) -> Any:  # type: ignore[override]
+        return list(BaseUserAdmin.fieldsets or []) + [("Timestamps", {"fields": ("created_at", "updated_at")})]
 
 
 @admin.register(UserChannel)

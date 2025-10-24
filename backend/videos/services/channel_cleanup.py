@@ -8,15 +8,19 @@ from videos.models import Channel, Video
 from users.models import UserVideo
 
 
-class CleanupResult(TypedDict):
+class CleanupResult(TypedDict, total=False):
     success: bool
-    cleanup_type: str
+    cleanup_type: str | None
     videos_preserved: int
     videos_deleted: int
     user_video_entries_deleted: int
+    channel_uuid: str
+    channel_id: str
+    cleanup_timestamp: Any
+    error_message: str | None
 
 
-class BatchCleanupResult(TypedDict):
+class BatchCleanupResult(TypedDict, total=False):
     channels_processed: int
     soft_deletions: int
     hard_deletions: int
@@ -25,6 +29,9 @@ class BatchCleanupResult(TypedDict):
     total_videos_deleted: int
     total_user_videos_deleted: int
     cleanup_details: List[CleanupResult]
+    cleanup_timestamp: Any
+    success: bool
+    error_message: Any
 
 
 class ChannelCleanupService:
@@ -118,7 +125,7 @@ class ChannelCleanupService:
         self.logger.info(f"Deleted {videos_deleted} videos and {user_videos_deleted} UserVideo entries")
         return (videos_deleted, user_videos_deleted)
 
-    def cleanup_channel_selectively(self, channel: Channel) -> Dict[str, Any]:
+    def cleanup_channel_selectively(self, channel: Channel) -> CleanupResult:
         """
         Selectively clean up channel based on video preservation value
 
@@ -132,10 +139,10 @@ class ChannelCleanupService:
         Returns:
             Dictionary with cleanup operation results
         """
-        cleanup_result = {
+        cleanup_result: CleanupResult = {
             "channel_uuid": str(channel.uuid),
             "channel_id": channel.channel_id,
-            "cleanup_type": None,  # 'soft_delete' or 'hard_delete'
+            "cleanup_type": None,
             "videos_preserved": 0,
             "videos_deleted": 0,
             "user_video_entries_deleted": 0,
@@ -206,7 +213,7 @@ class ChannelCleanupService:
 
         return cleanup_result
 
-    def cleanup_orphaned_channels(self, max_channels: int = 50) -> Dict[str, Any]:
+    def cleanup_orphaned_channels(self, max_channels: int = 50) -> BatchCleanupResult:
         """
         Clean up multiple orphaned channels in a batch operation
 
@@ -218,7 +225,7 @@ class ChannelCleanupService:
         """
         self.logger.info(f"Starting batch cleanup of up to {max_channels} orphaned channels")
 
-        batch_result = {
+        batch_result: BatchCleanupResult = {
             "cleanup_timestamp": timezone.now(),
             "channels_processed": 0,
             "soft_deletions": 0,
@@ -243,7 +250,7 @@ class ChannelCleanupService:
             # Process each orphaned channel
             for channel in orphaned_channels:
                 cleanup_result = self.cleanup_channel_selectively(channel)
-                batch_result["cleanup_details"].append(cleanup_result)  # type: ignore[arg-type]
+                batch_result["cleanup_details"].append(cleanup_result)
                 batch_result["channels_processed"] += 1
 
                 if cleanup_result["success"]:
