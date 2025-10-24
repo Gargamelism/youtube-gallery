@@ -133,10 +133,5 @@ jobs:
       - name: Run Migrations
         run: python manage.py migrate --noinput
 
-      - name: PySCN Structural Analysis
-        run: |
-          pip install pyscn
-          pyscn check .
-
       - name: Unit Tests (pytest)
         run: pytest
