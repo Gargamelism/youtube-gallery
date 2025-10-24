@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import re
 
 from rest_framework.routers import DefaultRouter, Route
+from rest_framework.viewsets import ViewSetMixin
 
 
 class KebabCaseRouter(DefaultRouter):
@@ -13,7 +16,7 @@ class KebabCaseRouter(DefaultRouter):
     - update_video_status -> update-video-status
     """
 
-    def get_lookup_regex(self, viewset, lookup_prefix=""):
+    def get_lookup_regex(self, viewset: type[ViewSetMixin], lookup_prefix: str = "") -> str:
         """
         Override to ensure lookup patterns are in kebab-case.
         Uses (?P<pk>...) for named capture groups.
@@ -27,7 +30,7 @@ class KebabCaseRouter(DefaultRouter):
             return lookup_url.replace("{pk}", "(?P<pk>[^/.]+)")
         return lookup_url
 
-    def get_default_basename(self, viewset):
+    def get_default_basename(self, viewset: type[ViewSetMixin]) -> str:
         """
         Override to convert the basename to kebab-case.
         """
@@ -37,20 +40,19 @@ class KebabCaseRouter(DefaultRouter):
 
         return self._to_kebab_case(basename)
 
-    def get_routes(self, viewset):
+    def get_routes(self, viewset: type[ViewSetMixin]) -> list[Route]:
         """
         Override get_routes to convert action URLs to kebab-case.
         """
         routes = super().get_routes(viewset)
 
         # Convert action URLs to kebab-case by creating new Route objects
-        converted_routes = []
+        converted_routes: list[Route] = []
         for route in routes:
             if hasattr(route, "url") and route.url:
-                original_url = route.url
                 # Convert action names in URLs to kebab-case
                 url_parts = route.url.split("/")
-                converted_parts = []
+                converted_parts: list[str] = []
 
                 for part in url_parts:
                     # Skip empty parts
@@ -61,7 +63,7 @@ class KebabCaseRouter(DefaultRouter):
                         # Only convert underscores outside of template variables
                         # Split by template variables, convert non-template parts
                         template_parts = re.split(r"(\{[^}]+\})", part)
-                        converted_template_parts = []
+                        converted_template_parts: list[str] = []
                         for template_part in template_parts:
                             if template_part.startswith("{") and template_part.endswith("}"):
                                 # This is a template variable, don't convert
@@ -95,9 +97,15 @@ class KebabCaseRouter(DefaultRouter):
 
         return converted_routes
 
-    def _to_kebab_case(self, value):
+    def _to_kebab_case(self, value: str) -> str:
         """
         Convert snake_case to kebab-case while preserving regex patterns and URL parameters.
+
+        Args:
+            value: The string to convert from snake_case to kebab-case
+
+        Returns:
+            The converted string in kebab-case format
         """
         if not value:
             return value

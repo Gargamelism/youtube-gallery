@@ -1,21 +1,41 @@
 import uuid
-from typing import List, Optional
+from typing import List, Optional, Self
 from enum import Enum
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator, ValidationInfo
 from rest_framework.exceptions import ValidationError as DRFValidationError
+from rest_framework.request import Request
 
 from users.models import User, ChannelTag
+
+
+MAX_SEARCH_QUERY_LENGTH = 50
 
 
 class TagMode(str, Enum):
     ANY = "any"
     ALL = "all"
 
+    @classmethod
+    def from_param(cls, value: Optional[str]) -> "TagMode":
+        """Parse tag mode from parameter with fallback to ANY"""
+        try:
+            return cls(value)
+        except (ValueError, TypeError):
+            return cls.ANY
+
 
 class WatchStatus(str, Enum):
     WATCHED = "watched"
     UNWATCHED = "unwatched"
     ALL = "all"
+
+    @classmethod
+    def from_param(cls, value: Optional[str]) -> Optional[Self]:
+        """Parse watch status from parameter with fallback to None"""
+        try:
+            return cls(value)
+        except (ValueError, TypeError):
+            return None
 
 
 class VideoSearchParams(BaseModel):
@@ -28,7 +48,7 @@ class VideoSearchParams(BaseModel):
 
     @field_validator("tags")
     @classmethod
-    def validate_tags_belong_to_user(cls, tags, info):
+    def validate_tags_belong_to_user(cls, tags: Optional[List[str]], info: ValidationInfo) -> Optional[List[str]]:
         if not tags or not info.context or not info.context.get("user"):
             return tags
 
@@ -42,27 +62,15 @@ class VideoSearchParams(BaseModel):
         return tags
 
     @classmethod
-    def from_request(cls, request):
+    def from_request(cls, request: Request) -> Self:
         """Create VideoSearchParams from Django request with proper error handling"""
         tags_param = request.query_params.get("tags")
         tags = None
         if tags_param:
             tags = [tag.strip() for tag in tags_param.split(",") if tag.strip()]
 
-        # Use enum values as fallbacks for invalid inputs
-        tag_mode_param = request.query_params.get("tag_mode", TagMode.ANY)
-        try:
-            tag_mode = TagMode(tag_mode_param)
-        except ValueError:
-            tag_mode = TagMode.ANY  # Fallback to default enum value
-
-        watch_status_param = request.query_params.get("watch_status")
-        watch_status = None
-        if watch_status_param:
-            try:
-                watch_status = WatchStatus(watch_status_param)
-            except ValueError:
-                watch_status = None  # Fallback to None for invalid values
+        tag_mode = TagMode.from_param(request.query_params.get("tag_mode"))
+        watch_status = WatchStatus.from_param(request.query_params.get("watch_status"))
 
         try:
             return cls.model_validate(
@@ -70,6 +78,64 @@ class VideoSearchParams(BaseModel):
                     "tags": tags,
                     "tag_mode": tag_mode,
                     "watch_status": watch_status,
+                    "user": request.user,
+                },
+                context={"user": request.user},
+            )
+        except Exception as e:
+            raise DRFValidationError({"query_params": str(e)})
+
+
+class ChannelSearchParams(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    tags: Optional[List[str]] = None
+    tag_mode: TagMode = TagMode.ANY
+    search_query: Optional[str] = None
+    user: User
+
+    @model_validator(mode="after")
+    def validate_tags_belong_to_user(self) -> Self:
+        if not self.tags:
+            return self
+
+        user_tag_names = set(ChannelTag.objects.filter(user=self.user).values_list("name", flat=True))
+
+        invalid_tags = set(self.tags) - user_tag_names
+        if invalid_tags:
+            raise ValueError(f"Invalid tags not owned by user: {list(invalid_tags)}")
+
+        return self
+
+    @field_validator("search_query")
+    @classmethod
+    def validate_search_query_length(cls, search_query: Optional[str]) -> Optional[str]:
+        if not search_query:
+            return None
+
+        search_query = search_query.strip()
+        if len(search_query) > MAX_SEARCH_QUERY_LENGTH:
+            raise ValueError(f"Search query must be less than {MAX_SEARCH_QUERY_LENGTH} characters")
+
+        return search_query
+
+    @classmethod
+    def from_request(cls, request: Request) -> Self:
+        """Create ChannelSearchParams from Django request with proper error handling"""
+        tags_param = request.query_params.get("tags")
+        tags = None
+        if tags_param:
+            tags = [tag.strip() for tag in tags_param.split(",") if tag.strip()]
+
+        tag_mode = TagMode.from_param(request.query_params.get("tag_mode"))
+        search_query = request.query_params.get("search")
+
+        try:
+            return cls.model_validate(
+                {
+                    "tags": tags,
+                    "tag_mode": tag_mode,
+                    "search_query": search_query,
                     "user": request.user,
                 },
                 context={"user": request.user},
@@ -86,7 +152,7 @@ class TagAssignmentParams(BaseModel):
 
     @field_validator("tag_ids")
     @classmethod
-    def validate_tag_ids_format(cls, tag_ids):
+    def validate_tag_ids_format(cls, tag_ids: List[str]) -> List[str]:
         if not isinstance(tag_ids, list):
             raise ValueError("tag_ids must be an array")
 
@@ -100,7 +166,7 @@ class TagAssignmentParams(BaseModel):
 
     @field_validator("tag_ids")
     @classmethod
-    def validate_tags_belong_to_user(cls, tag_ids, info):
+    def validate_tags_belong_to_user(cls, tag_ids: List[str], info: ValidationInfo) -> List[str]:
         if not tag_ids or not info.context or not info.context.get("user"):
             return tag_ids
 
@@ -114,7 +180,7 @@ class TagAssignmentParams(BaseModel):
         return tag_ids
 
     @classmethod
-    def from_request(cls, request):
+    def from_request(cls, request: Request) -> Self:
         """Create TagAssignmentParams from Django request with proper error handling"""
         try:
             return cls.model_validate(

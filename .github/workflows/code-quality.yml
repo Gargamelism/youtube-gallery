@@ -1,0 +1,137 @@
+name: Code Quality CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  frontend:
+    name: Frontend Quality (Next.js)
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: reviewdog/action-setup@d8edfce3dd5e1ec6978745e801f9c50b5ef80252 # v1.4.0
+        with:
+          reviewdog_version: latest
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 24
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint --silent | reviewdog -f=eslint -name="eslint" -reporter=github-pr-review -fail-level=error
+
+      - name: Type Check
+        run: npm run type-check
+
+      - name: Unit Tests
+        run: npm run test
+
+      - name: Check for Circular Deps (madge)
+        run: npx --yes madge --circular .
+
+      - name: Check Import Rules (depcruise)
+        run: npx --yes dependency-cruiser --validate .dependency-cruiser.cjs .
+
+      - name: Check Unused Exports (ts-prune)
+        run: |
+          npx ts-prune | grep -v "used in module" | grep -v ".next/" | grep -v "index.ts" | grep -v "app/layout.tsx" | grep -v "middleware.ts:23" | tee ts-prune-report.txt || true
+          if [ -s ts-prune-report.txt ]; then
+            echo "::warning::Unused exports found (review ts-prune-report.txt)"
+            cat ts-prune-report.txt
+          else
+            echo "No unexpected unused exports found"
+          fi
+
+      - name: NPM Audit
+        run: npm audit --audit-level=moderate
+
+  backend:
+    name: Backend Quality (Django)
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      RECAPTCHA_PRIVATE_KEY: test-recaptcha-key
+      SECRET_KEY: test-secret-key-for-ci
+      DEBUG: true
+      DB_NAME: test_db
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: localhost
+      DB_PORT: 5432
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: reviewdog/action-setup@d8edfce3dd5e1ec6978745e801f9c50b5ef80252 # v1.4.0
+        with:
+          reviewdog_version: latest
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - run: python -m pip install --upgrade pip
+
+      - name: Install Dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Format Check (black)
+        run: black --check .
+
+      - name: Lint (ruff)
+        run: |
+          ruff check . | reviewdog -efm="%f:%l:%c: %m" -name="ruff" -reporter=github-pr-review -fail-level=error
+
+      - name: Type Check (mypy)
+        run: mypy . | reviewdog -f=mypy -name="mypy" -reporter=github-pr-review -fail-level=error
+
+      - name: Security Scan (bandit + review dog)
+        run: |
+          bandit -r . --severity-level medium -f json -o bandit.json || true
+          python scripts/parse_bandit_for_reviewdog.py bandit.json | reviewdog -f=checkstyle -name="bandit" -reporter=github-pr-review -fail-level=warning
+
+      - name: Vulnerabilities (safety)
+        run: safety check || true  # log but don't fail
+
+      - name: Django System Checks
+        run: python manage.py check
+
+      - name: Run Migrations
+        run: python manage.py migrate --noinput
+
+      - name: Unit Tests (Django)
+        run: python manage.py test --verbosity=2 --keepdb --noinput

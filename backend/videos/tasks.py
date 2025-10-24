@@ -1,8 +1,6 @@
-from celery import shared_task
-from celery.exceptions import Retry
+from typing import Any, Optional
+from celery import shared_task, Task
 from django.conf import settings
-from django.db import transaction
-from typing import List
 
 from videos.models import Channel
 from videos.services.channel_updater import ChannelUpdateService
@@ -17,18 +15,19 @@ BASE_BACKOFF_SECONDS = 60
 
 def calculate_exponential_backoff(retry_count: int, base_seconds: int = BASE_BACKOFF_SECONDS) -> int:
     """Calculate exponential backoff delay for task retries"""
-    return base_seconds * (2 ** retry_count)
+    result: int = base_seconds * (2**retry_count)
+    return result
 
 
 @shared_task(bind=True)
-def debug_celery_task(self):
+def debug_celery_task(self: Task) -> dict[str, Any]:  # type: ignore[type-arg]
     """Simple debug task to test Celery worker connectivity"""
     print(f"Debug task executed with request: {self.request}")
     return {"status": "success", "message": "Celery is working!", "task_id": self.request.id}
 
 
 @shared_task(bind=True, name="videos.tasks.update_single_channel")
-def update_single_channel(self, channel_uuid: str):
+def update_single_channel(self: Task, channel_uuid: str) -> dict[str, Any]:  # type: ignore[type-arg]
     """Update a single channel with error recovery and retry logic"""
     try:
         try:
@@ -38,7 +37,7 @@ def update_single_channel(self, channel_uuid: str):
                 "status": "error",
                 "message": f"Channel {channel_uuid} not found",
                 "task_id": self.request.id,
-                "error_type": "channel_not_found"
+                "error_type": "channel_not_found",
             }
 
         youtube_service = YouTubeService(api_key=settings.YOUTUBE_API_KEY)
@@ -54,15 +53,13 @@ def update_single_channel(self, channel_uuid: str):
             "new_videos_added": result.new_videos_added,
             "quota_used": result.quota_used,
             "error_message": result.error_message,
-            "task_id": self.request.id
+            "task_id": self.request.id,
         }
 
     except Exception as exc:
         if isinstance(exc, (ConnectionError, TimeoutError)):
             raise self.retry(
-                exc=exc,
-                countdown=calculate_exponential_backoff(self.request.retries),
-                max_retries=MAX_RETRIES
+                exc=exc, countdown=calculate_exponential_backoff(self.request.retries), max_retries=MAX_RETRIES
             )
 
         return {
@@ -70,12 +67,12 @@ def update_single_channel(self, channel_uuid: str):
             "message": str(exc),
             "task_id": self.request.id,
             "error_type": "unexpected_error",
-            "channel_uuid": channel_uuid
+            "channel_uuid": channel_uuid,
         }
 
 
 @shared_task(bind=True, name="videos.tasks.update_channels_batch")
-def update_channels_batch(self, channel_uuids: List[str] = None):
+def update_channels_batch(self: Task, channel_uuids: Optional[list[str]] = None) -> dict[str, Any]:  # type: ignore[type-arg]
     """Batch update channels with quota management and dynamic sizing"""
     try:
         if not channel_uuids:
@@ -92,32 +89,25 @@ def update_channels_batch(self, channel_uuids: List[str] = None):
         return {
             "status": "success",
             "task_id": self.request.id,
-            "channels_processed": result['processed'],
-            "successful_updates": result['successful'],
-            "failed_updates": result['failed'],
-            "quota_used": result['quota_used'],
-            "stopped_due_to_quota": result['stopped_due_to_quota'],
-            "quota_summary": result['quota_summary']
+            "channels_processed": result["processed"],
+            "successful_updates": result["successful"],
+            "failed_updates": result["failed"],
+            "quota_used": result["quota_used"],
+            "stopped_due_to_quota": result["stopped_due_to_quota"],
+            "quota_summary": result["quota_summary"],
         }
 
     except Exception as exc:
         if isinstance(exc, (ConnectionError, TimeoutError)):
             raise self.retry(
-                exc=exc,
-                countdown=calculate_exponential_backoff(self.request.retries),
-                max_retries=MAX_RETRIES
+                exc=exc, countdown=calculate_exponential_backoff(self.request.retries), max_retries=MAX_RETRIES
             )
 
-        return {
-            "status": "error",
-            "message": str(exc),
-            "task_id": self.request.id,
-            "error_type": "unexpected_error"
-        }
+        return {"status": "error", "message": str(exc), "task_id": self.request.id, "error_type": "unexpected_error"}
 
 
 @shared_task(bind=True, name="videos.tasks.update_priority_channels_async")
-def update_priority_channels_async(self, max_channels: int = 50):
+def update_priority_channels_async(self: Task, max_channels: int = 50) -> dict[str, Any]:  # type: ignore[type-arg]
     """Update high-priority channels based on user engagement and subscriber count"""
     try:
         youtube_service = YouTubeService(api_key=settings.YOUTUBE_API_KEY)
@@ -140,7 +130,7 @@ def update_priority_channels_async(self, max_channels: int = 50):
                 "status": "success",
                 "task_id": self.request.id,
                 "message": "No priority channels found",
-                "channels_processed": 0
+                "channels_processed": 0,
             }
 
         result = channel_updater.update_channels_batch(top_channels)
@@ -148,33 +138,26 @@ def update_priority_channels_async(self, max_channels: int = 50):
         return {
             "status": "success",
             "task_id": self.request.id,
-            "channels_processed": result['processed'],
-            "successful_updates": result['successful'],
-            "failed_updates": result['failed'],
-            "quota_used": result['quota_used'],
-            "stopped_due_to_quota": result['stopped_due_to_quota'],
+            "channels_processed": result["processed"],
+            "successful_updates": result["successful"],
+            "failed_updates": result["failed"],
+            "quota_used": result["quota_used"],
+            "stopped_due_to_quota": result["stopped_due_to_quota"],
             "max_channels_requested": max_channels,
-            "quota_summary": result['quota_summary']
+            "quota_summary": result["quota_summary"],
         }
 
     except Exception as exc:
         if isinstance(exc, (ConnectionError, TimeoutError)):
             raise self.retry(
-                exc=exc,
-                countdown=calculate_exponential_backoff(self.request.retries),
-                max_retries=MAX_RETRIES
+                exc=exc, countdown=calculate_exponential_backoff(self.request.retries), max_retries=MAX_RETRIES
             )
 
-        return {
-            "status": "error",
-            "message": str(exc),
-            "task_id": self.request.id,
-            "error_type": "unexpected_error"
-        }
+        return {"status": "error", "message": str(exc), "task_id": self.request.id, "error_type": "unexpected_error"}
 
 
 @shared_task(bind=True, name="videos.tasks.cleanup_orphaned_channels")
-def cleanup_orphaned_channels(self, max_channels: int = 50):
+def cleanup_orphaned_channels(self: Task, max_channels: int = 50) -> dict[str, Any]:  # type: ignore[type-arg]
     """
     Clean up orphaned channels with selective video preservation based on user interaction
 
@@ -189,30 +172,23 @@ def cleanup_orphaned_channels(self, max_channels: int = 50):
         result = cleanup_service.cleanup_orphaned_channels(max_channels=max_channels)
 
         return {
-            "status": "success" if result['success'] else "failed",
+            "status": "success" if result["success"] else "failed",
             "task_id": self.request.id,
-            "channels_processed": result['channels_processed'],
-            "soft_deletions": result['soft_deletions'],
-            "hard_deletions": result['hard_deletions'],
-            "failed_cleanups": result['failed_cleanups'],
-            "total_videos_preserved": result['total_videos_preserved'],
-            "total_videos_deleted": result['total_videos_deleted'],
-            "total_user_videos_deleted": result['total_user_videos_deleted'],
-            "cleanup_timestamp": result['cleanup_timestamp'],
-            "error_message": result.get('error_message')
+            "channels_processed": result["channels_processed"],
+            "soft_deletions": result["soft_deletions"],
+            "hard_deletions": result["hard_deletions"],
+            "failed_cleanups": result["failed_cleanups"],
+            "total_videos_preserved": result["total_videos_preserved"],
+            "total_videos_deleted": result["total_videos_deleted"],
+            "total_user_videos_deleted": result["total_user_videos_deleted"],
+            "cleanup_timestamp": result["cleanup_timestamp"],
+            "error_message": result.get("error_message"),
         }
 
     except Exception as exc:
         if isinstance(exc, (ConnectionError, TimeoutError)):
             raise self.retry(
-                exc=exc,
-                countdown=calculate_exponential_backoff(self.request.retries),
-                max_retries=MAX_RETRIES
+                exc=exc, countdown=calculate_exponential_backoff(self.request.retries), max_retries=MAX_RETRIES
             )
 
-        return {
-            "status": "error",
-            "message": str(exc),
-            "task_id": self.request.id,
-            "error_type": "unexpected_error"
-        }
+        return {"status": "error", "message": str(exc), "task_id": self.request.id, "error_type": "unexpected_error"}

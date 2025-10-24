@@ -1,9 +1,19 @@
-from typing import List, Optional
+from __future__ import annotations
+
+from typing import List, Optional, TypedDict
 from django.db.models import QuerySet, Count, Q, Exists, OuterRef, Prefetch
 
 from ..models import Video
 from ..validators import TagMode, WatchStatus
-from users.models import User, UserChannel, UserVideo, UserChannelTag, ChannelTag
+from users.models import User, UserChannel, UserVideo, UserChannelTag
+
+
+class VideoStats(TypedDict):
+    """Video statistics including total, watched, and unwatched counts"""
+
+    total: int
+    watched: int
+    unwatched: int
 
 
 class VideoSearchService:
@@ -34,9 +44,7 @@ class VideoSearchService:
         queryset = Video.objects.select_related("channel")
 
         # Query 2: User videos prefetch
-        queryset = queryset.prefetch_related(
-            Prefetch("user_videos", queryset=UserVideo.objects.filter(user=self.user))
-        )
+        queryset = queryset.prefetch_related(Prefetch("user_videos", queryset=UserVideo.objects.filter(user=self.user)))
 
         # Query 3 & 4: Channel tags with strategic prefetching
         queryset = queryset.prefetch_related(
@@ -45,9 +53,9 @@ class VideoSearchService:
                 queryset=UserChannel.objects.filter(user=self.user).prefetch_related(
                     Prefetch(
                         "channel_tags",
-                        queryset=UserChannelTag.objects.select_related("tag").filter(tag__user=self.user)
+                        queryset=UserChannelTag.objects.select_related("tag").filter(tag__user=self.user),
                     )
-                )
+                ),
             )
         )
 
@@ -110,7 +118,7 @@ class VideoSearchService:
                 # No filtering needed for "all"
                 return queryset
 
-    def get_video_stats(self) -> dict:
+    def get_video_stats(self) -> VideoStats:
         """Get video statistics using a single query with annotations"""
         base_queryset = Video.objects.filter(
             channel__user_subscriptions__user=self.user, channel__user_subscriptions__is_active=True

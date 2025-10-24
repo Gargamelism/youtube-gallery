@@ -2,18 +2,30 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, TypedDict
+from typing import Any, Dict, List, Optional, TypedDict, Union, cast
 
-import requests
-from django.conf import settings
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
-from googleapiclient.discovery import Resource, build
+from googleapiclient.discovery import build
+
 from videos.models import Channel, Video
 from videos.services.quota_tracker import QuotaTracker
 from videos.utils.dateutils import timezone_aware_datetime
+from youtube_gallery.utils.http import http
+
+# Type aliases for better type checking
+YouTubeResource = Any  # Type stub for Resource isn't available
 
 YOUTUBE_SCOPES = ["https://www.googleapis.com/auth/youtube.readonly"]
+MAX_SEARCH_RESULTS = 50  # Max results for searching channel by handle
+
+
+class CredentialsData(TypedDict, total=False):
+    token: str
+    refresh_token: str
+    token_uri: str
+    expiry: str
+    scopes: List[str]
 
 
 class YouTubeClientConfig(TypedDict):
@@ -34,7 +46,13 @@ class GoogleCredentialsData(TypedDict, total=False):
 class YouTubeAuthenticationError(Exception):
     """Custom exception for YouTube authentication errors that require user intervention"""
 
-    def __init__(self, message, auth_url=None, verification_url=None, user_code=None):
+    def __init__(
+        self,
+        message: str,
+        auth_url: Optional[str] = None,
+        verification_url: Optional[str] = None,
+        user_code: Optional[str] = None,
+    ) -> None:
         super().__init__(message)
         self.auth_url = auth_url
         self.verification_url = verification_url
@@ -42,7 +60,13 @@ class YouTubeAuthenticationError(Exception):
 
 
 class YouTubeService:
-    def __init__(self, credentials=None, api_key=None, redirect_uri=None, quota_tracker: Optional[QuotaTracker] = None):
+    def __init__(
+        self,
+        credentials: Optional[Credentials] = None,
+        api_key: Optional[str] = None,
+        redirect_uri: Optional[str] = None,
+        quota_tracker: Optional[QuotaTracker] = None,
+    ) -> None:
         self.credentials = credentials
         self.api_key = api_key
         self.quota_tracker = quota_tracker or QuotaTracker()
@@ -50,15 +74,15 @@ class YouTubeService:
         # Initialize YouTube API client
         if credentials:
             # OAuth authentication
-            self.youtube: Resource = build("youtube", "v3", credentials=credentials)
+            self.youtube: YouTubeResource = cast(YouTubeResource, build("youtube", "v3", credentials=credentials))
             self.auth_type = "oauth"
         elif api_key:
             # API key authentication
-            self.youtube: Resource = build("youtube", "v3", developerKey=api_key)
+            self.youtube = cast(YouTubeResource, build("youtube", "v3", developerKey=api_key))
             self.auth_type = "api_key"
         else:
             # Neither provided - require OAuth
-            auth_url = self._generate_oauth_url(redirect_uri)
+            auth_url = YouTubeService._generate_oauth_url(redirect_uri)
             raise YouTubeAuthenticationError("YouTube credentials are required", auth_url=auth_url)
 
     @staticmethod
@@ -74,9 +98,10 @@ class YouTubeService:
             client_config = json.load(secrets_file)
             client_info = client_config.get("web")
 
-        return client_info
+        return client_info  # type: ignore[no-any-return]
 
-    def _generate_oauth_url(self, redirect_uri=None):
+    @staticmethod
+    def _generate_oauth_url(redirect_uri: Optional[str] = None, state: Optional[str] = None) -> Optional[str]:
         """Generate OAuth 2.0 authorization URL"""
         try:
             base_dir = Path(os.getenv("YOUTUBE_CREDENTIALS_DIR", "/app/config/credentials"))
@@ -91,17 +116,19 @@ class YouTubeService:
                 raise Exception("redirect_uri is required for OAuth flow")
             flow.redirect_uri = redirect_uri
 
-            authorization_url, _ = flow.authorization_url(
-                access_type="offline", include_granted_scopes="true", prompt="consent"
-            )
+            auth_params = {"access_type": "offline", "include_granted_scopes": "true", "prompt": "consent"}
+            if state:
+                auth_params["state"] = state
 
-            return authorization_url
+            authorization_url, _ = flow.authorization_url(**auth_params)
+
+            return authorization_url  # type: ignore[no-any-return]
         except Exception as e:
             print(f"OAuth URL generation failed: {e}")
             return None
 
     @classmethod
-    def handle_oauth_callback(cls, authorization_code, redirect_uri):
+    def handle_oauth_callback(cls, authorization_code: str, redirect_uri: str) -> Dict[str, Any]:
         """Handle OAuth callback and return credentials"""
         client_info = cls.get_client_config()
 
@@ -114,16 +141,16 @@ class YouTubeService:
             "grant_type": "authorization_code",
         }
         try:
-            response = requests.post(token_uri, data=data)
+            response = http.post(url=token_uri, data=data)  # type: ignore[arg-type]
             response.raise_for_status()
             token_data = response.json()
         except Exception as e:
             raise YouTubeAuthenticationError(f"Token exchange failed: {e}")
 
-        return token_data
+        return token_data  # type: ignore[no-any-return]
 
     @classmethod
-    def create_credentials(cls, credentials_data) -> Credentials:
+    def create_credentials(cls, credentials_data: Union[str, CredentialsData]) -> Credentials:
         """Factory method to create Google OAuth2 Credentials object from session data"""
         client_config = cls.get_client_config()
 
@@ -136,7 +163,7 @@ class YouTubeService:
         if credentials_info.get("expiry"):
             expiry = datetime.fromisoformat(credentials_info["expiry"])
 
-        return Credentials(
+        return Credentials(  # type: ignore[no-untyped-call]
             token=credentials_info.get("token"),
             refresh_token=credentials_info.get("refresh_token"),
             token_uri=credentials_info.get("token_uri"),
@@ -146,7 +173,7 @@ class YouTubeService:
             expiry=expiry,
         )
 
-    def _get_channel_by_id(self, channel_id: str) -> Optional[Dict[str, Any]]:
+    def _get_channels_by_ids(self, channel_id: str) -> Optional[Dict[str, Any]]:
         """Get channel details using channel ID"""
         if not self.quota_tracker.can_make_request("channels.list"):
             raise Exception("Insufficient quota for channels.list API call")
@@ -158,7 +185,7 @@ class YouTubeService:
         if not response["items"]:
             return None
 
-        return response["items"][0]
+        return response["items"]  # type: ignore[no-any-return]
 
     def _get_channel_by_handle(self, handle: str) -> Optional[Dict[str, Any]]:
         """Get channel details using username (without @ symbol)"""
@@ -172,21 +199,67 @@ class YouTubeService:
         if response["pageInfo"]["totalResults"] == 0:
             return None
 
-        return response["items"][0]
+        return response["items"][0]  # type: ignore[no-any-return]
 
-    def _search_channel_by_handle(self, handle: str) -> Optional[str]:
+    def _search_channel_by_handle(self, handle: str) -> Optional[Dict[str, Any]]:
         """Search for channel ID using handle via search API"""
         if not self.quota_tracker.can_make_request("search.list"):
             raise Exception("Insufficient quota for search.list API call")
 
-        request = self.youtube.search().list(part="snippet", q=handle, type="channel", maxResults=1)
+        stripped_handle = handle.lstrip("@")
+
+        request = self.youtube.search().list(
+            part="snippet", q=stripped_handle, type="channel", maxResults=MAX_SEARCH_RESULTS
+        )
         response = request.execute()
         self.quota_tracker.record_usage("search.list")
-
         if not response["items"]:
             return None
 
-        return response["items"][0]["snippet"]["channelId"]
+        desired_channel = None
+        desired_channel = self._find_channel_by_handle(handle, response["items"])
+        if desired_channel:
+            return desired_channel
+
+        while "nextPageToken" in response and not desired_channel:
+            if not self.quota_tracker.can_make_request("search.list"):
+                raise Exception("Insufficient quota for search.list API call")
+
+            next_page_token = response["nextPageToken"]
+            request = self.youtube.search().list(
+                part="snippet",
+                q=stripped_handle,
+                type="channel",
+                maxResults=MAX_SEARCH_RESULTS,
+                pageToken=next_page_token,
+            )
+            response = request.execute()
+            self.quota_tracker.record_usage("search.list")
+            if not response["items"]:
+                break
+
+            desired_channel = self._find_channel_by_handle(handle, response["items"])
+            if desired_channel:
+                return desired_channel
+
+        return None
+
+    def _find_channel_by_handle(self, handle: str, items: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        channel_ids = [item["snippet"]["channelId"] for item in items]
+        channels_info = self._get_channels_by_ids(",".join(channel_ids))
+
+        if channels_info is None:
+            return None
+
+        for channel in channels_info:
+            if not isinstance(channel, dict):
+                continue
+            snippet = channel.get("snippet", {})
+            custom_url = snippet.get("customUrl") if isinstance(snippet, dict) else None
+            if custom_url and custom_url.lower() == handle.lower():
+                return channel
+
+        return None
 
     def _format_channel_response(self, channel_info: Dict[str, Any]) -> Dict[str, Any]:
         """Format channel API response into standardized structure"""
@@ -207,26 +280,23 @@ class YouTubeService:
 
                 if not channel_info:
                     # Fall back to search API
-                    channel_id = self._search_channel_by_handle(channel_identifier)
-                    if not channel_id:
-                        return None
-
-                    channel_info = self._get_channel_by_id(channel_id)
+                    channel_info = self._search_channel_by_handle(channel_identifier)
                     if not channel_info:
                         return None
             else:
                 # Handle regular channel ID
-                channel_info = self._get_channel_by_id(channel_identifier)
-                if not channel_info:
+                channels = self._get_channels_by_ids(channel_identifier)
+                if not channels or not isinstance(channels, list) or len(channels) == 0:
                     return None
+                channel_info = channels[0]
 
             return self._format_channel_response(channel_info)
 
-        except Exception as e:
+        except Exception:
             # Error fetching channel details
             return None
 
-    def get_channel_videos(self, uploads_playlist_id: str):
+    def get_channel_videos(self, uploads_playlist_id: str) -> Any:
         """Generator that yields pages of video data"""
         next_page_token = None
 
@@ -285,7 +355,7 @@ class YouTubeService:
                 if not next_page_token:
                     break
 
-            except Exception as e:
+            except Exception:
                 break
 
     def fetch_channel(self, channel_identifier: str) -> Optional[Channel]:
@@ -315,22 +385,15 @@ class YouTubeService:
         return channel
 
     def import_or_create_channel(self, channel_identifier: str) -> Channel:
-        """Import channel from YouTube or create basic entry if API fails"""
+        """Import channel from YouTube - fails if channel cannot be verified"""
         existing_channel = Channel.objects.filter(channel_id=channel_identifier).first()
         if existing_channel:
             return existing_channel
 
-        try:
-            channel = self.fetch_channel(channel_identifier)
-            if channel:
-                return channel
-        except YouTubeAuthenticationError:
-            raise
-        except Exception as e:
-            # YouTube API error - fall through to create basic channel
-            pass
-
-        return self._create_basic_channel(channel_identifier)
+        channel = self.fetch_channel(channel_identifier)
+        if not channel:
+            raise Exception(f"Channel not found on YouTube: {channel_identifier}")
+        return channel
 
     def _create_basic_channel(self, channel_identifier: str) -> Channel:
         """Create basic channel entry without YouTube API"""

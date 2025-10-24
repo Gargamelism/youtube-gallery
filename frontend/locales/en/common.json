@@ -1,0 +1,33 @@
+{
+  "title": "Video Gallery",
+  "description": "A YouTube video gallery application",
+  "loading": "Loading...",
+  "error": "An unexpected error occurred. Please try again.",
+  "cancel": "Cancel",
+  "save": "Save",
+  "delete": "Delete",
+  "edit": "Edit",
+  "add": "Add",
+  "search": "Search",
+  "close": "Close",
+  "submit": "Submit",
+  "retry": "Retry",
+  "back": "Back",
+  "next": "Next",
+  "previous": "Previous",
+  "yes": "Yes",
+  "no": "No",
+  "ok": "OK",
+  "scrollToTop": "Scroll to top",
+  "keyboardShortcuts": "Keyboard Shortcuts",
+  "pagination": {
+    "showing": "Showing",
+    "to": "to",
+    "of": "of",
+    "results": "results",
+    "page": "Page",
+    "navigation": "Pagination navigation",
+    "previousPage": "Go to previous page",
+    "nextPage": "Go to next page"
+  }
+}

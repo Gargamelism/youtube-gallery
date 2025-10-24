@@ -15,6 +15,9 @@ SECRET_KEY = config("SECRET_KEY", default="django-insecure-change-this-in-produc
 DEBUG = config("DEBUG", default=True, cast=bool)
 LOG_DB = config("LOG_DB", default=False, cast=bool)
 
+# Background process control (Celery)
+ENABLE_BACKGROUND_PROCESS = config("ENABLE_BACKGROUND_PROCESS", default=True, cast=bool)
+
 ALLOWED_HOSTS = [host.strip() for host in config("ALLOWED_HOSTS", default="localhost,127.0.0.1").split(",")]
 
 # Add Docker service names only in DEBUG mode
@@ -158,7 +161,7 @@ SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
 # REST Framework settings
 REST_FRAMEWORK = {
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "DEFAULT_PAGINATION_CLASS": "videos.pagination.FlexiblePageNumberPagination",
     "PAGE_SIZE": 20,
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "users.authentication.CookieTokenAuthentication",
@@ -187,6 +190,13 @@ REDIS_USER = config("REDIS_USER", default="youtube_app")
 
 # Authentication cookie settings
 AUTH_COOKIE_NAME = "youtube-gallery-auth"
+
+# Session settings
+SESSION_COOKIE_NAME = "youtube-gallery-session"
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SECURE = not DEBUG
+SESSION_SAVE_EVERY_REQUEST = False
 
 # Celery Configuration
 CELERY_BROKER_URL = f"redis://{REDIS_USER}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"

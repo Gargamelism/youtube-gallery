@@ -17,7 +17,7 @@ User = get_user_model()
 class ChannelImportViewQuotaTests(TestCase):
     """Tests for quota tracking in channel import views"""
 
-    def setUp(self):
+    def setUp(self) -> None:
         """Set up test cases with authenticated user"""
         self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpassword")
         self.client = APIClient()
@@ -149,7 +149,7 @@ class ChannelImportViewQuotaTests(TestCase):
             )
             mock_youtube_service.import_or_create_channel.assert_called_once_with("UC123456")
 
-    def test_fetch_from_youtube_requires_channel_id(self):
+    def test_fetch_from_youtube_requires_channel_id(self) -> None:
         """Test that endpoint validates channel_id parameter"""
         # Mock credentials in request
         with patch("videos.decorators.youtube_auth_required") as mock_decorator:

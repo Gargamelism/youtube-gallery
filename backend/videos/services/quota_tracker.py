@@ -6,16 +6,16 @@ using Redis-OM for persistence and daily quota limits.
 """
 
 import warnings
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, Optional
+
+from django.conf import settings
+from redis_om import Field, JsonModel, Migrator, get_redis_connection
 
 # Suppress Redis-OM/Pydantic pk field shadowing warnings
 warnings.filterwarnings("ignore", message='Field name "pk" shadows an attribute in parent', category=UserWarning)
 
-from datetime import datetime, timezone, timedelta
-from enum import Enum
-from typing import Dict, Optional
-
-from django.conf import settings
-from redis_om import Field, JsonModel, Migrator, get_redis_connection
 
 THIRTY_DAYS_IN_SECONDS = 30 * 24 * 60 * 60
 
@@ -27,7 +27,7 @@ class QuotaStatus(Enum):
     CRITICAL = "critical"
 
 
-class DailyQuotaUsage(JsonModel):
+class DailyQuotaUsage(JsonModel):  # type: ignore[misc]
     date: str = Field(primary_key=True)
     daily_usage: int = Field(default=0)
     operations_count: Dict[str, int] = Field(default_factory=dict)
@@ -43,7 +43,7 @@ class DailyQuotaUsage(JsonModel):
             decode_responses=True,
         )
 
-    def save(self, **kwargs):
+    def save(self, **kwargs: Any) -> Any:
         """Save with automatic TTL of 30 days"""
         result = super().save(**kwargs)
         try:
@@ -123,7 +123,7 @@ class QuotaTracker:
     def get_remaining_quota(self) -> int:
         return max(0, self.daily_quota_limit - self.get_current_usage())
 
-    def get_usage_summary(self) -> Dict:
+    def get_usage_summary(self) -> Dict[str, Any]:
         usage_data = self._get_usage_data()
         percentage_used = (usage_data.daily_usage / self.daily_quota_limit) * 100
         percentage_used = min(percentage_used, 100.0)
@@ -174,7 +174,7 @@ class QuotaTracker:
 
         try:
             # Try to get existing record by primary key
-            return DailyQuotaUsage.get(today)
+            return DailyQuotaUsage.get(today)  # type: ignore[no-any-return]
         except Exception:
             # Record doesn't exist, create new one
             try:

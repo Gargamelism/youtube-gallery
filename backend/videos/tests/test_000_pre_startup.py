@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 
-def test_environment_variables():
+def test_environment_variables() -> None:
     """Test that required environment variables are set"""
     required_vars = [
         "YOUTUBE_CREDENTIALS_DIR",
@@ -26,7 +26,7 @@ def test_environment_variables():
         pytest.skip(f"Missing environment variables: {', '.join(missing_vars)}. These will be required for production.")
 
 
-def test_credentials_directory():
+def test_credentials_directory() -> None:
     """Test that credentials directory exists and has correct permissions"""
     cred_dir = os.getenv("YOUTUBE_CREDENTIALS_DIR")
     if not cred_dir:
@@ -44,7 +44,7 @@ def test_credentials_directory():
         pytest.skip("Skipping permission check in test environment")
 
 
-def test_client_secret_format():
+def test_client_secret_format() -> None:
     """Test that client secret file exists and has correct format"""
     cred_dir = os.getenv("YOUTUBE_CREDENTIALS_DIR")
     secret_file = os.getenv("YOUTUBE_CLIENT_SECRET_FILE")
@@ -78,7 +78,7 @@ def test_client_secret_format():
             pytest.fail(f"Missing required keys in client secret: {', '.join(missing_keys)}")
 
 
-def test_token_file_permissions():
+def test_token_file_permissions() -> None:
     """Test that token file has correct permissions if it exists"""
     cred_dir = os.getenv("YOUTUBE_CREDENTIALS_DIR")
     token_file = os.getenv("YOUTUBE_TOKEN_FILE")

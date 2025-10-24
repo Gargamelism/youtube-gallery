@@ -1,0 +1,13 @@
+{
+  "title": "API Usage",
+  "description": "Monitor your daily YouTube API quota usage and limits",
+  "dailyUsage": "Daily Usage",
+  "dailyYouTubeQuota": "Daily YouTube quota",
+  "remainingOne": "{{count}} remaining",
+  "remainingOther": "{{count}} remaining",
+  "resetsAt": "Resets at {{time}} local time",
+  "resetsExplainer": "(midnight UTC)",
+  "loading": "Loading quota information...",
+  "loadError": "Failed to load quota information",
+  "quotaPercentageAria": "Daily quota used: {{percent}}%"
+}

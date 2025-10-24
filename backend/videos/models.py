@@ -1,7 +1,8 @@
 import uuid
 
+from django.contrib.postgres.indexes import GinIndex
 from django.db import models
-from django.utils import timezone
+from django.db.models import Q
 from dirtyfields import DirtyFieldsMixin
 
 from .fields import YouTubeDurationField
@@ -21,7 +22,7 @@ class UpdateFrequency(TimestampMixin):
     description = models.CharField(max_length=100, blank=True, null=True)
     is_active = models.BooleanField(default=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
     class Meta:
@@ -29,7 +30,7 @@ class UpdateFrequency(TimestampMixin):
         verbose_name_plural = "update frequencies"
 
 
-class Channel(DirtyFieldsMixin, TimestampMixin):
+class Channel(DirtyFieldsMixin, TimestampMixin):  # type: ignore[misc]
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     channel_id = models.CharField(max_length=255, unique=True)
     title = models.CharField(max_length=500, blank=True, null=True)
@@ -37,12 +38,7 @@ class Channel(DirtyFieldsMixin, TimestampMixin):
     url = models.URLField(blank=True, null=True)
 
     last_updated = models.DateTimeField(null=True, blank=True)
-    update_frequency = models.ForeignKey(
-        UpdateFrequency,
-        on_delete=models.PROTECT,
-        null=True,
-        blank=True
-    )
+    update_frequency = models.ForeignKey(UpdateFrequency, on_delete=models.PROTECT, null=True, blank=True)
     subscriber_count = models.IntegerField(null=True, blank=True)
     video_count = models.IntegerField(null=True, blank=True)
     view_count = models.BigIntegerField(null=True, blank=True)
@@ -50,19 +46,23 @@ class Channel(DirtyFieldsMixin, TimestampMixin):
     is_deleted = models.BooleanField(default=False)
     failed_update_count = models.IntegerField(default=0)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.title or self.channel_id
 
     class Meta:
         db_table = "channels"
         indexes = [
             models.Index(
-                fields=['update_frequency', 'is_available', 'failed_update_count', 'last_updated'],
-                name='channel_update_query_idx'
+                fields=["update_frequency", "is_available", "failed_update_count", "last_updated"],
+                name="channel_update_query_idx",
             ),
+            models.Index(fields=["is_deleted", "is_available"], name="channel_status_idx"),
+            GinIndex(fields=["title"], name="idx_ch_title_trgm", opclasses=["gin_trgm_ops"]),
+            GinIndex(fields=["description"], name="idx_ch_desc_trgm", opclasses=["gin_trgm_ops"]),
             models.Index(
-                fields=['is_deleted', 'is_available'],
-                name='channel_status_idx'
+                fields=["is_available", "is_deleted"],
+                name="idx_ch_avail_del",
+                condition=Q(is_available=True, is_deleted=False),
             ),
         ]
 
@@ -89,7 +89,7 @@ class Video(TimestampMixin):
     # custom fields
     duration = YouTubeDurationField(blank=True, null=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.title or self.video_id
 
     class Meta:

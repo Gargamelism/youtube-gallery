@@ -1,6 +1,7 @@
 """
 Integration tests for QuotaTracker with ChannelUpdateService.
 """
+
 from unittest.mock import Mock, patch, call
 
 from django.test import TestCase
@@ -14,7 +15,7 @@ from videos.services.youtube import YouTubeService
 class QuotaIntegrationTests(TestCase):
     """Integration tests for QuotaTracker with ChannelUpdateService"""
 
-    def setUp(self):
+    def setUp(self) -> None:
         """Set up test cases with mocked services"""
         self.mock_youtube_service = Mock(spec=YouTubeService)
         self.quota_tracker = QuotaTracker(daily_quota_limit=100)
@@ -24,10 +25,13 @@ class QuotaIntegrationTests(TestCase):
 
         # Create test channel
         self.channel = Channel.objects.create(
-            channel_id="UC_test123", title="Test Channel", description="Test Description", url="https://youtube.com/test"
+            channel_id="UC_test123",
+            title="Test Channel",
+            description="Test Description",
+            url="https://youtube.com/test",
         )
 
-    def test_channel_update_checks_quota_before_request(self):
+    def test_channel_update_checks_quota_before_request(self) -> None:
         """Test that channel update checks quota before making API calls"""
         # Set quota tracker to deny requests
         self.quota_tracker.can_make_request = Mock(return_value=False)
@@ -40,7 +44,7 @@ class QuotaIntegrationTests(TestCase):
         self.quota_tracker.can_make_request.assert_called_with("channels.list")
 
     @patch("videos.services.channel_updater.print")
-    def test_channel_update_records_quota_on_success(self, mock_print):
+    def test_channel_update_records_quota_on_success(self, mock_print) -> None:
         """Test that successful channel updates record quota usage"""
         # Mock successful API responses
         self.mock_youtube_service.get_channel_details.return_value = {"uploads_playlist_id": "UU_test123"}
@@ -61,7 +65,7 @@ class QuotaIntegrationTests(TestCase):
         self.assertTrue(result.success)
         self.quota_tracker.record_usage.assert_called_with("channels.list")
 
-    def test_video_fetching_respects_quota_limits(self):
+    def test_video_fetching_respects_quota_limits(self) -> None:
         """Test that video fetching respects quota limits"""
         # Mock channel details but deny quota for video fetching
         self.mock_youtube_service.get_channel_details.return_value = {"uploads_playlist_id": "UU_test123"}
@@ -74,9 +78,11 @@ class QuotaIntegrationTests(TestCase):
                 videos_count = self.channel_updater._fetch_new_videos(self.channel)
 
                 self.assertEqual(videos_count, 0)
-                mock_print.assert_called_with(f"WARNING: Insufficient quota for video fetching for channel {self.channel.uuid}")
+                mock_print.assert_called_with(
+                    f"WARNING: Insufficient quota for video fetching for channel {self.channel.uuid}"
+                )
 
-    def test_batch_update_optimizes_based_on_quota(self):
+    def test_batch_update_optimizes_based_on_quota(self) -> None:
         """Test that batch updates use quota optimization"""
         channels = [self.channel]
 
@@ -101,7 +107,7 @@ class QuotaIntegrationTests(TestCase):
             self.assertEqual(result["successful"], 1)
             self.assertEqual(result["quota_used"], 2)
 
-    def test_batch_update_stops_when_quota_exhausted(self):
+    def test_batch_update_stops_when_quota_exhausted(self) -> None:
         """Test that batch update stops when quota is exhausted"""
         channels = [self.channel, self.channel]  # Two channels
 
@@ -129,7 +135,7 @@ class QuotaIntegrationTests(TestCase):
             self.assertEqual(result["processed"], 1)  # Only one processed
             self.assertTrue(result["stopped_due_to_quota"])
 
-    def test_batch_update_handles_empty_channel_list(self):
+    def test_batch_update_handles_empty_channel_list(self) -> None:
         """Test that batch update handles empty channel list gracefully"""
         result = self.channel_updater.update_channels_batch([])
 
@@ -145,7 +151,7 @@ class QuotaIntegrationTests(TestCase):
         for key, value in expected.items():
             self.assertEqual(result[key], value)
 
-    def test_batch_update_limits_channels_when_quota_low(self):
+    def test_batch_update_limits_channels_when_quota_low(self) -> None:
         """Test that batch update limits channels when quota is low"""
         channels = [self.channel] * 10  # Ten channels
 
@@ -167,7 +173,7 @@ class QuotaIntegrationTests(TestCase):
             self.assertTrue(result["stopped_due_to_quota"])
 
     @patch("videos.services.channel_updater.print")
-    def test_integration_with_video_fetching_quota_tracking(self, mock_print):
+    def test_integration_with_video_fetching_quota_tracking(self, mock_print) -> None:
         """Test complete integration with video fetching and quota tracking"""
         # Mock successful API responses
         self.mock_youtube_service.get_channel_details.return_value = {"uploads_playlist_id": "UU_test123"}
@@ -198,7 +204,7 @@ class QuotaIntegrationTests(TestCase):
         ]
         self.quota_tracker.record_usage.assert_has_calls(expected_calls)
 
-    def test_quota_tracker_initialization_in_service(self):
+    def test_quota_tracker_initialization_in_service(self) -> None:
         """Test that ChannelUpdateService properly initializes QuotaTracker"""
         # Test with explicit quota tracker
         service_with_tracker = ChannelUpdateService(self.mock_youtube_service, self.quota_tracker)

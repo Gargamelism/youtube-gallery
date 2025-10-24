@@ -21,7 +21,11 @@ def pytest_configure():
 
 
 @pytest.fixture
-def mock_youtube_credentials(monkeypatch):
-    """Mock YouTube API credentials"""
-    monkeypatch.setenv("YOUTUBE_CREDENTIALS_DIR", "/tmp/test_credentials")
+def mock_youtube_credentials(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Mock YouTube API credentials using a secure temporary directory"""
+    # Create a secure temporary directory for credentials using tmp_path fixture
+    credentials_dir = tmp_path / "test_credentials"
+    credentials_dir.mkdir(exist_ok=True)
+
+    monkeypatch.setenv("YOUTUBE_CREDENTIALS_DIR", str(credentials_dir))
     monkeypatch.setenv("YOUTUBE_CLIENT_SECRET_FILE", "test_client_secret.json")

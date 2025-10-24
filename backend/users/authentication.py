@@ -1,11 +1,10 @@
 from django.conf import settings
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.authtoken.models import Token
-from rest_framework import exceptions
-from django.contrib.auth import get_user_model
 from django.http import HttpResponse
-
-User = get_user_model()
+from rest_framework.authentication import TokenAuthentication
+from rest_framework import exceptions
+from rest_framework.authtoken.models import Token
+from rest_framework.request import Request
+from users.models import User
 
 
 class CookieTokenAuthentication(TokenAuthentication):
@@ -18,10 +17,10 @@ class CookieTokenAuthentication(TokenAuthentication):
     """
 
     @property
-    def cookie_name(self):
+    def cookie_name(self) -> str:
         return settings.AUTH_COOKIE_NAME
 
-    def authenticate(self, request):
+    def authenticate(self, request: Request) -> tuple[User, Token] | None:
         """
         Authenticate user using token from HTTP-only cookie.
 
@@ -37,7 +36,7 @@ class CookieTokenAuthentication(TokenAuthentication):
         # Fallback to header authentication for backward compatibility
         return super().authenticate(request)
 
-    def get_token_from_cookie(self, request):
+    def get_token_from_cookie(self, request: Request) -> str | None:
         """
         Extract authentication token from HTTP-only cookie.
 
@@ -46,7 +45,7 @@ class CookieTokenAuthentication(TokenAuthentication):
         """
         return request.COOKIES.get(self.cookie_name)
 
-    def authenticate_credentials(self, key):
+    def authenticate_credentials(self, key: str) -> tuple[User, Token]:
         """
         Authenticate the given token key.
 
@@ -59,16 +58,19 @@ class CookieTokenAuthentication(TokenAuthentication):
         Raises:
             AuthenticationFailed: If token is invalid or user inactive
         """
-        model = self.get_model()
         try:
-            token = model.objects.select_related("user").get(key=key)
-        except model.DoesNotExist:
+            token = Token.objects.select_related("user").get(key=key)
+        except Token.DoesNotExist:
             raise exceptions.AuthenticationFailed("Invalid token.")
 
-        if not token.user.is_active:
+        user = token.user
+        if not isinstance(user, User):
+            raise exceptions.AuthenticationFailed("Invalid user type.")
+
+        if not user.is_active:
             raise exceptions.AuthenticationFailed("User inactive or deleted.")
 
-        return (token.user, token)
+        return (user, token)
 
     def set_auth_cookie(self, response: HttpResponse, token: str, max_age: int = 7 * 24 * 60 * 60) -> None:
         """

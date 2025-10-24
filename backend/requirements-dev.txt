@@ -2,3 +2,23 @@
 debugpy==1.8.0
 django-extensions==3.2.3
 pytest==8.4.2
+pytest-django==4.9.*
+faker==33.1.0
+
+# Code quality
+black==25.9.*
+ruff==0.14.*
+mypy==1.18.*
+mypy_extensions==1.1.*
+bandit==1.8.*
+safety==3.2.*
+defusedxml==0.7.*
+
+# Type stubs
+django-stubs==5.2.*
+djangorestframework-stubs==3.16.*
+types-requests==2.32.4.*
+types-defusedxml==0.7.0.*
+django-filter-stubs==0.1.*
+types-python-dateutil==2.9.*
+celery-types==0.22.*

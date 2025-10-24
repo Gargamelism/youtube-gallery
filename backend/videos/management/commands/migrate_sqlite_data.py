@@ -3,7 +3,6 @@ import sqlite3
 
 from dateutil import parser
 from django.core.management.base import BaseCommand
-from django.utils import timezone
 from videos.models import Channel, Video
 
 
@@ -82,7 +81,7 @@ class Command(BaseCommand):
             if row[5]:  # published_at
                 try:
                     published_at = parser.parse(row[5])
-                except:
+                except (ValueError, TypeError, AttributeError):
                     pass
 
             video, created = Video.objects.get_or_create(

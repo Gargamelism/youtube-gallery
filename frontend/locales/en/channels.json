@@ -1,0 +1,51 @@
+{
+  "channelSubscriptions": "Channel Subscriptions",
+  "manageSubscriptions": "Manage your YouTube channel subscriptions",
+  "manageTags": "Manage Tags",
+  "addChannel": "Add Channel",
+  "yourSubscriptions": "Your Subscriptions",
+  "noSubscriptionsYet": "No subscriptions yet",
+  "noSubscriptionsDescription": "Start by importing a YouTube channel or subscribing to existing ones.",
+  "availableChannels": "Available Channels",
+  "subscribedOn": "Subscribed",
+  "subscribed": "Subscribed",
+  "viewOnYoutube": "View on YouTube",
+  "unsubscribe": "Unsubscribe",
+  "unsubscribeFrom": "Unsubscribe from {{channel}}",
+  "subscribe": "Subscribe",
+  "subscribeTo": "Subscribe to {{channel}}",
+  "subscribedTo": "Subscribed to {{channel}}",
+  "channelVideosCount": "{{count}} videos",
+  "loading": {
+    "subscribed": "Loading subscribed channels",
+    "available": "Loading available channels"
+  },
+  "search": {
+    "placeholder": "Search channels...",
+    "noResults": "No channels found",
+    "tryDifferentFilters": "Try adjusting your search or filters",
+    "clear": "Clear search"
+  },
+  "filters": {
+    "filterByTags": "Filter by tags",
+    "clearFilters": "Clear all filters",
+    "showingFiltered": "Showing filtered results",
+    "anyTags": "Any tags",
+    "allTags": "All tags",
+    "tagMode": "Tag matching mode"
+  },
+  "import": {
+    "title": "Import YouTube Channel",
+    "description": "Enter a YouTube channel ID to import and subscribe to it.",
+    "channelId": "YouTube Channel ID",
+    "channelIdPlaceholder": "UC.../@...",
+    "channelIdHelp": "You can find the channel ID in the YouTube URL or channel about page.",
+    "importSubscribe": "Import & Subscribe",
+    "importing": "Importing...",
+    "authenticateWithYoutube": "Authenticate with YouTube",
+    "error": "Failed to import channel. Please try again.",
+    "authenticationFailed": "Authentication failed:",
+    "failedToGetAuthUrl": "Failed to get authentication URL",
+    "failedToStartAuth": "Failed to start authentication process"
+  }
+}

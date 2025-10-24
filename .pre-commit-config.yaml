@@ -1,0 +1,61 @@
+repos:
+  - repo: local
+    hooks:
+      # === FRONTEND (Next.js) ===
+      - id: eslint-fix
+        name: ESLint Fix
+        entry: docker-compose run --rm --use-aliases frontend npm run lint:fix
+        language: system
+        files: \.(js|jsx|ts|tsx)$
+        pass_filenames: false
+
+      - id: prettier-fix
+        name: Prettier Format
+        entry: docker-compose run --rm --use-aliases frontend npx prettier --write .
+        language: system
+        files: \.(js|jsx|ts|tsx|json|css|html|md)$
+        pass_filenames: false
+
+      - id: ts-prune-check
+        name: TS-Prune (Unused Exports)
+        entry: docker-compose run --rm --use-aliases frontend sh -c "npx ts-prune | grep -v 'used in module'"
+        language: system
+        files: \.(ts|tsx)$
+        pass_filenames: false
+
+      # # === BACKEND (Django) ===
+      - id: black-fix
+        name: Black Format
+        entry: docker-compose run --rm --use-aliases backend black .
+        language: system
+        files: \.py$
+        pass_filenames: false
+
+      - id: ruff-fix
+        name: Ruff Fix
+        entry: docker-compose run --rm --use-aliases backend ruff check . --fix
+        language: system
+        files: \.py$
+        pass_filenames: false
+
+      - id: mypy-check
+        name: Mypy Type Check
+        entry: docker-compose run --rm --use-aliases backend mypy .
+        language: system
+        pass_filenames: false
+        files: \.py$
+
+      - id: bandit-security
+        name: Bandit Security Check
+        entry: docker-compose run --rm --use-aliases backend bandit -r . --severity-level medium
+        language: system
+        pass_filenames: false
+        files: \.py$
+
+      - id: django-tests
+        name: Django Tests
+        entry: docker-compose run --rm --use-aliases backend python manage.py test --verbosity=2 --keepdb --noinput
+        language: system
+        pass_filenames: false
+        files: \.py$
+        always_run: true

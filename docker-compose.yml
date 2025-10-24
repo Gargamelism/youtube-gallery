@@ -27,6 +27,17 @@ x-test-env: &test-env
   DB_USER: postgres
   DB_PASSWORD: postgres
   DB_PORT: 5432
+  REDIS_HOST: redis
+  REDIS_PORT: 6379
+  REDIS_DB: 0
+  REDIS_PASSWORD: ${REDIS_PASSWORD:-default_dev_password}
+  REDIS_USER: ${REDIS_USER:-youtube_app}
+  YOUTUBE_CREDENTIALS_DIR: /app/config/credentials
+  YOUTUBE_CLIENT_SECRET_FILE: client_secret.json
+  YOUTUBE_API_KEY: ${YOUTUBE_API_KEY:-test_api_key}
+  YOUTUBE_ENCRYPTION_TOKEN: ${YOUTUBE_ENCRYPTION_TOKEN:-test_encryption_key_32_characters}
+  RECAPTCHA_PRIVATE_KEY: ${RECAPTCHA_PRIVATE_KEY:-test_recaptcha_key}
+  FRONTEND_URL: http://localhost:3000
 
 services:
   # Redis Stack Server with JSON support
@@ -45,8 +56,8 @@ services:
   db:
     image: postgres:15
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -161,16 +172,17 @@ services:
   # Next.js Frontend (Development with hot reload)
   frontend:
     build:
-      context: .
-      dockerfile: frontend.Dockerfile
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
       - '3000:3000'
     volumes:
-      - .:/app
+      - ./frontend:/app
       - /app/node_modules
       - /app/.next
     environment:
-      - BE_PUBLIC_API_URL=http://localhost:8000/api
+      - BE_PUBLIC_API_URL=${BE_PUBLIC_API_URL:-http://localhost:8000/api}
+      - NEXT_PUBLIC_RECAPTCHA_SITE_KEY=${NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
       - WATCHPACK_POLLING=true
     command: npm run dev
     depends_on:
