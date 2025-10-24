@@ -52,7 +52,7 @@ if CELERY_ENABLED:
         beat_scheduler="django_celery_beat.schedulers:DatabaseScheduler",
     )
 
-    @app.task(bind=True)  # type: ignore[misc]
+    @app.task(bind=True)
     def debug_task(self) -> str:  # type: ignore[no-untyped-def]
         """Debug task for testing Celery worker connectivity"""
         print(f"Request: {self.request!r}")
@@ -60,6 +60,7 @@ if CELERY_ENABLED:
 
 else:
 
-    def debug_task() -> None:
+    def debug_task_disabled() -> None:
+        """Placeholder when Celery is disabled"""
         print("Celery is disabled. No tasks can be executed.")
         return None

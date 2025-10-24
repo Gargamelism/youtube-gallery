@@ -25,6 +25,9 @@ module = [
     "redis_om",
     "googleapiclient.*",
     "google_auth_oauthlib.*",
+    "google.auth.*",
+    "google.oauth2.*",
+    "cryptography.*",
     "django_celery_beat.*",
 ]
 ignore_missing_imports = true

@@ -3,7 +3,7 @@ import uuid
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 from django.db.models import Q
-from dirtyfields import DirtyFieldsMixin  # type: ignore[import-untyped]
+from dirtyfields import DirtyFieldsMixin
 
 from .fields import YouTubeDurationField
 
@@ -87,7 +87,7 @@ class Video(TimestampMixin):
     channel = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name="videos")
 
     # custom fields
-    duration = YouTubeDurationField(blank=True, null=True)  # type: ignore[no-untyped-call]
+    duration = YouTubeDurationField(blank=True, null=True)
 
     def __str__(self) -> str:
         return self.title or self.video_id

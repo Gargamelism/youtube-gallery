@@ -78,12 +78,12 @@ class YouTubeService:
             self.auth_type = "oauth"
         elif api_key:
             # API key authentication
-            self.youtube: YouTubeResource = cast(YouTubeResource, build("youtube", "v3", developerKey=api_key))
+            self.youtube = cast(YouTubeResource, build("youtube", "v3", developerKey=api_key))
             self.auth_type = "api_key"
         else:
             # Neither provided - require OAuth
             auth_url = YouTubeService._generate_oauth_url(redirect_uri)
-            raise YouTubeAuthenticationError("YouTube credentials are required", auth_url=auth_url)  # type: ignore[no-untyped-call]
+            raise YouTubeAuthenticationError("YouTube credentials are required", auth_url=auth_url)
 
     @staticmethod
     def get_client_config() -> YouTubeClientConfig:
@@ -145,7 +145,7 @@ class YouTubeService:
             response.raise_for_status()
             token_data = response.json()
         except Exception as e:
-            raise YouTubeAuthenticationError(f"Token exchange failed: {e}")  # type: ignore[no-untyped-call]
+            raise YouTubeAuthenticationError(f"Token exchange failed: {e}")
 
         return token_data  # type: ignore[no-any-return]
 

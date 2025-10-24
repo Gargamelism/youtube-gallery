@@ -3,7 +3,7 @@ Service for updating channel metadata from YouTube API.
 """
 
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Iterable, Optional
 
 from django.db.models import QuerySet
 from django.utils import timezone
@@ -389,7 +389,7 @@ class ChannelUpdateService:
 
         return max(0, priority)
 
-    def update_channels_batch(self, channels: QuerySet[Channel]) -> Dict[str, Any]:
+    def update_channels_batch(self, channels: Iterable[Channel]) -> Dict[str, Any]:
         """Update multiple channels with quota optimization"""
         if not channels:
             return {
@@ -402,13 +402,14 @@ class ChannelUpdateService:
             }
 
         optimal_batch_size = self.quota_tracker.optimize_batch_size("channels.list")
-        channels_to_process = channels[:optimal_batch_size] if optimal_batch_size > 0 else []
+        channels_list = list(channels)
+        channels_to_process = channels_list[:optimal_batch_size] if optimal_batch_size > 0 else []
 
         successful_updates = 0
         failed_updates = 0
         total_quota_used = 0
         results = []
-        stopped_due_to_quota = len(channels_to_process) < len(channels)
+        stopped_due_to_quota = len(channels_to_process) < len(channels_list)
 
         for channel in channels_to_process:
             if not self.quota_tracker.can_make_request("channels.list"):

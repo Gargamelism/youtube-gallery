@@ -1,6 +1,6 @@
 from typing import Any
 
-from google.auth.transport.requests import Request  # type: ignore[import-untyped]
+from google.auth.transport.requests import Request
 
 from .models import User, UserYouTubeCredentials
 

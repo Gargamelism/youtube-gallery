@@ -4,13 +4,13 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, TypeVar
 
-from cryptography.fernet import Fernet  # type: ignore[import-untyped]
+from cryptography.fernet import Fernet
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import Prefetch, QuerySet
 from django.utils import timezone as dj_tz
-from google.oauth2.credentials import Credentials  # type: ignore[import-untyped]
+from google.oauth2.credentials import Credentials
 
 from videos.services.youtube import YOUTUBE_SCOPES, YouTubeService
 

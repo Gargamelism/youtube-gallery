@@ -170,7 +170,8 @@ def profile_view(request: Request) -> Response:
 @permission_classes([permissions.IsAuthenticated])
 def quota_usage_view(request: Request) -> Response:
     """Get current user's quota usage information"""
-    user_quota_tracker = UserQuotaTracker(user=request.user)
+    user = cast(User, request.user)
+    user_quota_tracker = UserQuotaTracker(user=user)
     usage_info = user_quota_tracker.get_user_usage_summary()
 
     now = dj_tz.now()

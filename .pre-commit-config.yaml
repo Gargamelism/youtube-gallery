@@ -4,19 +4,19 @@ repos:
       # === FRONTEND (Next.js) ===
       - id: eslint-fix
         name: ESLint Fix
-        entry: docker-compose run --rm frontend npm run lint:fix
+        entry: docker-compose run --rm --use-aliases frontend npm run lint:fix
         language: system
         files: \.(js|jsx|ts|tsx)$
 
       - id: prettier-fix
         name: Prettier Format
-        entry: docker-compose run --rm frontend npx prettier --write .
+        entry: docker-compose run --rm --use-aliases frontend npx prettier --write .
         language: system
         files: \.(js|jsx|ts|tsx|json|css|html|md)$
 
       - id: ts-prune-check
         name: TS-Prune (Unused Exports)
-        entry: docker-compose run --rm frontend sh -c "npx ts-prune | grep -v 'used in module'"
+        entry: docker-compose run --rm --use-aliases frontend sh -c "npx ts-prune | grep -v 'used in module'"
         language: system
         pass_filenames: false
         files: \.(ts|tsx)$
@@ -24,26 +24,26 @@ repos:
       # === BACKEND (Django) ===
       - id: black-fix
         name: Black Format
-        entry: docker-compose run --rm backend black .
+        entry: docker-compose run --rm --use-aliases backend black .
         language: system
         files: \.py$
 
       - id: ruff-fix
         name: Ruff Fix
-        entry: docker-compose run --rm backend ruff check . --fix
+        entry: docker-compose run --rm --use-aliases backend ruff check . --fix
         language: system
         files: \.py$
 
       - id: mypy-check
         name: Mypy Type Check
-        entry: docker-compose run --rm backend mypy .
+        entry: docker-compose run --rm --use-aliases backend mypy .
         language: system
         pass_filenames: false
         files: \.py$
 
       - id: bandit-security
         name: Bandit Security Check
-        entry: docker-compose run --rm backend bandit -r . --severity-level medium
+        entry: docker-compose run --rm --use-aliases backend bandit -r . --severity-level medium
         language: system
         pass_filenames: false
         files: \.py$

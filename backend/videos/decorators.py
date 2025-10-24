@@ -1,7 +1,7 @@
 from functools import wraps
 from typing import Any, Callable, ParamSpec, TypeVar
 
-from google.auth.transport.requests import Request  # type: ignore[import-untyped]
+from google.auth.transport.requests import Request
 from rest_framework import status
 from rest_framework.response import Response
 

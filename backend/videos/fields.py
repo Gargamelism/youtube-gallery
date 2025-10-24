@@ -25,7 +25,9 @@ class YouTubeDurationField(models.CharField):  # type: ignore[type-arg]
     def to_python(self, value: Any) -> Optional[str]:
         if isinstance(value, str):
             return self.format_duration(value)
-        return value
+        if value is None:
+            return None
+        return str(value)
 
     def get_prep_value(self, value: Any) -> Optional[str]:
         # Store the original YouTube format in database
@@ -35,7 +37,9 @@ class YouTubeDurationField(models.CharField):  # type: ignore[type-arg]
                 return value
             # If it's formatted, convert back (optional)
             return self.parse_formatted_duration(value)
-        return value
+        if value is None:
+            return None
+        return str(value)
 
     def format_duration(self, youtube_duration: Optional[str]) -> Optional[str]:
         """

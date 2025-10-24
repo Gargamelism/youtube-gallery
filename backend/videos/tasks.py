@@ -168,7 +168,7 @@ def cleanup_orphaned_channels(self: Task, max_channels: int = 50) -> dict[str, A
         Dictionary with cleanup operation results
     """
     try:
-        cleanup_service = ChannelCleanupService()  # type: ignore[no-untyped-call]
+        cleanup_service = ChannelCleanupService()
         result = cleanup_service.cleanup_orphaned_channels(max_channels=max_channels)
 
         return {

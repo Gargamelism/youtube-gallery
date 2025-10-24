@@ -11,7 +11,7 @@ from enum import Enum
 from typing import Any, Dict, Optional
 
 from django.conf import settings
-from redis_om import Field, JsonModel, Migrator, get_redis_connection  # type: ignore[import-untyped]
+from redis_om import Field, JsonModel, Migrator, get_redis_connection
 
 # Suppress Redis-OM/Pydantic pk field shadowing warnings
 warnings.filterwarnings("ignore", message='Field name "pk" shadows an attribute in parent', category=UserWarning)
@@ -179,7 +179,7 @@ class QuotaTracker:
             # Record doesn't exist, create new one
             try:
                 new_quota = DailyQuotaUsage(date=today, daily_usage=0, operations_count={})
-                new_quota.save()  # type: ignore[no-untyped-call]
+                new_quota.save()
                 return new_quota
             except Exception as e:
                 print(f"ERROR: Failed to create new quota record: {e}")
@@ -191,7 +191,7 @@ class QuotaTracker:
             return
 
         try:
-            usage_data.save()  # type: ignore[no-untyped-call]
+            usage_data.save()
         except Exception as e:
             print(f"ERROR: Failed to store quota data: {e}")
 
