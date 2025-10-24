@@ -129,7 +129,9 @@ class VideoSerializerOptimizationTests(TestCase):
         connection.queries_log.clear()
 
         # Perform complex search with tag filtering
-        results = list(search_service.search_videos(tag_names=["Tech"], tag_mode=TagMode.ANY, watch_status=WatchStatus.ALL))
+        results = list(
+            search_service.search_videos(tag_names=["Tech"], tag_mode=TagMode.ANY, watch_status=WatchStatus.ALL)
+        )
 
         # Count queries for the search operation
         query_count = len(connection.queries)

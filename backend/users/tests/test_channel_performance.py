@@ -4,6 +4,7 @@ Performance tests for channel search and filtering.
 These tests analyze query performance, verify index usage, and ensure
 the system meets performance requirements with large datasets.
 """
+
 from __future__ import annotations
 
 import time
