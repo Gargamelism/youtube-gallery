@@ -154,6 +154,30 @@ class VideoViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
             }
         )
 
+    @action(detail=True, methods=["put"], url_path="not-interested")
+    def not_interested(self, request: Request, pk: Any = None) -> Response:
+        video = self.get_object()
+        user = cast(User, request.user)
+
+        is_not_interested = request.data.get("is_not_interested", True)
+
+        user_video, _ = UserVideo.objects.get_or_create(
+            user=user,
+            video=video,
+        )
+
+        user_video.is_not_interested = is_not_interested
+        user_video.not_interested_at = timezone.now() if is_not_interested else None
+        user_video.save()
+
+        return Response(
+            {
+                "status": "success",
+                "is_not_interested": user_video.is_not_interested,
+                "not_interested_at": user_video.not_interested_at,
+            }
+        )
+
     @action(detail=False, methods=["get"])
     def unwatched(self, request: Request) -> Response:
         # Validate query parameters and add unwatched filter

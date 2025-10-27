@@ -1,9 +1,6 @@
 ## This file is to remind me of little tasks todo without breaking my flow or claude related feature-creep
 
 
-1. code quality
-    1. checkout pyscn/integrate maybe github actions?
-    1. find similar code quality analyzer for FE
 1. add "not interested" option - and filtering based on it
 1. videos middle click not opening in a new tab
 1. add sidebar filtering videos by channels
