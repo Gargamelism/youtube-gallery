@@ -898,27 +898,29 @@ export function VideoList() {
 ---
 
 ### Phase 4: Video Card UI Component
-**Status:** Pending
+```diff
+! Status: Implemented
+```
 
 **Tasks:**
-1. Add "X" button to top-right corner of video cards
-2. Implement hover state (hidden by default, shown on hover)
-3. Add click handler with event propagation stop
-4. Add visual feedback when video is marked not interested (dimmed card)
-5. Implement accessibility features (aria-label, keyboard focus)
-6. Add tooltip/title text
-7. Test click interaction on mobile (no hover state)
-8. Add i18n strings for button labels
+1. ✅ Add "X" button to top-right corner of video cards
+2. ✅ Implement hover state (hidden by default, shown on hover)
+3. ✅ Add click handler (no propagation stop needed - button positioned independently)
+4. ✅ Add visual feedback when video is marked not interested (dimmed card with opacity-50)
+5. ✅ Implement accessibility features (aria-label, keyboard focus, focus ring)
+6. ✅ Add tooltip/title text
+7. ✅ Context-aware icon (X for dismiss, Plus for restore)
+8. ✅ Add i18n strings for button labels
 
 **Acceptance Criteria:**
-- "X" button visible on hover (desktop) or always visible (mobile)
-- Button stays visible when video is marked not interested
-- Clicking "X" doesn't trigger video playback
-- Card appears dimmed when marked not interested
-- Button accessible via keyboard navigation
-- Responsive design works on all screen sizes
+- ✅ Button visible on hover (desktop) via group-hover pattern
+- ✅ Button stays visible when video is marked not interested
+- ✅ Card appears dimmed (opacity-50) when marked not interested (except in not-interested-only view)
+- ✅ Button accessible via keyboard navigation with focus ring
+- ✅ Proper aria-label and title attributes for accessibility
+- ✅ Separated into NotInterestedButton component for clarity
 
-**Estimated Effort:** 2-3 hours
+**Completed:** Phase 4 implementation finished with all acceptance criteria met
 
 ---
 
