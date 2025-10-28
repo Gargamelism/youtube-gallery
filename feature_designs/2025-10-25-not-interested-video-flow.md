@@ -848,26 +848,28 @@ export function VideoList() {
 ---
 
 ### Phase 2: Backend Filtering Logic
-**Status:** Pending
+```diff
+! Status: Implemented
+```
 
 **Tasks:**
-1. Add `not_interested_filter` to `VideoSearchValidator` with default `EXCLUDE`
-2. Implement `_apply_not_interested_filter()` method in `VideoSearchService`
-3. Integrate filter into main `search()` method
-4. Update stats endpoint to include `not_interested` count
-5. Add database index for `(user, is_not_interested)` if not already present
-6. Test filtering combinations (watch_status + not_interested_filter)
-7. Performance test query efficiency with large datasets
+1. ✅ Add `not_interested_filter` to `VideoSearchValidator` with default `EXCLUDE`
+2. ✅ Implement `_apply_not_interested_filter()` method in `VideoSearchService`
+3. ✅ Integrate filter into main `search()` method
+4. ✅ Update stats endpoint to include `not_interested` count
+5. ✅ Database index already present from Phase 1 migration
+6. ✅ Test filtering combinations (watch_status + not_interested_filter)
+7. ✅ Performance test query efficiency with large datasets
 
 **Acceptance Criteria:**
-- `not_interested_filter=only` returns only dismissed videos
-- `not_interested_filter=exclude` excludes dismissed videos (default)
-- `not_interested_filter=include` returns all videos
-- Filter works correctly with watch_status, tags, and search filters
-- Stats endpoint returns accurate not_interested count
-- No N+1 query issues detected
+- ✅ `not_interested_filter=only` returns only dismissed videos
+- ✅ `not_interested_filter=exclude` excludes dismissed videos (default)
+- ✅ `not_interested_filter=include` returns all videos
+- ✅ Filter works correctly with watch_status, tags, and search filters
+- ✅ Stats endpoint returns accurate not_interested count
+- ✅ No N+1 query issues detected
 
-**Estimated Effort:** 3-4 hours
+**Completed:** Phase 2 implementation finished with all acceptance criteria met
 
 ---
 

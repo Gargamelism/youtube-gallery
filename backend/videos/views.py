@@ -108,14 +108,15 @@ class VideoViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
     ordering = ["-published_at"]
 
     def get_queryset(self) -> QuerySet[Video]:
-        # Validate query parameters using Pydantic
         search_params = VideoSearchParams.from_request(self.request)
 
-        # Use search service for filtering
         user = cast(User, self.request.user)
         search_service = VideoSearchService(user)
         return search_service.search_videos(
-            tag_names=search_params.tags, tag_mode=search_params.tag_mode, watch_status=search_params.watch_status
+            tag_names=search_params.tags,
+            tag_mode=search_params.tag_mode,
+            watch_status=search_params.watch_status,
+            not_interested_filter=search_params.not_interested_filter,
         )
 
     def get_serializer_class(self) -> type[BaseSerializer[Any]]:
@@ -180,14 +181,15 @@ class VideoViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
 
     @action(detail=False, methods=["get"])
     def unwatched(self, request: Request) -> Response:
-        # Validate query parameters and add unwatched filter
         search_params = VideoSearchParams.from_request(self.request)
 
-        # Use search service with forced unwatched status
         user = cast(User, self.request.user)
         search_service = VideoSearchService(user)
         videos = search_service.search_videos(
-            tag_names=search_params.tags, tag_mode=search_params.tag_mode, watch_status=WatchStatus.UNWATCHED
+            tag_names=search_params.tags,
+            tag_mode=search_params.tag_mode,
+            watch_status=WatchStatus.UNWATCHED,
+            not_interested_filter=search_params.not_interested_filter,
         )
 
         page = self.paginate_queryset(videos)
@@ -199,14 +201,15 @@ class VideoViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
 
     @action(detail=False, methods=["get"])
     def watched(self, request: Request) -> Response:
-        # Validate query parameters and add watched filter
         search_params = VideoSearchParams.from_request(self.request)
 
-        # Use search service with forced watched status
         user = cast(User, self.request.user)
         search_service = VideoSearchService(user)
         videos = search_service.search_videos(
-            tag_names=search_params.tags, tag_mode=search_params.tag_mode, watch_status=WatchStatus.WATCHED
+            tag_names=search_params.tags,
+            tag_mode=search_params.tag_mode,
+            watch_status=WatchStatus.WATCHED,
+            not_interested_filter=search_params.not_interested_filter,
         )
 
         page = self.paginate_queryset(videos)

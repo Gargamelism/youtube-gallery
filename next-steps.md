@@ -10,6 +10,7 @@
     1. import should continue after authentication flow
     1. tag chevron out of box
     1. continue importing in the background
+    1. after import suggest setting tags (need to think of a flow)
 1. tag limits
 1. bottom subscribed channels page separator looks weird
 1. Create design system: 
