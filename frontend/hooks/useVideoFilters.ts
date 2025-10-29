@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { TagMode, TagModeType, VideoFilters } from '@/types';
+import { TagMode, TagModeType, VideoFilters, NotInterestedFilter } from '@/types';
 import { navigateWithUpdatedParams } from '@/utils/urlHelpers';
 
 export interface VideoFiltersActions {
@@ -9,6 +9,7 @@ export interface VideoFiltersActions {
   updateTags: (newTags: string[]) => void;
   updateTagMode: (newMode: TagModeType) => void;
   updateSearchQuery: (query: string) => void;
+  updateNotInterestedFilter: (newFilter: NotInterestedFilter) => void;
   addTag: (tagName: string) => void;
   removeTag: (tagName: string) => void;
   areFiltersEqual: (otherFilters: VideoFilters) => boolean;
@@ -24,6 +25,8 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
   const selectedTags = searchParams.get('tags')?.split(',').filter(Boolean) || [];
   const tagMode = (searchParams.get('tag_mode') as TagModeType) || TagMode.ANY;
   const searchQuery = searchParams.get('search') || '';
+  const notInterestedFilter =
+    (searchParams.get('not_interested_filter') as NotInterestedFilter) || NotInterestedFilter.EXCLUDE;
 
   // Helper function to update URL with current state
   const updateUrl = (updates: Record<string, string | string[] | undefined>) => {
@@ -35,6 +38,7 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
       filter,
       selectedTags,
       tag_mode: selectedTags.length > 1 ? tagMode : undefined,
+      notInterestedFilter,
       ...newFilters,
     };
 
@@ -43,6 +47,7 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
       tags: allFilters.selectedTags,
       tag_mode: allFilters.selectedTags.length > 1 ? allFilters.tag_mode : undefined,
       search: allFilters.searchQuery,
+      not_interested_filter: allFilters.notInterestedFilter,
     });
   };
 
@@ -60,6 +65,10 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
 
   const updateSearchQuery = (query: string) => {
     updateAllFilters({ searchQuery: query });
+  };
+
+  const updateNotInterestedFilter = (newFilter: NotInterestedFilter) => {
+    updateAllFilters({ notInterestedFilter: newFilter });
   };
 
   const addTag = (tagName: string) => {
@@ -83,7 +92,8 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
       filter === otherFilters.filter &&
       areTagsEqual &&
       tagMode === otherFilters.tagMode &&
-      searchQuery === otherFilters.searchQuery
+      searchQuery === otherFilters.searchQuery &&
+      notInterestedFilter === otherFilters.notInterestedFilter
     );
   };
 
@@ -92,10 +102,12 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
     selectedTags,
     tagMode,
     searchQuery,
+    notInterestedFilter,
     updateFilter,
     updateTags,
     updateTagMode,
     updateSearchQuery,
+    updateNotInterestedFilter,
     addTag,
     removeTag,
     areFiltersEqual,
