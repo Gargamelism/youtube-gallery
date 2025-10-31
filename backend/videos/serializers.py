@@ -58,6 +58,8 @@ class VideoListSerializer(serializers.ModelSerializer):  # type: ignore[type-arg
     channel_title = serializers.CharField(source="channel.title", read_only=True)
     is_watched = serializers.SerializerMethodField()
     watched_at = serializers.SerializerMethodField()
+    is_not_interested = serializers.SerializerMethodField()
+    not_interested_at = serializers.SerializerMethodField()
     notes = serializers.SerializerMethodField()
     channel_tags = serializers.SerializerMethodField()
 
@@ -77,6 +79,8 @@ class VideoListSerializer(serializers.ModelSerializer):  # type: ignore[type-arg
             "video_url",
             "is_watched",
             "watched_at",
+            "is_not_interested",
+            "not_interested_at",
             "notes",
             "channel_title",
             "channel_tags",
@@ -84,11 +88,23 @@ class VideoListSerializer(serializers.ModelSerializer):  # type: ignore[type-arg
 
     def get_is_watched(self, obj: Video) -> bool:
         user_video = obj.user_videos.first()
-        return user_video.is_watched if user_video else False
+        if not user_video:
+            return False
+        return bool(user_video.is_watched)
 
     def get_watched_at(self, obj: Video) -> Any:
         user_video = obj.user_videos.first()
         return user_video.watched_at if user_video else None
+
+    def get_is_not_interested(self, obj: Video) -> bool:
+        user_video = obj.user_videos.first()
+        if not user_video:
+            return False
+        return bool(user_video.is_not_interested)
+
+    def get_not_interested_at(self, obj: Video) -> Any:
+        user_video = obj.user_videos.first()
+        return user_video.not_interested_at if user_video else None
 
     def get_notes(self, obj: Video) -> str | None:
         user_video = obj.user_videos.first()

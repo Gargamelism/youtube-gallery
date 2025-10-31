@@ -1,12 +1,13 @@
 import { renderHook } from '@testing-library/react';
 import { useInfiniteScroll } from '../useInfiniteScroll';
-import { VideoFilters, TagMode } from '@/types';
+import { VideoFilters, TagMode, NotInterestedFilter } from '@/types';
 
 const mockFilters: VideoFilters = {
   filter: 'all',
   selectedTags: [],
   tagMode: TagMode.ANY,
   searchQuery: '',
+  notInterestedFilter: NotInterestedFilter.EXCLUDE,
 };
 
 const mockFetchNextPage = jest.fn();
@@ -51,6 +52,7 @@ describe('useInfiniteScroll', () => {
       selectedTags: [],
       tagMode: TagMode.ANY,
       searchQuery: '',
+      notInterestedFilter: NotInterestedFilter.EXCLUDE,
     };
 
     const { rerender } = renderHook(({ filters }) => useInfiniteScroll(mockFetchNextPage, true, false, 1, filters), {

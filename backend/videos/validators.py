@@ -38,12 +38,27 @@ class WatchStatus(str, Enum):
             return None
 
 
+class NotInterestedFilter(str, Enum):
+    ONLY = "only"
+    EXCLUDE = "exclude"
+    INCLUDE = "include"
+
+    @classmethod
+    def from_param(cls, value: Optional[str]) -> "NotInterestedFilter":
+        """Parse filter from parameter with default to EXCLUDE"""
+        try:
+            return cls(value)
+        except (ValueError, TypeError):
+            return cls.EXCLUDE
+
+
 class VideoSearchParams(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     tags: Optional[List[str]] = None
     tag_mode: TagMode = TagMode.ANY
     watch_status: Optional[WatchStatus] = None
+    not_interested_filter: NotInterestedFilter = NotInterestedFilter.EXCLUDE
     user: Optional[User] = None
 
     @field_validator("tags")
@@ -71,6 +86,7 @@ class VideoSearchParams(BaseModel):
 
         tag_mode = TagMode.from_param(request.query_params.get("tag_mode"))
         watch_status = WatchStatus.from_param(request.query_params.get("watch_status"))
+        not_interested_filter = NotInterestedFilter.from_param(request.query_params.get("not_interested_filter"))
 
         try:
             return cls.model_validate(
@@ -78,6 +94,7 @@ class VideoSearchParams(BaseModel):
                     "tags": tags,
                     "tag_mode": tag_mode,
                     "watch_status": watch_status,
+                    "not_interested_filter": not_interested_filter,
                     "user": request.user,
                 },
                 context={"user": request.user},

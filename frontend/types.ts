@@ -84,6 +84,8 @@ export interface Video {
   is_watched: boolean;
   watched_at: string | null;
   notes: string | null;
+  is_not_interested: boolean;
+  not_interested_at: string | null;
   channel_tags: ChannelTag[];
 }
 
@@ -105,12 +107,19 @@ export interface VideoStats {
   total: number;
   watched: number;
   unwatched: number;
+  not_interested: number;
 }
 
 export enum WatchStatus {
   WATCHED = 'watched',
   UNWATCHED = 'unwatched',
   ALL = 'all',
+}
+
+export enum NotInterestedFilter {
+  ONLY = 'only',
+  EXCLUDE = 'exclude',
+  INCLUDE = 'include',
 }
 
 // Tag Types
@@ -126,6 +135,7 @@ export interface VideoFilters {
   selectedTags: string[];
   tagMode: TagModeType;
   searchQuery: string;
+  notInterestedFilter: NotInterestedFilter;
 }
 
 // Channel Filter Types

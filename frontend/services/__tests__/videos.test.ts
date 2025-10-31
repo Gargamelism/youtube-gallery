@@ -1,5 +1,5 @@
 import { buildVideoQueryParams } from '@/services/videos';
-import { TagMode } from '@/types';
+import { TagMode, NotInterestedFilter } from '@/types';
 
 describe('buildVideoQueryParams', () => {
   describe('filter parameter', () => {
@@ -9,9 +9,10 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
-      expect(result).toBe('watch_status=watched');
+      expect(result).toBe('watch_status=watched&not_interested_filter=exclude');
     });
 
     it('should include watch_status when filter is "unwatched"', () => {
@@ -20,9 +21,10 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
-      expect(result).toBe('watch_status=unwatched');
+      expect(result).toBe('watch_status=unwatched&not_interested_filter=exclude');
     });
 
     it('should not include watch_status when filter is "all"', () => {
@@ -31,9 +33,10 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
-      expect(result).toBe('');
+      expect(result).toBe('not_interested_filter=exclude');
     });
 
     it('should not include watch_status when filter is empty string', () => {
@@ -42,9 +45,10 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
-      expect(result).toBe('');
+      expect(result).toBe('not_interested_filter=exclude');
     });
   });
 
@@ -55,20 +59,22 @@ describe('buildVideoQueryParams', () => {
         selectedTags: ['react', 'typescript'],
         tagMode: TagMode.ALL,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
-      expect(result).toBe('tags=react%2Ctypescript&tag_mode=all');
+      expect(result).toBe('not_interested_filter=exclude&tags=react%2Ctypescript&tag_mode=all');
     });
 
     it('should default to ANY mode when tagMode is not specified', () => {
       const result = buildVideoQueryParams({
         filter: '',
         selectedTags: ['javascript'],
-        tagMode: '' as TagMode, // Force empty to test defaulting
+        tagMode: '' as TagMode,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
-      expect(result).toBe('tags=javascript&tag_mode=any');
+      expect(result).toBe('not_interested_filter=exclude&tags=javascript&tag_mode=any');
     });
 
     it('should use ANY mode for tag_mode', () => {
@@ -77,9 +83,10 @@ describe('buildVideoQueryParams', () => {
         selectedTags: ['vue', 'nuxt'],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
-      expect(result).toBe('tags=vue%2Cnuxt&tag_mode=any');
+      expect(result).toBe('not_interested_filter=exclude&tags=vue%2Cnuxt&tag_mode=any');
     });
 
     it('should not include tags when array is empty', () => {
@@ -88,9 +95,10 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ALL,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
-      expect(result).toBe('watch_status=watched');
+      expect(result).toBe('watch_status=watched&not_interested_filter=exclude');
     });
 
     it('should handle single tag', () => {
@@ -99,9 +107,10 @@ describe('buildVideoQueryParams', () => {
         selectedTags: ['tutorial'],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
-      expect(result).toBe('tags=tutorial&tag_mode=any');
+      expect(result).toBe('not_interested_filter=exclude&tags=tutorial&tag_mode=any');
     });
 
     it('should handle multiple tags with special characters', () => {
@@ -110,10 +119,12 @@ describe('buildVideoQueryParams', () => {
         selectedTags: ['C++', 'Node.js', 'Web Dev'],
         tagMode: TagMode.ALL,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
       expect(result).toContain('tags=C%2B%2B%2CNode.js%2CWeb+Dev');
       expect(result).toContain('tag_mode=all');
+      expect(result).toContain('not_interested_filter=exclude');
     });
   });
 
@@ -124,9 +135,10 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: 'react tutorial',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
-      expect(result).toBe('search=react+tutorial');
+      expect(result).toBe('not_interested_filter=exclude&search=react+tutorial');
     });
 
     it('should not include search when query is empty string', () => {
@@ -135,9 +147,10 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
-      expect(result).toBe('watch_status=unwatched');
+      expect(result).toBe('watch_status=unwatched&not_interested_filter=exclude');
     });
 
     it('should encode special characters in search query', () => {
@@ -146,9 +159,10 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: 'hello & world!',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
-      expect(result).toBe('search=hello+%26+world%21');
+      expect(result).toBe('not_interested_filter=exclude&search=hello+%26+world%21');
     });
   });
 
@@ -159,10 +173,11 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
         page: 2,
       });
 
-      expect(result).toBe('page=2');
+      expect(result).toBe('not_interested_filter=exclude&page=2');
     });
 
     it('should include page_size when provided as positive number', () => {
@@ -171,10 +186,11 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
         page_size: 50,
       });
 
-      expect(result).toBe('page_size=50');
+      expect(result).toBe('not_interested_filter=exclude&page_size=50');
     });
 
     it('should include both page and page_size', () => {
@@ -183,11 +199,12 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
         page: 3,
         page_size: 25,
       });
 
-      expect(result).toBe('page=3&page_size=25');
+      expect(result).toBe('not_interested_filter=exclude&page=3&page_size=25');
     });
 
     it('should not include page when 0', () => {
@@ -196,10 +213,11 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
         page: 0,
       });
 
-      expect(result).toBe('watch_status=watched');
+      expect(result).toBe('watch_status=watched&not_interested_filter=exclude');
     });
 
     it('should not include page when negative', () => {
@@ -208,10 +226,11 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
         page: -1,
       });
 
-      expect(result).toBe('watch_status=watched');
+      expect(result).toBe('watch_status=watched&not_interested_filter=exclude');
     });
 
     it('should not include page_size when 0', () => {
@@ -220,10 +239,11 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
         page_size: 0,
       });
 
-      expect(result).toBe('watch_status=watched');
+      expect(result).toBe('watch_status=watched&not_interested_filter=exclude');
     });
 
     it('should not include page_size when negative', () => {
@@ -232,10 +252,11 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
         page_size: -10,
       });
 
-      expect(result).toBe('watch_status=watched');
+      expect(result).toBe('watch_status=watched&not_interested_filter=exclude');
     });
 
     it('should not include page when omitted', () => {
@@ -244,9 +265,10 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
-      expect(result).toBe('watch_status=watched');
+      expect(result).toBe('watch_status=watched&not_interested_filter=exclude');
     });
   });
 
@@ -257,11 +279,13 @@ describe('buildVideoQueryParams', () => {
         selectedTags: ['react', 'typescript'],
         tagMode: TagMode.ALL,
         searchQuery: 'advanced tutorial',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
         page: 2,
         page_size: 20,
       });
 
       expect(result).toContain('watch_status=unwatched');
+      expect(result).toContain('not_interested_filter=exclude');
       expect(result).toContain('tags=react%2Ctypescript');
       expect(result).toContain('tag_mode=all');
       expect(result).toContain('search=advanced+tutorial');
@@ -275,9 +299,10 @@ describe('buildVideoQueryParams', () => {
         selectedTags: ['javascript'],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
-      expect(result).toBe('watch_status=watched&tags=javascript&tag_mode=any');
+      expect(result).toBe('watch_status=watched&not_interested_filter=exclude&tags=javascript&tag_mode=any');
     });
 
     it('should handle filter + search combination', () => {
@@ -286,9 +311,10 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: 'nextjs',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
-      expect(result).toBe('watch_status=unwatched&search=nextjs');
+      expect(result).toBe('watch_status=unwatched&not_interested_filter=exclude&search=nextjs');
     });
 
     it('should handle tags + search combination', () => {
@@ -297,8 +323,10 @@ describe('buildVideoQueryParams', () => {
         selectedTags: ['vue'],
         tagMode: TagMode.ANY,
         searchQuery: 'composition api',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
+      expect(result).toContain('not_interested_filter=exclude');
       expect(result).toContain('tags=vue');
       expect(result).toContain('tag_mode=any');
       expect(result).toContain('search=composition+api');
@@ -310,11 +338,12 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
         page: 5,
         page_size: 100,
       });
 
-      expect(result).toBe('watch_status=watched&page=5&page_size=100');
+      expect(result).toBe('watch_status=watched&not_interested_filter=exclude&page=5&page_size=100');
     });
   });
 
@@ -325,9 +354,10 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
-      expect(result).toBe('');
+      expect(result).toBe('not_interested_filter=exclude');
     });
 
     it('should return empty string when filter is "all" and no other params', () => {
@@ -336,9 +366,10 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
-      expect(result).toBe('');
+      expect(result).toBe('not_interested_filter=exclude');
     });
 
     it('should handle whitespace-only search query', () => {
@@ -347,9 +378,10 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '   ',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
-      expect(result).toBe('search=+++');
+      expect(result).toBe('not_interested_filter=exclude&search=+++');
     });
 
     it('should handle extremely long tag arrays', () => {
@@ -359,11 +391,13 @@ describe('buildVideoQueryParams', () => {
         selectedTags: manyTags,
         tagMode: TagMode.ALL,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
+      expect(result).toContain('not_interested_filter=exclude');
       expect(result).toContain('tags=');
       expect(result).toContain('tag_mode=all');
-      expect(result.match(new RegExp('%2C', 'g'))?.length).toBe(49); // 49 commas for 50 tags
+      expect(result.match(new RegExp('%2C', 'g'))?.length).toBe(49);
     });
 
     it('should handle large page numbers', () => {
@@ -372,10 +406,11 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
         page: 999999,
       });
 
-      expect(result).toBe('page=999999');
+      expect(result).toBe('not_interested_filter=exclude&page=999999');
     });
   });
 
@@ -386,11 +421,13 @@ describe('buildVideoQueryParams', () => {
         selectedTags: ['react'],
         tagMode: TagMode.ANY,
         searchQuery: 'tutorial',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
         page: 1,
         page_size: 24,
       });
 
       expect(result).toContain('watch_status=unwatched');
+      expect(result).toContain('not_interested_filter=exclude');
       expect(result).toContain('tags=react');
       expect(result).toContain('search=tutorial');
       expect(result).toContain('page=1');
@@ -403,9 +440,10 @@ describe('buildVideoQueryParams', () => {
         selectedTags: ['react', 'typescript'],
         tagMode: TagMode.ALL,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
-      expect(result).toBe('tags=react%2Ctypescript&tag_mode=all');
+      expect(result).toBe('not_interested_filter=exclude&tags=react%2Ctypescript&tag_mode=all');
     });
 
     it('should build query for "watched videos on page 3"', () => {
@@ -414,10 +452,11 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
         page: 3,
       });
 
-      expect(result).toBe('watch_status=watched&page=3');
+      expect(result).toBe('watch_status=watched&not_interested_filter=exclude&page=3');
     });
 
     it('should build query for "search for Next.js in unwatched videos"', () => {
@@ -426,9 +465,10 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: 'Next.js',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
-      expect(result).toBe('watch_status=unwatched&search=Next.js');
+      expect(result).toBe('watch_status=unwatched&not_interested_filter=exclude&search=Next.js');
     });
   });
 });

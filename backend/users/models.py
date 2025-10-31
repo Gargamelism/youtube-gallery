@@ -74,11 +74,16 @@ class UserVideo(TimestampMixin):
     video = models.ForeignKey("videos.Video", on_delete=models.CASCADE, related_name="user_videos")
     is_watched = models.BooleanField(default=False)
     watched_at = models.DateTimeField(null=True, blank=True)
+    is_not_interested = models.BooleanField(null=True, blank=True, default=None)
+    not_interested_at = models.DateTimeField(null=True, blank=True)
     notes = models.TextField(blank=True, null=True)
 
     class Meta:
         db_table = "user_videos"
         unique_together = ("user", "video")
+        indexes = [
+            models.Index(fields=["user", "is_not_interested"], name="user_not_interested_idx"),
+        ]
 
 
 class ChannelTag(TimestampMixin):

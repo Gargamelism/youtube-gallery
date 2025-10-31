@@ -1,10 +1,6 @@
 ## This file is to remind me of little tasks todo without breaking my flow or claude related feature-creep
 
 
-1. code quality
-    1. checkout pyscn/integrate maybe github actions?
-    1. find similar code quality analyzer for FE
-1. add "not interested" option - and filtering based on it
 1. videos middle click not opening in a new tab
 1. add sidebar filtering videos by channels
 1. keep filters state when moving between pages
@@ -13,6 +9,7 @@
     1. import should continue after authentication flow
     1. tag chevron out of box
     1. continue importing in the background
+    1. after import suggest setting tags (need to think of a flow)
 1. tag limits
 1. bottom subscribed channels page separator looks weird
 1. Create design system: 

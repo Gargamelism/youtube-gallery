@@ -4,16 +4,17 @@ from typing import List, Optional, TypedDict
 from django.db.models import QuerySet, Count, Q, Exists, OuterRef, Prefetch
 
 from ..models import Video
-from ..validators import TagMode, WatchStatus
+from ..validators import TagMode, WatchStatus, NotInterestedFilter
 from users.models import User, UserChannel, UserVideo, UserChannelTag
 
 
 class VideoStats(TypedDict):
-    """Video statistics including total, watched, and unwatched counts"""
+    """Video statistics including total, watched, unwatched, and not interested counts"""
 
     total: int
     watched: int
     unwatched: int
+    not_interested: int
 
 
 class VideoSearchService:
@@ -27,6 +28,7 @@ class VideoSearchService:
         tag_names: Optional[List[str]] = None,
         tag_mode: TagMode = TagMode.ANY,
         watch_status: Optional[WatchStatus] = None,
+        not_interested_filter: NotInterestedFilter = NotInterestedFilter.EXCLUDE,
     ) -> QuerySet[Video]:
         """
         Search videos with complex filtering using optimized 4-query strategy
@@ -35,6 +37,7 @@ class VideoSearchService:
             tag_names: List of validated tag names that belong to the user
             tag_mode: TagMode enum for AND/OR logic
             watch_status: WatchStatus enum for filtering by watch status
+            not_interested_filter: NotInterestedFilter enum for filtering not interested videos
 
         Returns:
             QuerySet of filtered videos (4 optimized DB queries regardless of filtering complexity)
@@ -66,9 +69,10 @@ class VideoSearchService:
         if tag_names:
             queryset = self._apply_tag_filter(queryset, tag_names, tag_mode)
 
-        # Apply watch status filtering if provided
         if watch_status:
             queryset = self._apply_watch_status_filter(queryset, watch_status)
+
+        queryset = self._apply_not_interested_filter(queryset, not_interested_filter)
 
         return queryset.distinct()
 
@@ -115,7 +119,22 @@ class VideoSearchService:
                 return queryset.filter(~Exists(watched_exists))
 
             case WatchStatus.ALL:
-                # No filtering needed for "all"
+                return queryset
+
+    def _apply_not_interested_filter(
+        self, queryset: QuerySet[Video], filter_mode: NotInterestedFilter
+    ) -> QuerySet[Video]:
+        """Apply not interested filtering using EXISTS subquery"""
+        not_interested_exists = UserVideo.objects.filter(user=self.user, video=OuterRef("uuid"), is_not_interested=True)
+
+        match filter_mode:
+            case NotInterestedFilter.ONLY:
+                return queryset.filter(Exists(not_interested_exists))
+
+            case NotInterestedFilter.EXCLUDE:
+                return queryset.filter(~Exists(not_interested_exists))
+
+            case NotInterestedFilter.INCLUDE:
                 return queryset
 
     def get_video_stats(self) -> VideoStats:
@@ -130,14 +149,19 @@ class VideoSearchService:
             watched_videos=Count(
                 "uuid", filter=Q(user_videos__user=self.user, user_videos__is_watched=True), distinct=True
             ),
+            not_interested_videos=Count(
+                "uuid", filter=Q(user_videos__user=self.user, user_videos__is_not_interested=True), distinct=True
+            ),
         )
 
         total = stats["total_videos"]
         watched = stats["watched_videos"]
         unwatched = total - watched
+        not_interested = stats["not_interested_videos"]
 
         return {
             "total": total,
             "watched": watched,
             "unwatched": unwatched,
+            "not_interested": not_interested,
         }

@@ -6,7 +6,7 @@ import { LoadMoreButton } from './LoadMoreButton';
 import { ScrollToTopButton } from '@/components/ui/ScrollToTopButton';
 import { Video } from '@/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { updateVideoWatchStatus } from '@/services';
+import { updateVideoWatchStatus, updateVideoNotInterested } from '@/services';
 import { useVideoFilters } from '@/hooks/useVideoFilters';
 import { useInfiniteVideos } from '@/hooks/useInfiniteVideos';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
@@ -23,7 +23,7 @@ interface VideoListProps {
 
 export function VideoList({ scrollMode }: VideoListProps) {
   const queryClient = useQueryClient();
-  const { filter, selectedTags, tagMode, searchQuery, areFiltersEqual } = useVideoFilters();
+  const { filter, selectedTags, tagMode, searchQuery, notInterestedFilter, areFiltersEqual } = useVideoFilters();
   const { t } = useTranslation('videos');
 
   const handleVideoClick = (url: string) => {
@@ -32,7 +32,7 @@ export function VideoList({ scrollMode }: VideoListProps) {
     }
   };
 
-  const currentFilters = { filter, selectedTags, tagMode, searchQuery };
+  const currentFilters = { filter, selectedTags, tagMode, searchQuery, notInterestedFilter };
 
   const { data, fetchNextPage, hasNextPage, isFetching, isLoading, error, isRestoring } = useInfiniteVideos(
     currentFilters,
@@ -61,6 +61,16 @@ export function VideoList({ scrollMode }: VideoListProps) {
     mutationFn: (videoId: string) => {
       const video = videos.find((v: Video) => v.uuid === videoId);
       return updateVideoWatchStatus(videoId, !video?.is_watched);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.videos });
+      queryClient.invalidateQueries({ queryKey: queryKeys.videoStats });
+    },
+  });
+
+  const { mutate: toggleNotInterested } = useMutation({
+    mutationFn: ({ videoId, isNotInterested }: { videoId: string; isNotInterested: boolean }) => {
+      return updateVideoNotInterested(videoId, isNotInterested);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.videos });
@@ -103,6 +113,8 @@ export function VideoList({ scrollMode }: VideoListProps) {
             video={video}
             onWatch={() => handleVideoClick(video.video_url)}
             onToggleWatched={() => toggleWatchStatus(video.uuid)}
+            onToggleNotInterested={isNotInterested => toggleNotInterested({ videoId: video.uuid, isNotInterested })}
+            notInterestedFilter={notInterestedFilter}
           />
         ))}
 

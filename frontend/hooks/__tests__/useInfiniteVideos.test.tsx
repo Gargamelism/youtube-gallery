@@ -2,13 +2,14 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useInfiniteVideos } from '../useInfiniteVideos';
 import * as services from '@/services';
-import { VideoFilters, TagMode, Video } from '@/types';
+import { VideoFilters, TagMode, Video, NotInterestedFilter } from '@/types';
 
 const mockFilters: VideoFilters = {
   filter: 'all',
   selectedTags: [],
   tagMode: TagMode.ANY,
   searchQuery: '',
+  notInterestedFilter: NotInterestedFilter.EXCLUDE,
 };
 
 const createMockVideo = (uuid: string, title: string): Video => ({
@@ -26,6 +27,8 @@ const createMockVideo = (uuid: string, title: string): Video => ({
   video_url: `https://youtube.com/watch?v=${uuid}`,
   is_watched: false,
   watched_at: null,
+  is_not_interested: false,
+  not_interested_at: null,
   notes: null,
   channel_tags: [],
 });
@@ -94,6 +97,7 @@ describe('useInfiniteVideos', () => {
       selectedTags: [],
       tagMode: TagMode.ANY,
       searchQuery: '',
+      notInterestedFilter: NotInterestedFilter.EXCLUDE,
       page: 1,
       page_size: 24,
     });
@@ -122,6 +126,7 @@ describe('useInfiniteVideos', () => {
       selectedTags: [],
       tagMode: TagMode.ANY,
       searchQuery: '',
+      notInterestedFilter: NotInterestedFilter.EXCLUDE,
       page: 2,
       page_size: 24,
     });

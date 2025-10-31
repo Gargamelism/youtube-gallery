@@ -9,11 +9,21 @@ export interface WatchStatusResponse {
   notes: string | null;
 }
 
+export interface NotInterestedResponse {
+  status: string;
+  is_not_interested: boolean;
+  not_interested_at: string | null;
+}
+
 export function buildVideoQueryParams(params: VideoFilters & PaginationParams): string {
   const queryParams = new URLSearchParams();
 
   if (params.filter && params.filter !== 'all') {
     queryParams.set('watch_status', params.filter);
+  }
+
+  if (params.notInterestedFilter) {
+    queryParams.set('not_interested_filter', params.notInterestedFilter);
   }
 
   if (params.selectedTags && params.selectedTags.length > 0) {
@@ -63,6 +73,18 @@ export async function updateVideoWatchStatus(
     body: JSON.stringify({ is_watched, notes: notes || '' }),
   });
   return ResponseHandler.handle<WatchStatusResponse>(response);
+}
+
+export async function updateVideoNotInterested(
+  videoId: string,
+  isNotInterested: boolean
+): Promise<ApiResponse<NotInterestedResponse>> {
+  const response = await fetch(`${API_BASE_URL}/videos/${videoId}/not-interested`, {
+    ...getRequestOptions(),
+    method: 'PUT',
+    body: JSON.stringify({ is_not_interested: isNotInterested }),
+  });
+  return ResponseHandler.handle<NotInterestedResponse>(response);
 }
 
 export async function fetchUserVideos(): Promise<ApiResponse<UserVideo[]>> {

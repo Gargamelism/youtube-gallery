@@ -48,6 +48,7 @@ export default function VideosPage() {
             totalCount={statsResponse?.data?.total ?? 0}
             watchedCount={statsResponse?.data?.watched ?? 0}
             unwatchedCount={statsResponse?.data?.unwatched ?? 0}
+            notInterestedCount={statsResponse?.data?.not_interested ?? 0}
             onScrollModeChange={setScrollMode}
           />
         </Suspense>

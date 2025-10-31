@@ -4,10 +4,11 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Play, Check, ChevronDown, ChevronUp, Calendar, Eye, MessageCircle, StickyNote } from 'lucide-react';
 import Image from 'next/image';
-import { Video } from '@/types';
+import { Video, NotInterestedFilter } from '@/types';
 import { TagBadge } from '@/components/tags/TagBadge';
 import { useVideoFilters } from '@/hooks/useVideoFilters';
 import { getTextDirection, getTextAlign } from '@/utils/textHelpers';
+import { NotInterestedButton } from './NotInterestedButton';
 
 const MAX_DURATION_LENGTH = 20;
 
@@ -15,9 +16,17 @@ interface VideoCardProps {
   video: Video;
   onWatch: () => void;
   onToggleWatched: (isWatched: boolean, notes?: string) => void;
+  onToggleNotInterested: (isNotInterested: boolean) => void;
+  notInterestedFilter: NotInterestedFilter;
 }
 
-export function VideoCard({ video, onWatch, onToggleWatched }: VideoCardProps) {
+export function VideoCard({
+  video,
+  onWatch,
+  onToggleWatched,
+  onToggleNotInterested,
+  notInterestedFilter,
+}: VideoCardProps) {
   const { t } = useTranslation('videos');
   const { addTag } = useVideoFilters();
   const [showDescription, setShowDescription] = useState(false);
@@ -42,6 +51,10 @@ export function VideoCard({ video, onWatch, onToggleWatched }: VideoCardProps) {
   const handleNotesSubmit = () => {
     onToggleWatched(true, notes);
     setShowNotesForm(false);
+  };
+
+  const handleNotInterestedClick = () => {
+    onToggleNotInterested(!video.is_not_interested);
   };
 
   const formatDuration = (duration: string | null) => {
@@ -74,9 +87,21 @@ export function VideoCard({ video, onWatch, onToggleWatched }: VideoCardProps) {
     return num.toString();
   };
 
+  const showingNotInterestedVideos =
+    notInterestedFilter === NotInterestedFilter.ONLY ||
+    (notInterestedFilter === NotInterestedFilter.INCLUDE && video.is_not_interested);
+
+  const shouldDimCard = video.is_not_interested && !showingNotInterestedVideos;
+
   return (
-    <div className="VideoCard relative overflow-hidden rounded-lg border bg-white shadow hover:shadow-lg transition-shadow p-4">
-      <div className="VideoCard__content flex flex-col gap-4">
+    <div className="VideoCard group relative overflow-hidden rounded-lg border bg-white shadow hover:shadow-lg transition-shadow p-4">
+      <NotInterestedButton
+        isNotInterested={video.is_not_interested}
+        notInterestedFilter={notInterestedFilter}
+        onClick={handleNotInterestedClick}
+      />
+
+      <div className={`VideoCard__content flex flex-col gap-4 ${shouldDimCard ? 'opacity-50' : ''}`}>
         <div className="VideoCard__thumbnail w-full h-48 relative overflow-hidden rounded-md">
           <Image
             src={video.thumbnail_url}
