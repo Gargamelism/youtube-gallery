@@ -124,9 +124,7 @@ describe('FilterButtons - Not Interested Filters', () => {
       fireEvent.click(onlyButton);
 
       await waitFor(() => {
-        expect(mockRouter.push).toHaveBeenCalledWith(
-          expect.stringContaining('not_interested_filter=only')
-        );
+        expect(mockRouter.push).toHaveBeenCalledWith(expect.stringContaining('not_interested_filter=only'));
       });
     });
 
@@ -137,9 +135,7 @@ describe('FilterButtons - Not Interested Filters', () => {
       fireEvent.click(includeButton);
 
       await waitFor(() => {
-        expect(mockRouter.push).toHaveBeenCalledWith(
-          expect.stringContaining('not_interested_filter=include')
-        );
+        expect(mockRouter.push).toHaveBeenCalledWith(expect.stringContaining('not_interested_filter=include'));
       });
     });
 
@@ -151,9 +147,7 @@ describe('FilterButtons - Not Interested Filters', () => {
       fireEvent.click(hideButton);
 
       await waitFor(() => {
-        expect(mockRouter.push).toHaveBeenCalledWith(
-          expect.stringContaining('not_interested_filter=exclude')
-        );
+        expect(mockRouter.push).toHaveBeenCalledWith(expect.stringContaining('not_interested_filter=exclude'));
       });
     });
   });
@@ -183,7 +177,9 @@ describe('FilterButtons - Not Interested Filters', () => {
       render(<FilterButtons {...defaultProps} />);
 
       const buttons = screen.getAllByRole('button');
-      const watchedButton = buttons.find(btn => btn.textContent?.includes('Watched') && btn.textContent?.includes('30'));
+      const watchedButton = buttons.find(
+        btn => btn.textContent?.includes('Watched') && btn.textContent?.includes('30')
+      );
       expect(watchedButton).toBeDefined();
 
       fireEvent.click(watchedButton!);
@@ -197,7 +193,9 @@ describe('FilterButtons - Not Interested Filters', () => {
       render(<FilterButtons {...defaultProps} />);
 
       const buttons = screen.getAllByRole('button');
-      const onlyButton = buttons.find(btn => btn.textContent?.includes('Not Interested') && btn.textContent?.includes('15'));
+      const onlyButton = buttons.find(
+        btn => btn.textContent?.includes('Not Interested') && btn.textContent?.includes('15')
+      );
       expect(onlyButton).toBeDefined();
 
       fireEvent.click(onlyButton!);

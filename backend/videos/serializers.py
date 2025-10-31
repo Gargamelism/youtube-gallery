@@ -88,7 +88,9 @@ class VideoListSerializer(serializers.ModelSerializer):  # type: ignore[type-arg
 
     def get_is_watched(self, obj: Video) -> bool:
         user_video = obj.user_videos.first()
-        return user_video.is_watched if user_video else False
+        if not user_video:
+            return False
+        return bool(user_video.is_watched)
 
     def get_watched_at(self, obj: Video) -> Any:
         user_video = obj.user_videos.first()
@@ -96,7 +98,9 @@ class VideoListSerializer(serializers.ModelSerializer):  # type: ignore[type-arg
 
     def get_is_not_interested(self, obj: Video) -> bool:
         user_video = obj.user_videos.first()
-        return user_video.is_not_interested if user_video else False
+        if not user_video:
+            return False
+        return bool(user_video.is_not_interested)
 
     def get_not_interested_at(self, obj: Video) -> Any:
         user_video = obj.user_videos.first()

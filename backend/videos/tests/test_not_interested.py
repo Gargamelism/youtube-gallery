@@ -163,9 +163,7 @@ class NotInterestedFilteringTests(TestCase):
 
     def test_combined_with_watch_status_filter(self) -> None:
         """Test not_interested_filter works with watch_status filter"""
-        UserVideo.objects.filter(user=self.user, video=self.video1).update_or_create(
-            defaults={"is_watched": True}
-        )
+        UserVideo.objects.filter(user=self.user, video=self.video1).update_or_create(defaults={"is_watched": True})
 
         response = self.client.get("/api/videos/?watch_status=unwatched&not_interested_filter=exclude")
 

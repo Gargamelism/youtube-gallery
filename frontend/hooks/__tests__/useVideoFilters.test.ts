@@ -42,7 +42,8 @@ describe('useVideoFilters', () => {
     });
 
     it('parses all filter params from URL', () => {
-      mockSearchParamsString = 'filter=watched&tags=tech,tutorial&tag_mode=all&search=nextjs&not_interested_filter=only';
+      mockSearchParamsString =
+        'filter=watched&tags=tech,tutorial&tag_mode=all&search=nextjs&not_interested_filter=only';
 
       const { result } = renderHook(() => useVideoFilters());
 
@@ -70,9 +71,7 @@ describe('useVideoFilters', () => {
         result.current.updateNotInterestedFilter(NotInterestedFilter.ONLY);
       });
 
-      expect(mockRouter.push).toHaveBeenCalledWith(
-        expect.stringContaining('not_interested_filter=only')
-      );
+      expect(mockRouter.push).toHaveBeenCalledWith(expect.stringContaining('not_interested_filter=only'));
     });
 
     it('updates notInterestedFilter to INCLUDE', () => {
@@ -82,9 +81,7 @@ describe('useVideoFilters', () => {
         result.current.updateNotInterestedFilter(NotInterestedFilter.INCLUDE);
       });
 
-      expect(mockRouter.push).toHaveBeenCalledWith(
-        expect.stringContaining('not_interested_filter=include')
-      );
+      expect(mockRouter.push).toHaveBeenCalledWith(expect.stringContaining('not_interested_filter=include'));
     });
 
     it('updates notInterestedFilter to EXCLUDE', () => {
@@ -95,9 +92,7 @@ describe('useVideoFilters', () => {
         result.current.updateNotInterestedFilter(NotInterestedFilter.EXCLUDE);
       });
 
-      expect(mockRouter.push).toHaveBeenCalledWith(
-        expect.stringContaining('not_interested_filter=exclude')
-      );
+      expect(mockRouter.push).toHaveBeenCalledWith(expect.stringContaining('not_interested_filter=exclude'));
     });
 
     it('preserves other filters when updating notInterestedFilter', () => {
@@ -198,11 +193,7 @@ describe('useVideoFilters', () => {
 
   describe('Filter combinations', () => {
     it('supports all three notInterestedFilter modes', () => {
-      const modes = [
-        NotInterestedFilter.EXCLUDE,
-        NotInterestedFilter.ONLY,
-        NotInterestedFilter.INCLUDE,
-      ];
+      const modes = [NotInterestedFilter.EXCLUDE, NotInterestedFilter.ONLY, NotInterestedFilter.INCLUDE];
 
       modes.forEach(mode => {
         const { result } = renderHook(() => useVideoFilters());
@@ -211,9 +202,7 @@ describe('useVideoFilters', () => {
           result.current.updateNotInterestedFilter(mode);
         });
 
-        expect(mockRouter.push).toHaveBeenCalledWith(
-          expect.stringContaining(`not_interested_filter=${mode}`)
-        );
+        expect(mockRouter.push).toHaveBeenCalledWith(expect.stringContaining(`not_interested_filter=${mode}`));
       });
     });
   });

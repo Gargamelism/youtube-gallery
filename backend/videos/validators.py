@@ -44,7 +44,7 @@ class NotInterestedFilter(str, Enum):
     INCLUDE = "include"
 
     @classmethod
-    def from_param(cls, value: Optional[str]) -> Self:
+    def from_param(cls, value: Optional[str]) -> "NotInterestedFilter":
         """Parse filter from parameter with default to EXCLUDE"""
         try:
             return cls(value)

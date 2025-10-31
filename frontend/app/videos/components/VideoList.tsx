@@ -113,9 +113,7 @@ export function VideoList({ scrollMode }: VideoListProps) {
             video={video}
             onWatch={() => handleVideoClick(video.video_url)}
             onToggleWatched={() => toggleWatchStatus(video.uuid)}
-            onToggleNotInterested={isNotInterested =>
-              toggleNotInterested({ videoId: video.uuid, isNotInterested })
-            }
+            onToggleNotInterested={isNotInterested => toggleNotInterested({ videoId: video.uuid, isNotInterested })}
             notInterestedFilter={notInterestedFilter}
           />
         ))}

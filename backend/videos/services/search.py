@@ -125,9 +125,7 @@ class VideoSearchService:
         self, queryset: QuerySet[Video], filter_mode: NotInterestedFilter
     ) -> QuerySet[Video]:
         """Apply not interested filtering using EXISTS subquery"""
-        not_interested_exists = UserVideo.objects.filter(
-            user=self.user, video=OuterRef("uuid"), is_not_interested=True
-        )
+        not_interested_exists = UserVideo.objects.filter(user=self.user, video=OuterRef("uuid"), is_not_interested=True)
 
         match filter_mode:
             case NotInterestedFilter.ONLY:

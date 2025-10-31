@@ -48,6 +48,7 @@ export function NotInterestedButton({ isNotInterested, notInterestedFilter, onCl
       className={`${baseClasses} ${visibilityClasses} ${colorClasses} ${focusClasses} ${ringColor}`}
       aria-label={label}
       title={label}
+      type="button"
     >
       <Icon className="w-4 h-4" />
     </button>

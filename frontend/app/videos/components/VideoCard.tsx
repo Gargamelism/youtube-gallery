@@ -20,7 +20,13 @@ interface VideoCardProps {
   notInterestedFilter: NotInterestedFilter;
 }
 
-export function VideoCard({ video, onWatch, onToggleWatched, onToggleNotInterested, notInterestedFilter }: VideoCardProps) {
+export function VideoCard({
+  video,
+  onWatch,
+  onToggleWatched,
+  onToggleNotInterested,
+  notInterestedFilter,
+}: VideoCardProps) {
   const { t } = useTranslation('videos');
   const { addTag } = useVideoFilters();
   const [showDescription, setShowDescription] = useState(false);
