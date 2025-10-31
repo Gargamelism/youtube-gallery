@@ -30,6 +30,13 @@ repos:
         files: \.(ts|tsx)$
         pass_filenames: false
 
+      - id: next-tests
+        name: Next Tests
+        entry: docker-compose run --rm --use-aliases frontend npm run test
+        language: system
+        files: \.(ts|tsx)$
+        pass_filenames: false
+
       # # === BACKEND (Django) ===
       - id: black-fix
         name: Black Format

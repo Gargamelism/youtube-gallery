@@ -97,6 +97,7 @@ describe('useInfiniteVideos', () => {
       selectedTags: [],
       tagMode: TagMode.ANY,
       searchQuery: '',
+      notInterestedFilter: NotInterestedFilter.EXCLUDE,
       page: 1,
       page_size: 24,
     });
@@ -125,6 +126,7 @@ describe('useInfiniteVideos', () => {
       selectedTags: [],
       tagMode: TagMode.ANY,
       searchQuery: '',
+      notInterestedFilter: NotInterestedFilter.EXCLUDE,
       page: 2,
       page_size: 24,
     });

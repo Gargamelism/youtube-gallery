@@ -56,7 +56,7 @@ class NotInterestedEndpointTests(TestCase):
         self.assertIsNone(user_video.not_interested_at)
 
     def test_idempotency(self) -> None:
-        """Test repeated calls with same value"""
+        """Test repeated calls with same value preserve original timestamp"""
         url = f"/api/videos/{self.video.uuid}/not-interested"
 
         response1 = self.client.put(url, {"is_not_interested": True}, format="json")
@@ -66,6 +66,7 @@ class NotInterestedEndpointTests(TestCase):
 
         self.assertEqual(response2.status_code, status.HTTP_200_OK)
         self.assertTrue(response2.data["is_not_interested"])
+        self.assertEqual(response2.data["not_interested_at"], first_timestamp)
 
         user_video = UserVideo.objects.get(user=self.user, video=self.video)
         self.assertTrue(user_video.is_not_interested)
