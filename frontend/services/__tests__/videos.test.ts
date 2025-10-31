@@ -1,5 +1,5 @@
 import { buildVideoQueryParams } from '@/services/videos';
-import { TagMode } from '@/types';
+import { TagMode, NotInterestedFilter } from '@/types';
 
 describe('buildVideoQueryParams', () => {
   describe('filter parameter', () => {
@@ -9,6 +9,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
       expect(result).toBe('watch_status=watched');
@@ -20,6 +21,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
       expect(result).toBe('watch_status=unwatched');
@@ -31,6 +33,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
       expect(result).toBe('');
@@ -42,6 +45,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
       expect(result).toBe('');
@@ -55,6 +59,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: ['react', 'typescript'],
         tagMode: TagMode.ALL,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
       expect(result).toBe('tags=react%2Ctypescript&tag_mode=all');
@@ -64,8 +69,9 @@ describe('buildVideoQueryParams', () => {
       const result = buildVideoQueryParams({
         filter: '',
         selectedTags: ['javascript'],
-        tagMode: '' as TagMode, // Force empty to test defaulting
+        tagMode: '' as TagMode,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
       expect(result).toBe('tags=javascript&tag_mode=any');
@@ -77,6 +83,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: ['vue', 'nuxt'],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
       expect(result).toBe('tags=vue%2Cnuxt&tag_mode=any');
@@ -88,6 +95,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ALL,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
       expect(result).toBe('watch_status=watched');
@@ -99,6 +107,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: ['tutorial'],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
       expect(result).toBe('tags=tutorial&tag_mode=any');
@@ -110,6 +119,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: ['C++', 'Node.js', 'Web Dev'],
         tagMode: TagMode.ALL,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
       expect(result).toContain('tags=C%2B%2B%2CNode.js%2CWeb+Dev');
@@ -124,6 +134,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: 'react tutorial',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
       expect(result).toBe('search=react+tutorial');
@@ -135,6 +146,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
       expect(result).toBe('watch_status=unwatched');
@@ -146,6 +158,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: 'hello & world!',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
       expect(result).toBe('search=hello+%26+world%21');
@@ -159,6 +172,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
         page: 2,
       });
 
@@ -171,6 +185,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
         page_size: 50,
       });
 
@@ -183,6 +198,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
         page: 3,
         page_size: 25,
       });
@@ -196,6 +212,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
         page: 0,
       });
 
@@ -208,6 +225,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
         page: -1,
       });
 
@@ -220,6 +238,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
         page_size: 0,
       });
 
@@ -232,6 +251,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
         page_size: -10,
       });
 
@@ -244,6 +264,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
       expect(result).toBe('watch_status=watched');
@@ -257,6 +278,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: ['react', 'typescript'],
         tagMode: TagMode.ALL,
         searchQuery: 'advanced tutorial',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
         page: 2,
         page_size: 20,
       });
@@ -275,6 +297,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: ['javascript'],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
       expect(result).toBe('watch_status=watched&tags=javascript&tag_mode=any');
@@ -286,6 +309,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: 'nextjs',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
       expect(result).toBe('watch_status=unwatched&search=nextjs');
@@ -297,6 +321,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: ['vue'],
         tagMode: TagMode.ANY,
         searchQuery: 'composition api',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
       expect(result).toContain('tags=vue');
@@ -310,6 +335,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
         page: 5,
         page_size: 100,
       });
@@ -325,6 +351,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
       expect(result).toBe('');
@@ -336,6 +363,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
       expect(result).toBe('');
@@ -347,6 +375,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '   ',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
       expect(result).toBe('search=+++');
@@ -359,11 +388,12 @@ describe('buildVideoQueryParams', () => {
         selectedTags: manyTags,
         tagMode: TagMode.ALL,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
       expect(result).toContain('tags=');
       expect(result).toContain('tag_mode=all');
-      expect(result.match(new RegExp('%2C', 'g'))?.length).toBe(49); // 49 commas for 50 tags
+      expect(result.match(new RegExp('%2C', 'g'))?.length).toBe(49);
     });
 
     it('should handle large page numbers', () => {
@@ -372,6 +402,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
         page: 999999,
       });
 
@@ -386,6 +417,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: ['react'],
         tagMode: TagMode.ANY,
         searchQuery: 'tutorial',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
         page: 1,
         page_size: 24,
       });
@@ -403,6 +435,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: ['react', 'typescript'],
         tagMode: TagMode.ALL,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
       expect(result).toBe('tags=react%2Ctypescript&tag_mode=all');
@@ -414,6 +447,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
         page: 3,
       });
 
@@ -426,6 +460,7 @@ describe('buildVideoQueryParams', () => {
         selectedTags: [],
         tagMode: TagMode.ANY,
         searchQuery: 'Next.js',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
       });
 
       expect(result).toBe('watch_status=unwatched&search=Next.js');

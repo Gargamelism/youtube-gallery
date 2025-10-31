@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { VideoList } from '../VideoList';
-import { TagMode, Video } from '@/types';
+import { TagMode, Video, NotInterestedFilter } from '@/types';
 import { ScrollMode } from '@/lib/scrollMode';
 import * as services from '@/services';
 
@@ -20,6 +20,8 @@ const createMockVideo = (uuid: string, title: string, isWatched: boolean, channe
   video_url: `https://youtube.com/${uuid}`,
   is_watched: isWatched,
   watched_at: isWatched ? '2024-01-01T00:00:00Z' : null,
+  is_not_interested: false,
+  not_interested_at: null,
   notes: null,
   channel_tags: [],
 });
@@ -39,6 +41,7 @@ jest.mock('@/hooks/useVideoFilters', () => ({
     filter: 'all',
     selectedTags: [],
     tagMode: TagMode.ANY,
+    notInterestedFilter: NotInterestedFilter.EXCLUDE,
     areFiltersEqual: jest.fn(() => true),
   }),
 }));

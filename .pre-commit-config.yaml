@@ -16,6 +16,13 @@ repos:
         files: \.(js|jsx|ts|tsx|json|css|html|md)$
         pass_filenames: false
 
+      - id: type-check
+        name: Type Check
+        entry: docker-compose run --rm --use-aliases frontend npm run type-check
+        language: system
+        files: \.(ts|tsx)$
+        pass_filenames: false
+
       - id: ts-prune-check
         name: TS-Prune (Unused Exports)
         entry: docker-compose run --rm --use-aliases frontend sh -c "npx ts-prune | grep -v 'used in module'"

@@ -6,7 +6,7 @@ import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { SkeletonGrid, VideoCardSkeleton } from '@/components/ui';
 import { VideoFilters } from '@/types';
-import { TagMode, WatchStatus } from '@/types';
+import { TagMode, WatchStatus, NotInterestedFilter } from '@/types';
 import { queryKeys } from '@/lib/reactQueryConfig';
 
 export default function Home() {
@@ -18,6 +18,7 @@ export default function Home() {
     selectedTags: [],
     tagMode: TagMode.ANY,
     searchQuery: '',
+    notInterestedFilter: NotInterestedFilter.EXCLUDE,
   };
 
   const {
