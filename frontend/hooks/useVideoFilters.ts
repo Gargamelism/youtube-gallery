@@ -25,8 +25,12 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
   const selectedTags = searchParams.get('tags')?.split(',').filter(Boolean) || [];
   const tagMode = (searchParams.get('tag_mode') as TagModeType) || TagMode.ANY;
   const searchQuery = searchParams.get('search') || '';
+  const notInterestedFilterParam = searchParams.get('not_interested_filter');
   const notInterestedFilter =
-    (searchParams.get('not_interested_filter') as NotInterestedFilter) || NotInterestedFilter.EXCLUDE;
+    notInterestedFilterParam &&
+    Object.values(NotInterestedFilter).includes(notInterestedFilterParam as NotInterestedFilter)
+      ? (notInterestedFilterParam as NotInterestedFilter)
+      : NotInterestedFilter.EXCLUDE;
 
   // Helper function to update URL with current state
   const updateUrl = (updates: Record<string, string | string[] | undefined>) => {
