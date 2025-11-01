@@ -102,7 +102,12 @@ export function VideoCard({
       />
 
       <div className={`VideoCard__content flex flex-col gap-4 ${shouldDimCard ? 'opacity-50' : ''}`}>
-        <div className="VideoCard__thumbnail w-full h-48 relative overflow-hidden rounded-md">
+        <a
+          href={video.video_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="VideoCard__thumbnail w-full h-48 relative overflow-hidden rounded-md block cursor-pointer group/thumbnail"
+        >
           <Image
             src={video.thumbnail_url}
             alt={video.title}
@@ -111,19 +116,16 @@ export function VideoCard({
             loading="lazy"
             sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
-          <button
-            onClick={onWatch}
-            className="VideoCard__play-overlay absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 hover:opacity-100 transition-opacity"
-          >
+          <div className="VideoCard__play-overlay absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover/thumbnail:opacity-100 transition-opacity">
             <Play className="VideoCard__play-icon w-12 h-12 text-white" />
-          </button>
+          </div>
 
           {video.duration && (
             <div className="VideoCard__duration absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
               {formatDuration(video.duration)}
             </div>
           )}
-        </div>
+        </a>
 
         <div className="VideoCard__info flex-1 min-w-0">
           <h3
