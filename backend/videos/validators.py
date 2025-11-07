@@ -205,3 +205,30 @@ class TagAssignmentParams(BaseModel):
             )
         except Exception as e:
             raise DRFValidationError({"request_data": str(e)})
+        
+
+class WatchProgressUpdateParams(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    progress_seconds: int
+
+    @field_validator("progress_seconds")
+    @classmethod
+    def validate_progress_seconds(cls, progress_seconds: int) -> int:
+        if progress_seconds < 0:
+            raise ValueError("progress_seconds must be a non-negative integer")
+        return progress_seconds
+    
+
+class WatchPreferencesParams(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    auto_mark_watched: bool = True
+    auto_mark_threshold_percent: int
+
+    @field_validator("auto_mark_threshold_percent")
+    @classmethod
+    def validate_threshold_percent(cls, percent: int) -> int:
+        if not (0 <= percent <= 100):
+            raise ValueError("auto_mark_threshold_percent must be between 0 and 100")
+        return percent    

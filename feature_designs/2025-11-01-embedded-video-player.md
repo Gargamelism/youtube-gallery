@@ -1044,10 +1044,10 @@ Add player-related translations:
 ## Implementation Phases
 
 ### Phase 1: Backend Foundation
-**Status**: 🟡 Current
+**Status**: ✅ Implemented
 
 **Tasks**:
-- Create database migrations:
+- ✅ Create database migrations:
   - **UserWatchPreferences table**:
     - `auto_mark_watched_enabled` (boolean, default=True)
     - `auto_mark_threshold` (integer, default=75, range 0-100)
@@ -1058,18 +1058,18 @@ Add player-related translations:
     - Add index on `(user, watch_progress_seconds)` for "continue watching" queries
     - Add `@property watch_percentage` calculated method
   - Auto-create preferences for existing users with defaults
-- Create Pydantic validators:
+- ✅ Create Pydantic validators:
   - `WatchProgressUpdateParams` validator
   - `WatchPreferencesParams` validator (with 0-100 range validation)
-- Implement progress tracking endpoints:
+- ✅ Implement progress tracking endpoints:
   - `PUT /api/videos/{uuid}/watch-progress` - Update progress with user preferences
   - `GET /api/videos/{uuid}/watch-progress` - Get saved progress
-- Implement preferences endpoints:
+- ✅ Implement preferences endpoints:
   - `GET /api/auth/watch-preferences` - Get user's watch preferences
   - `PUT /api/auth/watch-preferences` - Update watch preferences
-- Update existing `PUT /api/videos/{uuid}/watch` to include progress in response
-- Update `VideoListSerializer` to include calculated progress fields
-- Write backend tests:
+- ✅ Update existing `PUT /api/videos/{uuid}/watch` to include progress in response
+- ✅ Update `VideoListSerializer` to include calculated progress fields
+- ✅ Write backend tests:
   - Test auto-mark with default 75% threshold
   - Test auto-mark with custom thresholds (50%, 90%, 100%)
   - Test disabling auto-mark (preferences.auto_mark_watched_enabled=False)
@@ -1080,19 +1080,19 @@ Add player-related translations:
   - Test edge cases (0 duration, >100%, invalid thresholds)
 
 **Acceptance Criteria**:
-- Migration runs successfully on test database
-- UserWatchPreferences table created with proper constraints
-- Only 2 new UserVideo columns added (watch_progress_seconds, auto_marked_watched)
-- `watch_percentage` property calculates correctly from `video.duration`
-- User preferences control auto-mark behavior correctly
-- Threshold can be set to any value 0-100
-- Auto-mark can be completely disabled
-- All API endpoints return correct progress data
-- Backend tests pass with >90% coverage
-- No redundant data stored in database
+- ✅ Migration runs successfully on test database
+- ✅ UserWatchPreferences table created with proper constraints
+- ✅ Only 2 new UserVideo columns added (watch_progress_seconds, auto_marked_watched)
+- ✅ `watch_percentage` property calculates correctly from `video.duration`
+- ✅ User preferences control auto-mark behavior correctly
+- ✅ Threshold can be set to any value 0-100
+- ✅ Auto-mark can be completely disabled
+- ✅ All API endpoints return correct progress data
+- ✅ Backend tests pass with >90% coverage
+- ✅ No redundant data stored in database
 
 ### Phase 2: Frontend Player Component
-**Status**: ⚪ Pending
+**Status**: 🟡 Current
 
 **Tasks**:
 - Add YouTube IFrame API type declarations

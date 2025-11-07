@@ -181,6 +181,9 @@ FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:3000")
 YOUTUBE_API_KEY = config("YOUTUBE_API_KEY", default="")
 YOUTUBE_ENCRYPTION_TOKEN = config("YOUTUBE_ENCRYPTION_TOKEN", default="")
 
+# Watch tracking settings
+DEFAULT_AUTO_MARK_THRESHOLD = config("DEFAULT_AUTO_MARK_THRESHOLD", default=75, cast=int)
+
 # Redis settings
 REDIS_HOST = config("REDIS_HOST", default="localhost")
 REDIS_PORT = config("REDIS_PORT", default=6379, cast=int)

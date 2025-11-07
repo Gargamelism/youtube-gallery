@@ -8,6 +8,7 @@ router = KebabCaseRouter(trailing_slash=False)
 router.register(r"tags", views.ChannelTagViewSet, basename="channel-tags")
 router.register(r"channels", views.UserChannelViewSet, basename="user-channels")
 router.register(r"videos", views.UserVideoViewSet, basename="user-videos")
+router.register(r"watch-preferences", views.UserWatchPreferencesViewSet, basename="watch-preferences")
 
 urlpatterns = [
     # Function-based views

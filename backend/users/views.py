@@ -19,7 +19,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.serializers import BaseSerializer
 
-from users.models import User, UserChannel
+from users.models import User, UserChannel, UserWatchPreferences
 from users.utils import get_youtube_credentials
 from videos.services.youtube import YouTubeAuthenticationError, YouTubeService
 from videos.services.user_quota_tracker import UserQuotaTracker
@@ -33,9 +33,10 @@ from .serializers import (
     UserRegistrationSerializer,
     UserSerializer,
     UserVideoSerializer,
+    UserWatchPreferencesSerializer,
 )
 from .services.channel_search import ChannelSearchService
-from videos.validators import ChannelSearchParams, TagAssignmentParams
+from videos.validators import ChannelSearchParams, TagAssignmentParams, WatchPreferencesParams
 from videos.serializers import ChannelSerializer
 from youtube_gallery.utils.http import http
 
@@ -346,3 +347,62 @@ class ChannelTagViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
 
     def perform_create(self, serializer: BaseSerializer[Any]) -> None:
         serializer.save(user=self.request.user)
+
+
+class UserWatchPreferencesViewSet(viewsets.ViewSet):
+    """
+    ViewSet for managing user watch preferences (singleton resource).
+
+    Supports GET and PUT on the list endpoint for singleton behavior:
+    - GET /api/auth/watch-preferences - Get preferences
+    - PUT /api/auth/watch-preferences - Update preferences
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = UserWatchPreferencesSerializer
+
+    def list(self, request: Request) -> Response:
+        """Get current user's watch preferences"""
+        user = cast(User, request.user)
+
+        preferences, _ = UserWatchPreferences.objects.get_or_create(
+            user=user,
+            defaults={
+                "auto_mark_watched_enabled": True,
+                "auto_mark_threshold": None,
+            }
+        )
+
+        serializer = UserWatchPreferencesSerializer(preferences)
+        return Response(serializer.data)
+
+    def create(self, request: Request) -> Response:
+        """
+        Update user's watch preferences (using POST/PUT on list endpoint).
+        This provides singleton behavior without requiring a PK in the URL.
+        """
+        user = cast(User, request.user)
+
+        params = WatchPreferencesParams.model_validate({
+            "auto_mark_watched": request.data.get("auto_mark_watched_enabled", True),
+            "auto_mark_threshold_percent": request.data.get("auto_mark_threshold")
+        })
+
+        preferences, _ = UserWatchPreferences.objects.get_or_create(
+            user=user,
+            defaults={
+                "auto_mark_watched_enabled": params.auto_mark_watched,
+                "auto_mark_threshold": params.auto_mark_threshold_percent,
+            }
+        )
+
+        preferences.auto_mark_watched_enabled = params.auto_mark_watched
+        preferences.auto_mark_threshold = params.auto_mark_threshold_percent
+        preferences.save()
+
+        serializer = UserWatchPreferencesSerializer(preferences)
+        return Response({
+            "status": "success",
+            **serializer.data,
+            "message": "Watch preferences updated successfully"
+        })
