@@ -1,4 +1,13 @@
-import { VideoResponse, VideoStats, UserVideo, TagMode, PaginationParams, VideoFilters } from '@/types';
+import {
+  VideoResponse,
+  VideoStats,
+  UserVideo,
+  TagMode,
+  PaginationParams,
+  VideoFilters,
+  WatchProgressUpdate,
+  WatchProgressResponse,
+} from '@/types';
 import { ResponseHandler, ApiResponse } from './ResponseHandler';
 import { API_BASE_URL, getRequestOptions } from './shared';
 
@@ -90,4 +99,23 @@ export async function updateVideoNotInterested(
 export async function fetchUserVideos(): Promise<ApiResponse<UserVideo[]>> {
   const response = await fetch(`${API_BASE_URL}/auth/videos`, getRequestOptions());
   return ResponseHandler.handle<UserVideo[]>(response);
+}
+
+export async function updateVideoWatchProgress(
+  videoId: string,
+  data: WatchProgressUpdate
+): Promise<ApiResponse<WatchProgressResponse>> {
+  const response = await fetch(`${API_BASE_URL}/videos/${videoId}/watch-progress`, {
+    ...getRequestOptions(),
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+  return ResponseHandler.handle<WatchProgressResponse>(response);
+}
+
+export async function getVideoWatchProgress(
+  videoId: string
+): Promise<ApiResponse<WatchProgressResponse>> {
+  const response = await fetch(`${API_BASE_URL}/videos/${videoId}/watch-progress`, getRequestOptions());
+  return ResponseHandler.handle<WatchProgressResponse>(response);
 }

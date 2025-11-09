@@ -1092,28 +1092,32 @@ Add player-related translations:
 - ✅ No redundant data stored in database
 
 ### Phase 2: Frontend Player Component
-**Status**: 🟡 Current
+**Status**: ✅ Implemented
 
 **Tasks**:
-- Add YouTube IFrame API type declarations
-- Create `VideoPlayer` component with YouTube IFrame integration
-- Implement player initialization and lifecycle management
-- Create `useVideoPlayer` hook for progress tracking
-- Add progress bar and visual feedback
-- Implement manual "Mark as Watched" button
-- Add player controls overlay
-- Create responsive modal layout
-- Update TypeScript types for player state
+- ✅ Add YouTube IFrame API type declarations (`@types/youtube` package + custom `youtube.d.ts`)
+- ✅ Create `VideoPlayer` component with YouTube IFrame integration
+- ✅ Implement player initialization and lifecycle management
+- ✅ Create player mutations (`useUpdateWatchProgress`, `useMarkAsWatched` in `components/player/mutations.ts`)
+- ✅ Add progress bar and visual feedback with dynamic threshold display
+- ✅ Implement manual "Mark as Watched" button
+- ✅ Add player controls overlay with restart functionality
+- ✅ Create responsive modal layout with BEM naming convention
+- ✅ Update TypeScript types for player state
+- ✅ Smart progress tracking (only tracks when playing, pauses when paused/buffering)
+- ✅ Add internationalization for all player strings (`locales/en/player.json`)
 
 **Acceptance Criteria**:
-- Player loads and plays YouTube videos
-- Progress bar updates in real-time
-- Manual watch button works
-- Player is responsive on mobile and desktop
-- TypeScript types are complete with no errors
+- ✅ Player loads and plays YouTube videos
+- ✅ Progress bar updates in real-time
+- ✅ Manual watch button works
+- ✅ Player is responsive on mobile and desktop
+- ✅ TypeScript types are complete with no errors
+- ✅ Uses user's configured auto-mark threshold (not hardcoded)
+- ✅ Follows established codebase patterns (mutations in component folder)
 
 ### Phase 3: Integration and Auto-Watch
-**Status**: ⚪ Pending
+**Status**: 🟡 Current
 
 **Tasks**:
 - Update `VideoCard` to open player instead of external link

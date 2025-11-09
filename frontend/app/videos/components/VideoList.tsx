@@ -26,12 +26,6 @@ export function VideoList({ scrollMode }: VideoListProps) {
   const { filter, selectedTags, tagMode, searchQuery, notInterestedFilter, areFiltersEqual } = useVideoFilters();
   const { t } = useTranslation('videos');
 
-  const handleVideoClick = (url: string) => {
-    if (url) {
-      window.open(url, '_blank', 'noopener,noreferrer');
-    }
-  };
-
   const currentFilters = { filter, selectedTags, tagMode, searchQuery, notInterestedFilter };
 
   const { data, fetchNextPage, hasNextPage, isFetching, isLoading, error, isRestoring } = useInfiniteVideos(
@@ -111,7 +105,6 @@ export function VideoList({ scrollMode }: VideoListProps) {
           <VideoCard
             key={video.uuid}
             video={video}
-            onWatch={() => handleVideoClick(video.video_url)}
             onToggleWatched={() => toggleWatchStatus(video.uuid)}
             onToggleNotInterested={isNotInterested => toggleNotInterested({ videoId: video.uuid, isNotInterested })}
             notInterestedFilter={notInterestedFilter}

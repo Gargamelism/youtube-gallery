@@ -14,7 +14,6 @@ const MAX_DURATION_LENGTH = 20;
 
 interface VideoCardProps {
   video: Video;
-  onWatch: () => void;
   onToggleWatched: (isWatched: boolean, notes?: string) => void;
   onToggleNotInterested: (isNotInterested: boolean) => void;
   notInterestedFilter: NotInterestedFilter;
@@ -22,7 +21,6 @@ interface VideoCardProps {
 
 export function VideoCard({
   video,
-  onWatch,
   onToggleWatched,
   onToggleNotInterested,
   notInterestedFilter,
