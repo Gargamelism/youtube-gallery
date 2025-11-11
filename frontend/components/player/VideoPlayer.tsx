@@ -4,8 +4,9 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { Video } from '@/types';
-import { X, Check, RotateCcw } from 'lucide-react';
+import { X, Check } from 'lucide-react';
 import { useUpdateWatchProgress, useMarkAsWatched } from './mutations';
+import { getVideoWatchProgress } from '@/services/videos';
 
 interface VideoPlayerProps {
   video: Video;
@@ -24,6 +25,7 @@ export function VideoPlayer({ video, onClose, onWatchStatusChange }: VideoPlayer
   const [duration, setDuration] = useState(0);
   const [isWatched, setIsWatched] = useState(video.is_watched);
   const [autoMarkThreshold, setAutoMarkThreshold] = useState(75);
+  const [startPosition, setStartPosition] = useState(video.watch_progress_seconds || 0);
 
   const { mutateAsync: updateProgress } = useUpdateWatchProgress(queryClient, video.uuid);
   const { mutateAsync: markAsWatched, isPending: isMarkingWatched } = useMarkAsWatched(queryClient, video.uuid);
@@ -31,6 +33,21 @@ export function VideoPlayer({ video, onClose, onWatchStatusChange }: VideoPlayer
   const getYouTubeVideoId = useCallback(() => {
     return video.video_id;
   }, [video.video_id]);
+
+  // Fetch latest watch progress on mount to ensure we have the most recent position
+  useEffect(() => {
+    const fetchProgress = async () => {
+      try {
+        const response = await getVideoWatchProgress(video.uuid);
+        if (response.data) {
+          setStartPosition(response.data.watch_progress_seconds || 0);
+        }
+      } catch (error) {
+        console.error('Failed to fetch watch progress:', error);
+      }
+    };
+    fetchProgress();
+  }, [video.uuid]);
 
   // Initialize YouTube IFrame API and create player instance
   useEffect(() => {
@@ -46,14 +63,16 @@ export function VideoPlayer({ video, onClose, onWatchStatusChange }: VideoPlayer
 
       playerRef.current = new window.YT.Player(containerRef.current, {
         videoId: getYouTubeVideoId(),
+        width: '100%',
+        height: '100%',
         playerVars: {
           autoplay: 1,
-          start: video.watch_progress_seconds || 0,
+          start: startPosition,
           rel: 0,
           modestbranding: 1,
         },
         events: {
-          onReady: event => {
+          onReady: (event: YT.PlayerEvent) => {
             setIsReady(true);
             setDuration(event.target.getDuration());
           },
@@ -71,7 +90,7 @@ export function VideoPlayer({ video, onClose, onWatchStatusChange }: VideoPlayer
     return () => {
       playerRef.current?.destroy();
     };
-  }, [video.video_id, video.watch_progress_seconds, getYouTubeVideoId]);
+  }, [video.video_id, startPosition, getYouTubeVideoId]);
 
   // Track playback progress and send updates to backend every 10 seconds (only when playing)
   useEffect(() => {
@@ -153,7 +172,7 @@ export function VideoPlayer({ video, onClose, onWatchStatusChange }: VideoPlayer
           <div ref={containerRef} className="VideoPlayer__iframe absolute inset-0" id={`player-${video.uuid}`} />
         </div>
 
-        <div className="VideoPlayer__controls absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+        <div className="VideoPlayer__controls bg-gray-900 p-4">
           <div className="VideoPlayer__progress mb-4">
             <div className="VideoPlayer__progress-track w-full bg-gray-700 h-1 rounded-full overflow-hidden">
               <div
@@ -184,16 +203,6 @@ export function VideoPlayer({ video, onClose, onWatchStatusChange }: VideoPlayer
                 <Check className="VideoPlayer__watched-icon w-4 h-4" />
                 {t('watched')}
               </div>
-            )}
-
-            {video.watch_progress_seconds && video.watch_progress_seconds > 0 && (
-              <button
-                onClick={() => playerRef.current?.seekTo(0, true)}
-                className="VideoPlayer__restart-button flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
-              >
-                <RotateCcw className="VideoPlayer__restart-icon w-4 h-4" />
-                {t('restart')}
-              </button>
             )}
           </div>
         </div>

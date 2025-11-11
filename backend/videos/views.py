@@ -247,9 +247,7 @@ class VideoViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
                 "auto_marked_watched": user_video.auto_marked_watched,
             })
 
-        params = WatchProgressUpdateParams.model_validate(
-            {"progress_seconds": request.data.get("progress_seconds")}
-        )
+        params = WatchProgressUpdateParams.model_validate(request.data)
 
         preferences, _ = UserWatchPreferences.objects.get_or_create(
             user=user,
@@ -259,12 +257,14 @@ class VideoViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
             }
         )
 
-        user_video.watch_progress_seconds = params.progress_seconds
+        user_video.watch_progress_seconds = int(params.current_time)
+        current_percentage = (params.current_time / params.duration) * 100 if params.duration > 0 else 0
 
         auto_marked = False
-        if (preferences.auto_mark_watched_enabled and
+        if (params.auto_mark and
+            preferences.auto_mark_watched_enabled and
             not user_video.is_watched and
-            user_video.watch_percentage >= preferences.get_threshold()):
+            current_percentage >= preferences.get_threshold()):
             user_video.is_watched = True
             user_video.watched_at = timezone.now()
             user_video.auto_marked_watched = True

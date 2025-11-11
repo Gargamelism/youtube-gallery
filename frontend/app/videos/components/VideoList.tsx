@@ -1,9 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import { SkeletonGrid, VideoCardSkeleton } from '@/components/ui';
 import { VideoCard } from './VideoCard';
 import { LoadMoreButton } from './LoadMoreButton';
 import { ScrollToTopButton } from '@/components/ui/ScrollToTopButton';
+import { VideoPlayer } from '@/components/player/VideoPlayer';
 import { Video } from '@/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateVideoWatchStatus, updateVideoNotInterested } from '@/services';
@@ -25,6 +27,7 @@ export function VideoList({ scrollMode }: VideoListProps) {
   const queryClient = useQueryClient();
   const { filter, selectedTags, tagMode, searchQuery, notInterestedFilter, areFiltersEqual } = useVideoFilters();
   const { t } = useTranslation('videos');
+  const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
 
   const currentFilters = { filter, selectedTags, tagMode, searchQuery, notInterestedFilter };
 
@@ -72,6 +75,21 @@ export function VideoList({ scrollMode }: VideoListProps) {
     },
   });
 
+  const handleOpenPlayer = (video: Video) => {
+    setSelectedVideo(video);
+  };
+
+  const handleClosePlayer = () => {
+    setSelectedVideo(null);
+  };
+
+  const handleWatchStatusChange = (isWatched: boolean) => {
+    if (isWatched && selectedVideo) {
+      queryClient.invalidateQueries({ queryKey: queryKeys.videos });
+      queryClient.invalidateQueries({ queryKey: queryKeys.videoStats });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -105,6 +123,7 @@ export function VideoList({ scrollMode }: VideoListProps) {
           <VideoCard
             key={video.uuid}
             video={video}
+            onWatch={() => handleOpenPlayer(video)}
             onToggleWatched={() => toggleWatchStatus(video.uuid)}
             onToggleNotInterested={isNotInterested => toggleNotInterested({ videoId: video.uuid, isNotInterested })}
             notInterestedFilter={notInterestedFilter}
@@ -131,6 +150,10 @@ export function VideoList({ scrollMode }: VideoListProps) {
           </div>
         )}
       </div>
+
+      {selectedVideo && (
+        <VideoPlayer video={selectedVideo} onClose={handleClosePlayer} onWatchStatusChange={handleWatchStatusChange} />
+      )}
     </div>
   );
 }

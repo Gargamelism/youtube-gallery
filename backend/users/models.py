@@ -13,6 +13,7 @@ from django.db.models import Prefetch, QuerySet
 from django.utils import timezone as dj_tz
 from google.oauth2.credentials import Credentials
 
+from videos.fields import YouTubeDurationField
 from videos.services.youtube import YOUTUBE_SCOPES, YouTubeService
 
 T = TypeVar("T", bound=models.Model)
@@ -130,7 +131,8 @@ class UserVideo(TimestampMixin):
         if not self.video or not self.video.duration:
             return 0.0
 
-        duration_seconds = self.video.duration.total_seconds()
+        duration_field = YouTubeDurationField()
+        duration_seconds = duration_field.duration_to_seconds(self.video.duration)
         if duration_seconds <= 0:
             return 0.0
 

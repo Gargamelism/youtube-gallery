@@ -1117,24 +1117,24 @@ Add player-related translations:
 - ✅ Follows established codebase patterns (mutations in component folder)
 
 ### Phase 3: Integration and Auto-Watch
-**Status**: 🟡 Current
+**Status**: ✅ Implemented
 
-**Tasks**:
-- Update `VideoCard` to open player instead of external link
-- Connect player progress updates to backend API
-- Implement 10-second interval progress saves
-- Add 75% auto-mark logic with notification
-- Update video services to include new API calls
-- Integrate player with existing watch status system
-- Add progress indicator to video thumbnails
-- Test auto-mark threshold behavior
+**Completed Tasks**:
+- ✅ Updated `VideoCard` to open player modal instead of external link (button element with onClick handler)
+- ✅ Connected player progress updates to backend API via mutations
+- ✅ Implemented smart 10-second interval progress saves (only when playing, paused when video paused/buffering)
+- ✅ Added dynamic auto-mark threshold from user preferences (not hardcoded)
+- ✅ Updated video services to include new API calls (`updateVideoWatchProgress`, `getVideoWatchProgress`)
+- ✅ Integrated player with existing watch status system (query invalidation on watch status change)
+- ✅ Added progress indicator overlay to video thumbnails (red progress bar at bottom)
+- ✅ Player state management in VideoList component with modal rendering
 
-**Acceptance Criteria**:
-- Clicking video opens embedded player
-- Progress saves every 10 seconds
-- Video auto-marks at 75% completion
-- UI updates immediately when auto-marked
-- Progress persists across sessions
+**Acceptance Criteria Met**:
+- ✅ Clicking video thumbnail opens embedded player in modal
+- ✅ Progress saves every 10 seconds during playback
+- ✅ Video auto-marks at user-configured threshold (fetched from backend)
+- ✅ UI updates immediately when auto-marked via query invalidation
+- ✅ Progress persists and displays across sessions (progress bar on thumbnails)
 
 ### Phase 4: User Preferences Settings UI
 **Status**: ⚪ Pending

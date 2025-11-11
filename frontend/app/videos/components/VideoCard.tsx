@@ -14,6 +14,7 @@ const MAX_DURATION_LENGTH = 20;
 
 interface VideoCardProps {
   video: Video;
+  onWatch: () => void;
   onToggleWatched: (isWatched: boolean, notes?: string) => void;
   onToggleNotInterested: (isNotInterested: boolean) => void;
   notInterestedFilter: NotInterestedFilter;
@@ -21,6 +22,7 @@ interface VideoCardProps {
 
 export function VideoCard({
   video,
+  onWatch,
   onToggleWatched,
   onToggleNotInterested,
   notInterestedFilter,
@@ -100,11 +102,10 @@ export function VideoCard({
       />
 
       <div className={`VideoCard__content flex flex-col gap-4 ${shouldDimCard ? 'opacity-50' : ''}`}>
-        <a
-          href={video.video_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="VideoCard__thumbnail w-full h-48 relative overflow-hidden rounded-md block cursor-pointer group/thumbnail"
+        <button
+          type="button"
+          onClick={onWatch}
+          className="VideoCard__thumbnail w-full h-48 relative overflow-hidden rounded-md cursor-pointer group/thumbnail"
         >
           <Image
             src={video.thumbnail_url}
@@ -123,7 +124,16 @@ export function VideoCard({
               {formatDuration(video.duration)}
             </div>
           )}
-        </a>
+
+          {video.watch_percentage !== undefined && video.watch_percentage > 0 && (
+            <div className="VideoCard__progress absolute bottom-0 left-0 right-0 h-1 bg-gray-700/50">
+              <div
+                className="VideoCard__progress-bar h-full bg-red-600 transition-all"
+                style={{ width: `${video.watch_percentage}%` }}
+              />
+            </div>
+          )}
+        </button>
 
         <div className="VideoCard__info flex-1 min-w-0">
           <h3

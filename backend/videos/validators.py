@@ -1,7 +1,7 @@
 import uuid
 from typing import List, Optional, Self
 from enum import Enum
-from pydantic import BaseModel, ConfigDict, field_validator, model_validator, ValidationInfo
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator, ValidationInfo, Field
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.request import Request
 
@@ -210,14 +210,9 @@ class TagAssignmentParams(BaseModel):
 class WatchProgressUpdateParams(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    progress_seconds: int
-
-    @field_validator("progress_seconds")
-    @classmethod
-    def validate_progress_seconds(cls, progress_seconds: int) -> int:
-        if progress_seconds < 0:
-            raise ValueError("progress_seconds must be a non-negative integer")
-        return progress_seconds
+    current_time: float = Field(..., ge=0, description="Current playback position in seconds")
+    duration: float = Field(..., gt=0, description="Total video duration in seconds")
+    auto_mark: bool = Field(default=True, description="Auto-mark as watched at threshold")
     
 
 class WatchPreferencesParams(BaseModel):
