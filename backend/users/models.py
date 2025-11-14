@@ -139,7 +139,7 @@ class UserVideo(TimestampMixin):
         if not self.video or not self.video.duration:
             return 0.0
 
-        duration_seconds = self.video.duration.total_seconds()
+        duration_seconds = self.video.get_duration_seconds()
         if duration_seconds <= 0:
             return 0.0
 

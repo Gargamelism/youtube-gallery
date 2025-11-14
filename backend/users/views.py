@@ -353,9 +353,9 @@ class UserWatchPreferencesViewSet(viewsets.ViewSet):
     """
     ViewSet for managing user watch preferences (singleton resource).
 
-    Supports GET and PUT on the list endpoint for singleton behavior:
+    Supports GET, POST, and PUT on the list endpoint:
     - GET /api/auth/watch-preferences - Get preferences
-    - PUT /api/auth/watch-preferences - Update preferences
+    - POST/PUT /api/auth/watch-preferences - Update preferences
     """
 
     permission_classes = [permissions.IsAuthenticated]
@@ -378,7 +378,7 @@ class UserWatchPreferencesViewSet(viewsets.ViewSet):
 
     def create(self, request: Request) -> Response:
         """
-        Update user's watch preferences (using POST/PUT on list endpoint).
+        Update user's watch preferences (handles both POST and PUT).
         This provides singleton behavior without requiring a PK in the URL.
         """
         user = cast(User, request.user)

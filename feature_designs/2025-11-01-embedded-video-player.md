@@ -1137,25 +1137,34 @@ Add player-related translations:
 - ✅ Progress persists and displays across sessions (progress bar on thumbnails)
 
 ### Phase 4: User Preferences Settings UI
-**Status**: ⚪ Pending
+**Status**: ✅ Implemented
 
 **Tasks**:
-- Create settings page/section for watch preferences
-- Add toggle for enabling/disabling auto-mark watched
-- Add slider/input for adjusting auto-mark threshold (0-100%)
-- Create `useWatchPreferences` hook for managing preferences
-- Add preferences services (GET/PUT endpoints)
-- Show current threshold visually in player (e.g., "Auto-mark at 75%")
-- Add preference reset to defaults button
-- Implement i18n for all settings strings
+- ✅ Create settings page/section for watch preferences
+- ✅ Add toggle for enabling/disabling auto-mark watched
+- ✅ Add slider/input for adjusting auto-mark threshold (50-100% in 5% steps)
+- ✅ Form-based approach with explicit save/cancel actions
+- ✅ Add preferences services (GET/PUT endpoints)
+- ✅ Add preference reset to defaults button
+- ✅ Implement i18n for all settings strings
+
+**Implementation Details**:
+- Settings section integrated into [frontend/app/settings/page.tsx](frontend/app/settings/page.tsx)
+- Component: [WatchPreferencesSection.tsx](frontend/app/settings/components/WatchPreferencesSection.tsx)
+- Local state management with explicit save/cancel buttons (avoids instant-update issues)
+- Save/Cancel buttons only appear when form has unsaved changes
+- Custom ViewSet route mapping for PUT on list endpoint: [backend/users/urls.py:14-18](backend/users/urls.py#L14-L18)
+- Pydantic validation: [WatchPreferencesParams](backend/videos/validators.py)
+- React Query configuration: [WATCH_PREFERENCES_CONFIG](frontend/lib/reactQueryConfig.ts)
+- Constants: [watchPreferencesConstants.ts](frontend/lib/watchPreferencesConstants.ts)
 
 **Acceptance Criteria**:
-- Settings page accessible from user menu/profile
-- Toggle switches auto-mark on/off correctly
-- Threshold slider updates in real-time
-- Changes persist after page reload
-- Visual feedback shows current threshold in player
-- All text is translatable via i18n
+- ✅ Settings section accessible from Settings page
+- ✅ Toggle switches auto-mark on/off correctly
+- ✅ Threshold slider updates smoothly without jumping
+- ✅ Changes persist after page reload
+- ✅ Form-based UX with save/cancel actions
+- ✅ All text is translatable via i18n ([settings.json](frontend/locales/en/settings.json))
 - Reset button restores defaults (enabled=true, threshold=75)
 
 ### Phase 5: Polish and UX Enhancements

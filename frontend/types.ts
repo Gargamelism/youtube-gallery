@@ -214,6 +214,24 @@ export interface QuotaExceededErrorType {
   message: string;
 }
 
+// Watch Preferences Types
+export interface WatchPreferences {
+  auto_mark_watched_enabled: boolean;
+  auto_mark_threshold: number;
+}
+
+export interface WatchPreferencesUpdateRequest {
+  auto_mark_watched_enabled: boolean;
+  auto_mark_threshold: number;
+}
+
+export interface WatchPreferencesResponse {
+  status: string;
+  auto_mark_watched_enabled: boolean;
+  auto_mark_threshold: number;
+  message?: string;
+}
+
 // Video Player Types
 export interface VideoPlayerState {
   isOpen: boolean;
