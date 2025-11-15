@@ -72,10 +72,7 @@ export function VideoPlayer({
   }, [video.uuid, initialStartTime]);
 
   // Keyboard shortcuts configuration
-  const keyboardShortcuts = useMemo(
-    () => createPlayerKeyboardShortcuts(playerRef, containerRef, onClose),
-    [onClose]
-  );
+  const keyboardShortcuts = useMemo(() => createPlayerKeyboardShortcuts(playerRef, containerRef, onClose), [onClose]);
 
   useKeyboardNavigation({
     enabled: isReady && !error,
@@ -304,7 +301,9 @@ export function VideoPlayer({
                 />
               </div>
               <div className="VideoPlayer__progress-info flex justify-between text-xs text-gray-400 mt-1">
-                <span className="VideoPlayer__progress-text">{Math.floor(watchPercentage)}% {t('watched')}</span>
+                <span className="VideoPlayer__progress-text">
+                  {Math.floor(watchPercentage)}% {t('watched')}
+                </span>
                 {watchPercentage >= thresholdPercentage && !isWatched && (
                   <span className="VideoPlayer__progress-hint text-yellow-400">{t('almostDone')}</span>
                 )}

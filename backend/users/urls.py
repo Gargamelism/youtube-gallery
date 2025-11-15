@@ -11,11 +11,13 @@ router.register(r"videos", views.UserVideoViewSet, basename="user-videos")
 router.register(r"watch-preferences", views.UserWatchPreferencesViewSet, basename="watch-preferences")
 
 # Custom PUT route for watch-preferences (singleton pattern)
-watch_preferences_view = views.UserWatchPreferencesViewSet.as_view({
-    'get': 'list',
-    'put': 'create',
-    'post': 'create',
-})
+watch_preferences_view = views.UserWatchPreferencesViewSet.as_view(
+    {
+        "get": "list",
+        "put": "create",
+        "post": "create",
+    }
+)
 
 urlpatterns = [
     # Function-based views

@@ -370,7 +370,7 @@ class UserWatchPreferencesViewSet(viewsets.ViewSet):
             defaults={
                 "auto_mark_watched_enabled": True,
                 "auto_mark_threshold": None,
-            }
+            },
         )
 
         serializer = UserWatchPreferencesSerializer(preferences)
@@ -383,17 +383,19 @@ class UserWatchPreferencesViewSet(viewsets.ViewSet):
         """
         user = cast(User, request.user)
 
-        params = WatchPreferencesParams.model_validate({
-            "auto_mark_watched": request.data.get("auto_mark_watched_enabled", True),
-            "auto_mark_threshold_percent": request.data.get("auto_mark_threshold")
-        })
+        params = WatchPreferencesParams.model_validate(
+            {
+                "auto_mark_watched": request.data.get("auto_mark_watched_enabled", True),
+                "auto_mark_threshold_percent": request.data.get("auto_mark_threshold"),
+            }
+        )
 
         preferences, _ = UserWatchPreferences.objects.get_or_create(
             user=user,
             defaults={
                 "auto_mark_watched_enabled": params.auto_mark_watched,
                 "auto_mark_threshold": params.auto_mark_threshold_percent,
-            }
+            },
         )
 
         preferences.auto_mark_watched_enabled = params.auto_mark_watched
@@ -401,8 +403,4 @@ class UserWatchPreferencesViewSet(viewsets.ViewSet):
         preferences.save()
 
         serializer = UserWatchPreferencesSerializer(preferences)
-        return Response({
-            "status": "success",
-            **serializer.data,
-            "message": "Watch preferences updated successfully"
-        })
+        return Response({"status": "success", **serializer.data, "message": "Watch preferences updated successfully"})

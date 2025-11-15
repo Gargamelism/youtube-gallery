@@ -9,6 +9,10 @@ declare global {
       target: Player;
     }
 
+    interface OnErrorEvent {
+      data: number;
+      target: Player;
+    }
 
     interface Player {
       getDuration(): number;
@@ -18,6 +22,12 @@ declare global {
       getCurrentTime(): number;
       getDuration(): number;
       seekTo(int, bool): void;
+      getPlayerState(): PlayerState;
+      setVolume(volume: number): void;
+      getVolume(): number;
+      isMuted(): boolean;
+      mute(): void;
+      unMute(): void;
     }
 
     interface PlayerEvent {
@@ -29,7 +39,6 @@ declare global {
     YT: typeof YT;
     onYouTubeIframeAPIReady?: () => void;
   }
-
 }
 
-export { };
+export {};

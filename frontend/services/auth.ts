@@ -1,4 +1,12 @@
-import { User, LoginRequest, RegisterRequest, UserQuotaInfo, WatchPreferences, WatchPreferencesUpdateRequest, WatchPreferencesResponse } from '@/types';
+import {
+  User,
+  LoginRequest,
+  RegisterRequest,
+  UserQuotaInfo,
+  WatchPreferences,
+  WatchPreferencesUpdateRequest,
+  WatchPreferencesResponse,
+} from '@/types';
 import { ResponseHandler, ApiResponse } from './ResponseHandler';
 import { API_BASE_URL, getRequestOptions } from './shared';
 

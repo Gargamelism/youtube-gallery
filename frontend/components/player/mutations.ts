@@ -6,7 +6,7 @@ import { WatchProgressUpdate } from '@/types';
 export function useUpdateWatchProgress(queryClient: QueryClient, videoId: string) {
   return useMutation({
     mutationFn: (data: WatchProgressUpdate) => updateVideoWatchProgress(videoId, data),
-    onSuccess: (response) => {
+    onSuccess: response => {
       if (response.data?.auto_marked) {
         queryClient.invalidateQueries({ queryKey: queryKeys.videos });
         queryClient.invalidateQueries({ queryKey: queryKeys.videoStats });

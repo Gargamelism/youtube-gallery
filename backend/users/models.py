@@ -71,22 +71,17 @@ class UserWatchPreferences(TimestampMixin):
     """User preferences for automatic watch tracking"""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="watch_preferences"
-    )
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="watch_preferences")
 
     auto_mark_watched_enabled = models.BooleanField(
-        default=True,
-        help_text="Enable automatic marking of videos as watched"
+        default=True, help_text="Enable automatic marking of videos as watched"
     )
     auto_mark_threshold = models.IntegerField(
         default=None,
         null=True,
         blank=True,
         help_text="Percentage threshold for auto-marking (0-100), uses DEFAULT_AUTO_MARK_THRESHOLD if null",
-        validators=[MinValueValidator(0), MaxValueValidator(100)]
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
     )
 
     class Meta:
@@ -116,13 +111,9 @@ class UserVideo(TimestampMixin):
     notes = models.TextField(blank=True, null=True)
 
     # Progress tracking fields
-    watch_progress_seconds = models.IntegerField(
-        default=0,
-        help_text="Current playback position in seconds"
-    )
+    watch_progress_seconds = models.IntegerField(default=0, help_text="Current playback position in seconds")
     auto_marked_watched = models.BooleanField(
-        default=False,
-        help_text="True if automatically marked as watched via threshold"
+        default=False, help_text="True if automatically marked as watched via threshold"
     )
 
     class Meta:

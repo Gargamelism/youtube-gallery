@@ -113,9 +113,7 @@ export async function updateVideoWatchProgress(
   return ResponseHandler.handle<WatchProgressResponse>(response);
 }
 
-export async function getVideoWatchProgress(
-  videoId: string
-): Promise<ApiResponse<WatchProgressResponse>> {
+export async function getVideoWatchProgress(videoId: string): Promise<ApiResponse<WatchProgressResponse>> {
   const response = await fetch(`${API_BASE_URL}/videos/${videoId}/watch-progress`, getRequestOptions());
   return ResponseHandler.handle<WatchProgressResponse>(response);
 }

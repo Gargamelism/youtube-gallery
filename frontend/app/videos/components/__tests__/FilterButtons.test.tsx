@@ -31,7 +31,7 @@ jest.mock('react-i18next', () => ({
         includeNotInterested: 'Include dismissed',
       };
       const hasKey = Object.prototype.hasOwnProperty.call(translations, key);
-      return hasKey ? translations[key] ?? key : key;
+      return hasKey ? (translations[key] ?? key) : key;
     },
   }),
 }));

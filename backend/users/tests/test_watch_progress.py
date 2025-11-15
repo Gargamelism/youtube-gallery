@@ -1,6 +1,5 @@
 from datetime import timedelta
 from django.test import TestCase
-from django.utils import timezone
 from rest_framework.test import APITestCase
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -31,26 +30,17 @@ class UserWatchPreferencesModelTests(TestCase):
 
     def test_preferences_with_custom_threshold(self) -> None:
         """Test preferences with custom threshold"""
-        preferences = UserWatchPreferences.objects.create(
-            user=self.user,
-            auto_mark_threshold=90
-        )
+        preferences = UserWatchPreferences.objects.create(user=self.user, auto_mark_threshold=90)
         self.assertEqual(preferences.get_threshold(), 90)
 
     def test_preferences_threshold_validation(self) -> None:
         """Test that threshold is validated to be between 0-100"""
-        preferences = UserWatchPreferences.objects.create(
-            user=self.user,
-            auto_mark_threshold=50
-        )
+        preferences = UserWatchPreferences.objects.create(user=self.user, auto_mark_threshold=50)
         self.assertEqual(preferences.auto_mark_threshold, 50)
 
     def test_preferences_auto_mark_disabled(self) -> None:
         """Test disabling auto-mark"""
-        preferences = UserWatchPreferences.objects.create(
-            user=self.user,
-            auto_mark_watched_enabled=False
-        )
+        preferences = UserWatchPreferences.objects.create(user=self.user, auto_mark_watched_enabled=False)
         self.assertFalse(preferences.auto_mark_watched_enabled)
 
     def test_preferences_string_representation(self) -> None:
@@ -74,17 +64,14 @@ class UserVideoProgressModelTests(TestCase):
             email="test@example.com",
             password="testpass123",  # nosec B105 - test-only password
         )
-        cls.channel = Channel.objects.create(
-            channel_id="UC123456",
-            title="Test Channel"
-        )
+        cls.channel = Channel.objects.create(channel_id="UC123456", title="Test Channel")
         cls.video = Video.objects.create(
             channel=cls.channel,
             video_id="test_video_1",
             title="Test Video",
             duration=timedelta(minutes=10),
             thumbnail_url="https://example.com/thumb.jpg",
-            video_url="https://youtube.com/watch?v=test_video_1"
+            video_url="https://youtube.com/watch?v=test_video_1",
         )
 
     def test_watch_progress_defaults(self) -> None:
@@ -114,13 +101,9 @@ class UserVideoProgressModelTests(TestCase):
             title="Test Video No Duration",
             duration=None,
             thumbnail_url="https://example.com/thumb.jpg",
-            video_url="https://youtube.com/watch?v=test_video_no_duration"
+            video_url="https://youtube.com/watch?v=test_video_no_duration",
         )
-        user_video = UserVideo.objects.create(
-            user=self.user,
-            video=video_no_duration,
-            watch_progress_seconds=100
-        )
+        user_video = UserVideo.objects.create(user=self.user, video=video_no_duration, watch_progress_seconds=100)
         self.assertEqual(user_video.watch_percentage, 0.0)
 
     def test_watch_percentage_capped_at_100(self) -> None:
@@ -132,10 +115,7 @@ class UserVideoProgressModelTests(TestCase):
     def test_auto_marked_watched_flag(self) -> None:
         """Test auto_marked_watched flag"""
         user_video = UserVideo.objects.create(
-            user=self.user,
-            video=self.video,
-            is_watched=True,
-            auto_marked_watched=True
+            user=self.user, video=self.video, is_watched=True, auto_marked_watched=True
         )
         self.assertTrue(user_video.auto_marked_watched)
 
@@ -157,17 +137,14 @@ class WatchProgressAPITests(APITestCase):
             password="testpass123",  # nosec B105 - test-only password
         )
         cls.token = Token.objects.create(user=cls.user)
-        cls.channel = Channel.objects.create(
-            channel_id="UC123456",
-            title="Test Channel"
-        )
+        cls.channel = Channel.objects.create(channel_id="UC123456", title="Test Channel")
         cls.video = Video.objects.create(
             channel=cls.channel,
             video_id="test_video_1",
             title="Test Video",
             duration=timedelta(minutes=10),
             thumbnail_url="https://example.com/thumb.jpg",
-            video_url="https://youtube.com/watch?v=test_video_1"
+            video_url="https://youtube.com/watch?v=test_video_1",
         )
 
     def test_get_watch_progress_nonexistent(self) -> None:
@@ -183,10 +160,7 @@ class WatchProgressAPITests(APITestCase):
     def test_update_watch_progress_below_threshold(self) -> None:
         """Test updating progress below auto-mark threshold"""
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
-        response = self.client.put(
-            f"/api/videos/{self.video.uuid}/watch-progress",
-            {"progress_seconds": 300}
-        )
+        response = self.client.put(f"/api/videos/{self.video.uuid}/watch-progress", {"progress_seconds": 300})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["watch_progress_seconds"], 300)
@@ -197,10 +171,7 @@ class WatchProgressAPITests(APITestCase):
     def test_auto_mark_at_default_threshold(self) -> None:
         """Test automatic marking at 75% threshold (default)"""
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
-        response = self.client.put(
-            f"/api/videos/{self.video.uuid}/watch-progress",
-            {"progress_seconds": 450}
-        )
+        response = self.client.put(f"/api/videos/{self.video.uuid}/watch-progress", {"progress_seconds": 450})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["watch_progress_seconds"], 450)
@@ -216,25 +187,15 @@ class WatchProgressAPITests(APITestCase):
 
     def test_auto_mark_with_custom_threshold(self) -> None:
         """Test auto-mark with custom threshold (90%)"""
-        UserWatchPreferences.objects.create(
-            user=self.user,
-            auto_mark_watched_enabled=True,
-            auto_mark_threshold=90
-        )
+        UserWatchPreferences.objects.create(user=self.user, auto_mark_watched_enabled=True, auto_mark_threshold=90)
 
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
 
-        response = self.client.put(
-            f"/api/videos/{self.video.uuid}/watch-progress",
-            {"progress_seconds": 480}
-        )
+        response = self.client.put(f"/api/videos/{self.video.uuid}/watch-progress", {"progress_seconds": 480})
         self.assertEqual(response.data["watch_percentage"], 80.0)
         self.assertFalse(response.data["is_watched"])
 
-        response = self.client.put(
-            f"/api/videos/{self.video.uuid}/watch-progress",
-            {"progress_seconds": 540}
-        )
+        response = self.client.put(f"/api/videos/{self.video.uuid}/watch-progress", {"progress_seconds": 540})
         self.assertEqual(response.data["watch_percentage"], 90.0)
         self.assertTrue(response.data["is_watched"])
         self.assertTrue(response.data["auto_marked"])
@@ -242,17 +203,10 @@ class WatchProgressAPITests(APITestCase):
 
     def test_auto_mark_disabled(self) -> None:
         """Test that auto-mark respects disabled preference"""
-        UserWatchPreferences.objects.create(
-            user=self.user,
-            auto_mark_watched_enabled=False,
-            auto_mark_threshold=75
-        )
+        UserWatchPreferences.objects.create(user=self.user, auto_mark_watched_enabled=False, auto_mark_threshold=75)
 
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
-        response = self.client.put(
-            f"/api/videos/{self.video.uuid}/watch-progress",
-            {"progress_seconds": 550}
-        )
+        response = self.client.put(f"/api/videos/{self.video.uuid}/watch-progress", {"progress_seconds": 550})
 
         self.assertEqual(response.data["watch_percentage"], 91.67)
         self.assertFalse(response.data["is_watched"])
@@ -262,10 +216,7 @@ class WatchProgressAPITests(APITestCase):
         """Test manual marking before auto-threshold is reached"""
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
 
-        response = self.client.put(
-            f"/api/videos/{self.video.uuid}/watch",
-            {"is_watched": True}
-        )
+        response = self.client.put(f"/api/videos/{self.video.uuid}/watch", {"is_watched": True})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data["is_watched"])
@@ -278,10 +229,7 @@ class WatchProgressAPITests(APITestCase):
         """Test that progress persists and can be retrieved"""
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
 
-        self.client.put(
-            f"/api/videos/{self.video.uuid}/watch-progress",
-            {"progress_seconds": 200}
-        )
+        self.client.put(f"/api/videos/{self.video.uuid}/watch-progress", {"progress_seconds": 200})
 
         response = self.client.get(f"/api/videos/{self.video.uuid}/watch-progress")
 
@@ -292,26 +240,16 @@ class WatchProgressAPITests(APITestCase):
     def test_progress_update_negative_value(self) -> None:
         """Test that negative progress values are rejected"""
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
-        response = self.client.put(
-            f"/api/videos/{self.video.uuid}/watch-progress",
-            {"progress_seconds": -10}
-        )
+        response = self.client.put(f"/api/videos/{self.video.uuid}/watch-progress", {"progress_seconds": -10})
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_watch_endpoint_includes_progress(self) -> None:
         """Test that watch endpoint includes progress data in response"""
-        UserVideo.objects.create(
-            user=self.user,
-            video=self.video,
-            watch_progress_seconds=300
-        )
+        UserVideo.objects.create(user=self.user, video=self.video, watch_progress_seconds=300)
 
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
-        response = self.client.put(
-            f"/api/videos/{self.video.uuid}/watch",
-            {"is_watched": True}
-        )
+        response = self.client.put(f"/api/videos/{self.video.uuid}/watch", {"is_watched": True})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("watch_progress_seconds", response.data)
@@ -344,19 +282,13 @@ class WatchPreferencesAPITests(APITestCase):
         self.assertTrue(response.data["auto_mark_watched_enabled"])
         self.assertEqual(response.data["auto_mark_threshold"], 75)
 
-        self.assertTrue(
-            UserWatchPreferences.objects.filter(user=self.user).exists()
-        )
+        self.assertTrue(UserWatchPreferences.objects.filter(user=self.user).exists())
 
     def test_update_preferences_threshold(self) -> None:
         """Test updating threshold preference"""
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
         response = self.client.put(
-            "/api/auth/watch-preferences",
-            {
-                "auto_mark_watched_enabled": True,
-                "auto_mark_threshold": 90
-            }
+            "/api/auth/watch-preferences", {"auto_mark_watched_enabled": True, "auto_mark_threshold": 90}
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -369,11 +301,7 @@ class WatchPreferencesAPITests(APITestCase):
         """Test disabling auto-mark via preferences"""
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
         response = self.client.put(
-            "/api/auth/watch-preferences",
-            {
-                "auto_mark_watched_enabled": False,
-                "auto_mark_threshold": 75
-            }
+            "/api/auth/watch-preferences", {"auto_mark_watched_enabled": False, "auto_mark_threshold": 75}
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -387,20 +315,12 @@ class WatchPreferencesAPITests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
 
         response = self.client.put(
-            "/api/auth/watch-preferences",
-            {
-                "auto_mark_watched_enabled": True,
-                "auto_mark_threshold": 150
-            }
+            "/api/auth/watch-preferences", {"auto_mark_watched_enabled": True, "auto_mark_threshold": 150}
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         response = self.client.put(
-            "/api/auth/watch-preferences",
-            {
-                "auto_mark_watched_enabled": True,
-                "auto_mark_threshold": -10
-            }
+            "/api/auth/watch-preferences", {"auto_mark_watched_enabled": True, "auto_mark_threshold": -10}
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -409,21 +329,13 @@ class WatchPreferencesAPITests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
 
         response = self.client.put(
-            "/api/auth/watch-preferences",
-            {
-                "auto_mark_watched_enabled": True,
-                "auto_mark_threshold": 0
-            }
+            "/api/auth/watch-preferences", {"auto_mark_watched_enabled": True, "auto_mark_threshold": 0}
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["auto_mark_threshold"], 0)
 
         response = self.client.put(
-            "/api/auth/watch-preferences",
-            {
-                "auto_mark_watched_enabled": True,
-                "auto_mark_threshold": 100
-            }
+            "/api/auth/watch-preferences", {"auto_mark_watched_enabled": True, "auto_mark_threshold": 100}
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["auto_mark_threshold"], 100)
