@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { fetchUserQuotaUsage } from '@/services';
 import { QuotaIndicator } from '@/components/quota';
 import { USER_QUOTA_CONFIG, queryKeys } from '@/lib/reactQueryConfig';
+import { WatchPreferencesSection } from './components/WatchPreferencesSection';
 import { Loader2 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -44,6 +45,16 @@ export default function SettingsPage() {
       </div>
 
       <div className="SettingsPage__content space-y-8">
+        <section className="SettingsPage__watch-preferences-section">
+          <h2 className="SettingsPage__section-title text-xl font-semibold text-gray-900 mb-4">
+            {t('settings:watchPreferences.title')}
+          </h2>
+          <p className="SettingsPage__section-description text-gray-600 mb-6">
+            {t('settings:watchPreferences.description')}
+          </p>
+          <WatchPreferencesSection />
+        </section>
+
         <section className="SettingsPage__quota-section">
           <h2 className="SettingsPage__section-title text-xl font-semibold text-gray-900 mb-4">{t('quota:title')}</h2>
           <p className="SettingsPage__section-description text-gray-600 mb-6">{t('quota:description')}</p>

@@ -1,4 +1,12 @@
-import { User, LoginRequest, RegisterRequest, UserQuotaInfo } from '@/types';
+import {
+  User,
+  LoginRequest,
+  RegisterRequest,
+  UserQuotaInfo,
+  WatchPreferences,
+  WatchPreferencesUpdateRequest,
+  WatchPreferencesResponse,
+} from '@/types';
 import { ResponseHandler, ApiResponse } from './ResponseHandler';
 import { API_BASE_URL, getRequestOptions } from './shared';
 
@@ -47,4 +55,20 @@ export async function getYouTubeAuthUrl(
 export async function fetchUserQuotaUsage(): Promise<ApiResponse<UserQuotaInfo>> {
   const response = await fetch(`${API_BASE_URL}/auth/quota-usage`, getRequestOptions());
   return ResponseHandler.handle<UserQuotaInfo>(response);
+}
+
+export async function getWatchPreferences(): Promise<ApiResponse<WatchPreferences>> {
+  const response = await fetch(`${API_BASE_URL}/auth/watch-preferences`, getRequestOptions());
+  return ResponseHandler.handle<WatchPreferences>(response);
+}
+
+export async function updateWatchPreferences(
+  preferences: WatchPreferencesUpdateRequest
+): Promise<ApiResponse<WatchPreferencesResponse>> {
+  const response = await fetch(`${API_BASE_URL}/auth/watch-preferences`, {
+    ...getRequestOptions(),
+    method: 'PUT',
+    body: JSON.stringify(preferences),
+  });
+  return ResponseHandler.handle<WatchPreferencesResponse>(response);
 }

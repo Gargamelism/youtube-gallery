@@ -41,6 +41,45 @@ class YouTubeDurationField(models.CharField):  # type: ignore[type-arg]
             return None
         return str(value)
 
+    def _parse_youtube_duration(self, youtube_duration: str) -> tuple[int, int, int]:
+        """
+        Parse YouTube duration format (PT1H2M3S) to (hours, minutes, seconds)
+
+        Returns:
+            Tuple of (hours, minutes, seconds) as integers
+        """
+        match = re.match(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?", youtube_duration)
+        if not match:
+            return (0, 0, 0)
+
+        hours = int(match.group(1) or 0)
+        minutes = int(match.group(2) or 0)
+        seconds = int(match.group(3) or 0)
+        return (hours, minutes, seconds)
+
+    def duration_to_seconds(self, duration_str: Optional[str]) -> int:
+        """
+        Convert YouTube duration format (PT1H2M3S) or formatted duration (1:02:03) to total seconds
+        """
+        if not duration_str or not isinstance(duration_str, str):
+            return 0
+
+        # Handle YouTube format: PT1H2M3S
+        if duration_str.startswith("PT"):
+            hours, minutes, seconds = self._parse_youtube_duration(duration_str)
+            return hours * 3600 + minutes * 60 + seconds
+
+        # Handle formatted duration: "1:02:03" or "5:30"
+        parts = duration_str.split(":")
+        if len(parts) == 3:
+            hours, minutes, seconds = map(int, parts)
+            return hours * 3600 + minutes * 60 + seconds
+        elif len(parts) == 2:
+            minutes, seconds = map(int, parts)
+            return minutes * 60 + seconds
+
+        return 0
+
     def format_duration(self, youtube_duration: Optional[str]) -> Optional[str]:
         """
         Convert YouTube duration format (PT1H2M3S) to readable format (1:02:03)
@@ -49,18 +88,14 @@ class YouTubeDurationField(models.CharField):  # type: ignore[type-arg]
             return youtube_duration
 
         # Handle YouTube format: PT1H2M3S
-        match = re.match(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?", youtube_duration)
-        if not match:
-            return youtube_duration
+        if youtube_duration.startswith("PT"):
+            hours, minutes, seconds = self._parse_youtube_duration(youtube_duration)
+            if hours > 0:
+                return f"{hours}:{minutes:02d}:{seconds:02d}"
+            else:
+                return f"{minutes}:{seconds:02d}"
 
-        hours = int(match.group(1) or 0)
-        minutes = int(match.group(2) or 0)
-        seconds = int(match.group(3) or 0)
-
-        if hours > 0:
-            return f"{hours}:{minutes:02d}:{seconds:02d}"
-        else:
-            return f"{minutes}:{seconds:02d}"
+        return youtube_duration
 
     def parse_formatted_duration(self, formatted_duration: Optional[str]) -> Optional[str]:
         """

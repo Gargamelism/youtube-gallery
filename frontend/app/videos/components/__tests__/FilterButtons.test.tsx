@@ -1,6 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { FilterButtons } from '../FilterButtons';
-import { NotInterestedFilter } from '@/types';
 import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 
 const mockRouter: AppRouterInstance = {
@@ -31,7 +30,8 @@ jest.mock('react-i18next', () => ({
         notInterested: 'Not Interested',
         includeNotInterested: 'Include dismissed',
       };
-      return translations[key] || key;
+      const hasKey = Object.prototype.hasOwnProperty.call(translations, key);
+      return hasKey ? (translations[key] ?? key) : key;
     },
   }),
 }));

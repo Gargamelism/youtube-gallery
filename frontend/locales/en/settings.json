@@ -1,5 +1,18 @@
 {
   "title": "Settings",
   "subtitle": "Manage your account settings and preferences",
-  "account": "Account Information"
+  "account": "Account Information",
+  "loading": "Loading...",
+  "watchPreferences": {
+    "title": "Video Watch Preferences",
+    "description": "Configure how videos are automatically marked as watched",
+    "loadError": "Failed to load watch preferences. Please try again.",
+    "autoMarkTitle": "Automatically mark videos as watched",
+    "autoMarkDescription": "When enabled, videos will be automatically marked as watched when you reach the configured threshold percentage",
+    "thresholdTitle": "Auto-mark threshold",
+    "thresholdDescription": "Videos will be marked as watched when you've viewed this percentage of the video",
+    "saveChanges": "Save Changes",
+    "cancel": "Cancel",
+    "resetToDefaults": "Reset to defaults"
+  }
 }

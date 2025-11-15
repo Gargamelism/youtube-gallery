@@ -58,6 +58,22 @@ jest.mock('@/hooks/useInfiniteScroll', () => ({
   useInfiniteScroll: () => ({ current: null }),
 }));
 
+jest.mock('next/navigation', () => ({
+  useRouter: jest.fn(() => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    prefetch: jest.fn(),
+    back: jest.fn(),
+    forward: jest.fn(),
+    refresh: jest.fn(),
+  })),
+  usePathname: jest.fn(() => '/videos'),
+  useSearchParams: jest.fn(() => ({
+    get: jest.fn(() => null),
+    toString: jest.fn(() => ''),
+  })),
+}));
+
 const TestWrapper = ({ children }: { children: React.ReactNode }) => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },

@@ -8,6 +8,16 @@ router = KebabCaseRouter(trailing_slash=False)
 router.register(r"tags", views.ChannelTagViewSet, basename="channel-tags")
 router.register(r"channels", views.UserChannelViewSet, basename="user-channels")
 router.register(r"videos", views.UserVideoViewSet, basename="user-videos")
+router.register(r"watch-preferences", views.UserWatchPreferencesViewSet, basename="watch-preferences")
+
+# Custom PUT route for watch-preferences (singleton pattern)
+watch_preferences_view = views.UserWatchPreferencesViewSet.as_view(
+    {
+        "get": "list",
+        "put": "create",
+        "post": "create",
+    }
+)
 
 urlpatterns = [
     # Function-based views
@@ -18,6 +28,8 @@ urlpatterns = [
     path("quota-usage", views.quota_usage_view, name="quota-usage"),
     path("youtube-url", views.youtube_auth_url, name="youtube-auth-url"),
     path("youtube/callback", views.youtube_auth_callback, name="youtube-auth-callback"),
-    # ViewSets through router
+    # Watch preferences with custom PUT support
+    path("watch-preferences", watch_preferences_view, name="watch-preferences"),
+    # ViewSets through router (excluding watch-preferences which is handled above)
     path("", include(router.urls)),
 ]

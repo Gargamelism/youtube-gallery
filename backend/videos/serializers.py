@@ -62,6 +62,8 @@ class VideoListSerializer(serializers.ModelSerializer):  # type: ignore[type-arg
     not_interested_at = serializers.SerializerMethodField()
     notes = serializers.SerializerMethodField()
     channel_tags = serializers.SerializerMethodField()
+    watch_progress_seconds = serializers.SerializerMethodField()
+    watch_percentage = serializers.SerializerMethodField()
 
     class Meta:
         model = Video
@@ -84,6 +86,8 @@ class VideoListSerializer(serializers.ModelSerializer):  # type: ignore[type-arg
             "notes",
             "channel_title",
             "channel_tags",
+            "watch_progress_seconds",
+            "watch_percentage",
         ]
 
     def get_is_watched(self, obj: Video) -> bool:
@@ -118,3 +122,11 @@ class VideoListSerializer(serializers.ModelSerializer):  # type: ignore[type-arg
                 tag = channel_tag.tag
                 tags.append({"id": str(tag.id), "name": tag.name, "color": tag.color})
         return tags
+
+    def get_watch_progress_seconds(self, obj: Video) -> int:
+        user_video = obj.user_videos.first()
+        return user_video.watch_progress_seconds if user_video else 0
+
+    def get_watch_percentage(self, obj: Video) -> float:
+        user_video = obj.user_videos.first()
+        return round(user_video.watch_percentage, 2) if user_video else 0.0
