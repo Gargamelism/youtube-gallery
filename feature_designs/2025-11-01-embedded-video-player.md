@@ -1168,27 +1168,38 @@ Add player-related translations:
 - Reset button restores defaults (enabled=true, threshold=75)
 
 ### Phase 5: Polish and UX Enhancements
-**Status**: ⚪ Pending
+**Status**: ✅ Implemented
 
 **Tasks**:
-- Add internationalization for all player strings
-- Implement URL state management for player
-- Add "Resume watching" feature
-- Create progress visualization on video cards
-- Add keyboard shortcuts for player control
-- Implement error handling and loading states
-- Add accessibility features (ARIA labels, keyboard navigation)
-- Optimize API call frequency and debouncing
-- Show threshold indicator in player progress bar
+- ✅ Add internationalization for all player strings ([player.json](frontend/locales/en/player.json))
+- ✅ Implement URL state management for player (`?player={uuid}&t={timestamp}` params)
+- ✅ Add "Resume watching" feature with visual indicator
+- ✅ Progress visualization on video cards (already implemented in Phase 3)
+- ✅ Add keyboard shortcuts for player control ([keyboardShortcuts.ts](frontend/components/player/keyboardShortcuts.ts))
+- ✅ Implement error handling and loading states (Loader2, AlertCircle components)
+- ✅ Add accessibility features (ARIA labels, keyboard navigation, screen reader support)
+- ✅ Optimize API call frequency with debouncing (lastProgressUpdateRef prevents duplicate updates)
+- ✅ Show threshold indicator in player progress bar (yellow line at threshold percentage)
 
 **Acceptance Criteria**:
-- All text is translatable via i18n
-- Deep linking works with URL params
-- Resume feature loads correct timestamp
-- Progress shown on video cards
-- Player accessible via keyboard
-- Error states handled gracefully
-- Threshold line visible on progress bar
+- ✅ All text is translatable via i18n (16 translation keys in player.json)
+- ✅ Deep linking works with URL params (`navigateWithUpdatedParams` in VideoList)
+- ✅ Resume feature loads correct timestamp (startTime prop passed from URL or fetch)
+- ✅ Progress shown on video cards (implemented in Phase 3)
+- ✅ Player accessible via keyboard (Space, k, ←→, ↑↓, m, f, 0, Home, End, Esc)
+- ✅ Error states handled gracefully (error boundary with AlertCircle and close button)
+- ✅ Threshold line visible on progress bar (yellow indicator at user's configured threshold)
+
+**Implementation Details**:
+- Keyboard shortcuts externalized to [keyboardShortcuts.ts](frontend/components/player/keyboardShortcuts.ts)
+- Uses existing `useKeyboardNavigation` hook for consistent keyboard handling
+- URL state updates every 10 seconds during playback (debounced with progress updates)
+- Loading state shows spinner while fetching watch progress
+- Error state shows user-friendly message with close option
+- Resume notification appears when video has saved progress
+- All interactive elements have proper ARIA labels and roles
+- Progress bar has threshold indicator showing auto-mark percentage
+- Smart debouncing prevents duplicate API calls using `lastProgressUpdateRef`
 
 ### Phase 6: Testing and Deployment
 **Status**: ⚪ Pending

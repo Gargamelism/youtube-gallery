@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getWatchPreferences, updateWatchPreferences } from '@/services/auth';
-import { WatchPreferencesUpdateRequest } from '@/types';
+import { WatchPreferencesResponse, WatchPreferencesUpdateRequest } from '@/types';
 import { WATCH_PREFERENCES_CONFIG, queryKeys } from '@/lib/reactQueryConfig';
 import {
   DEFAULT_AUTO_MARK_ENABLED,
@@ -33,12 +33,12 @@ export function WatchPreferencesSection() {
   const { mutateAsync: updatePreferences, isPending: isUpdating } = useMutation({
     mutationFn: async (newPreferences: WatchPreferencesUpdateRequest) => {
       const response = await updateWatchPreferences(newPreferences);
-      if (!response.success || !response.data) {
+      if (response.error || !response.data) {
         throw new Error(response.error || 'Failed to update watch preferences');
       }
       return response.data;
     },
-    onSuccess: (data) => {
+    onSuccess: (data: WatchPreferencesResponse) => {
       queryClient.setQueryData(queryKeys.watchPreferences, {
         success: true,
         data: {
