@@ -12,9 +12,11 @@ from django.shortcuts import redirect
 from django.utils import timezone
 from django.utils import timezone as dj_tz
 
+from pydantic import ValidationError as PydanticValidationError
 from rest_framework import permissions, status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.exceptions import ValidationError
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.serializers import BaseSerializer
@@ -383,12 +385,15 @@ class UserWatchPreferencesViewSet(viewsets.ViewSet):
         """
         user = cast(User, request.user)
 
-        params = WatchPreferencesParams.model_validate(
-            {
-                "auto_mark_watched": request.data.get("auto_mark_watched_enabled", True),
-                "auto_mark_threshold_percent": request.data.get("auto_mark_threshold"),
-            }
-        )
+        try:
+            params = WatchPreferencesParams.model_validate(
+                {
+                    "auto_mark_watched": request.data.get("auto_mark_watched_enabled", True),
+                    "auto_mark_threshold_percent": request.data.get("auto_mark_threshold"),
+                }
+            )
+        except PydanticValidationError as e:
+            raise ValidationError(e.errors())
 
         preferences, _ = UserWatchPreferences.objects.get_or_create(
             user=user,

@@ -5,6 +5,7 @@ from typing import Any, cast
 from django.db.models import QuerySet
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
+from pydantic import ValidationError as PydanticValidationError
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -242,13 +243,16 @@ class VideoViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
             return Response(
                 {
                     "watch_progress_seconds": user_video.watch_progress_seconds,
-                    "watch_percentage": user_video.watch_percentage,
+                    "watch_percentage": round(user_video.watch_percentage, 2),
                     "is_watched": user_video.is_watched,
                     "auto_marked_watched": user_video.auto_marked_watched,
                 }
             )
 
-        params = WatchProgressUpdateParams.model_validate(request.data)
+        try:
+            params = WatchProgressUpdateParams.model_validate(request.data)
+        except PydanticValidationError as e:
+            raise ValidationError(e.errors())
 
         preferences, _ = UserWatchPreferences.objects.get_or_create(
             user=user,

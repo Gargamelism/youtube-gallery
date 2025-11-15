@@ -1,10 +1,9 @@
-from datetime import timedelta
 from django.test import TestCase
 from rest_framework.test import APITestCase
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from videos.models import Channel, Video
-from users.models import User, UserVideo, UserWatchPreferences
+from users.models import User, UserVideo, UserWatchPreferences, UserChannel
 
 
 class UserWatchPreferencesModelTests(TestCase):
@@ -69,7 +68,7 @@ class UserVideoProgressModelTests(TestCase):
             channel=cls.channel,
             video_id="test_video_1",
             title="Test Video",
-            duration=timedelta(minutes=10),
+            duration="PT10M",
             thumbnail_url="https://example.com/thumb.jpg",
             video_url="https://youtube.com/watch?v=test_video_1",
         )
@@ -142,10 +141,11 @@ class WatchProgressAPITests(APITestCase):
             channel=cls.channel,
             video_id="test_video_1",
             title="Test Video",
-            duration=timedelta(minutes=10),
+            duration="PT10M",
             thumbnail_url="https://example.com/thumb.jpg",
             video_url="https://youtube.com/watch?v=test_video_1",
         )
+        UserChannel.objects.create(user=cls.user, channel=cls.channel, is_active=True)
 
     def test_get_watch_progress_nonexistent(self) -> None:
         """Test getting progress for a video with no UserVideo record"""
@@ -160,7 +160,11 @@ class WatchProgressAPITests(APITestCase):
     def test_update_watch_progress_below_threshold(self) -> None:
         """Test updating progress below auto-mark threshold"""
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
-        response = self.client.put(f"/api/videos/{self.video.uuid}/watch-progress", {"progress_seconds": 300})
+        response = self.client.put(
+            f"/api/videos/{self.video.uuid}/watch-progress",
+            {"current_time": 300, "duration": 600},
+            format="json",
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["watch_progress_seconds"], 300)
@@ -171,7 +175,11 @@ class WatchProgressAPITests(APITestCase):
     def test_auto_mark_at_default_threshold(self) -> None:
         """Test automatic marking at 75% threshold (default)"""
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
-        response = self.client.put(f"/api/videos/{self.video.uuid}/watch-progress", {"progress_seconds": 450})
+        response = self.client.put(
+            f"/api/videos/{self.video.uuid}/watch-progress",
+            {"current_time": 450, "duration": 600},
+            format="json",
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["watch_progress_seconds"], 450)
@@ -191,11 +199,19 @@ class WatchProgressAPITests(APITestCase):
 
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
 
-        response = self.client.put(f"/api/videos/{self.video.uuid}/watch-progress", {"progress_seconds": 480})
+        response = self.client.put(
+            f"/api/videos/{self.video.uuid}/watch-progress",
+            {"current_time": 480, "duration": 600},
+            format="json",
+        )
         self.assertEqual(response.data["watch_percentage"], 80.0)
         self.assertFalse(response.data["is_watched"])
 
-        response = self.client.put(f"/api/videos/{self.video.uuid}/watch-progress", {"progress_seconds": 540})
+        response = self.client.put(
+            f"/api/videos/{self.video.uuid}/watch-progress",
+            {"current_time": 540, "duration": 600},
+            format="json",
+        )
         self.assertEqual(response.data["watch_percentage"], 90.0)
         self.assertTrue(response.data["is_watched"])
         self.assertTrue(response.data["auto_marked"])
@@ -206,7 +222,11 @@ class WatchProgressAPITests(APITestCase):
         UserWatchPreferences.objects.create(user=self.user, auto_mark_watched_enabled=False, auto_mark_threshold=75)
 
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
-        response = self.client.put(f"/api/videos/{self.video.uuid}/watch-progress", {"progress_seconds": 550})
+        response = self.client.put(
+            f"/api/videos/{self.video.uuid}/watch-progress",
+            {"current_time": 550, "duration": 600},
+            format="json",
+        )
 
         self.assertEqual(response.data["watch_percentage"], 91.67)
         self.assertFalse(response.data["is_watched"])
@@ -229,7 +249,11 @@ class WatchProgressAPITests(APITestCase):
         """Test that progress persists and can be retrieved"""
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
 
-        self.client.put(f"/api/videos/{self.video.uuid}/watch-progress", {"progress_seconds": 200})
+        self.client.put(
+            f"/api/videos/{self.video.uuid}/watch-progress",
+            {"current_time": 200, "duration": 600},
+            format="json",
+        )
 
         response = self.client.get(f"/api/videos/{self.video.uuid}/watch-progress")
 
@@ -240,7 +264,11 @@ class WatchProgressAPITests(APITestCase):
     def test_progress_update_negative_value(self) -> None:
         """Test that negative progress values are rejected"""
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
-        response = self.client.put(f"/api/videos/{self.video.uuid}/watch-progress", {"progress_seconds": -10})
+        response = self.client.put(
+            f"/api/videos/{self.video.uuid}/watch-progress",
+            {"current_time": -10, "duration": 600},
+            format="json",
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 

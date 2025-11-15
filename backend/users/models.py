@@ -92,7 +92,8 @@ class UserWatchPreferences(TimestampMixin):
         """Get the threshold, falling back to settings default if not set"""
         if self.auto_mark_threshold is not None:
             return self.auto_mark_threshold
-        return settings.DEFAULT_AUTO_MARK_THRESHOLD
+        threshold: int = settings.DEFAULT_AUTO_MARK_THRESHOLD
+        return threshold
 
     def __str__(self) -> str:
         return f"Watch preferences for {self.user.email}"
