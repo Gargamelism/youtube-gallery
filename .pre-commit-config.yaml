@@ -23,6 +23,13 @@ repos:
         files: \.(ts|tsx)$
         pass_filenames: false
 
+      - id: dependency-check
+        name: Dependency Check
+        entry: docker-compose run --rm --use-aliases frontend sh -c "npx --yes dependency-cruiser --validate .dependency-cruiser.cjs ."
+        language: system
+        files: \.(ts|tsx)$
+        pass_filenames: false
+
       - id: ts-prune-check
         name: TS-Prune (Unused Exports)
         entry: docker-compose run --rm --use-aliases frontend sh -c "npx ts-prune | grep -v 'used in module'"
