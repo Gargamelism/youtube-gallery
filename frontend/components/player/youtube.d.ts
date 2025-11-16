@@ -18,8 +18,7 @@ declare global {
       pauseVideo(): void;
       destroy(): void;
       getCurrentTime(): number;
-      getDuration(): number;
-      seekTo(int, bool): void;
+      seekTo(seconds: number, allowSeekAhead: boolean): void;
       getPlayerState(): PlayerState;
       setVolume(volume: number): void;
       getVolume(): number;
@@ -39,4 +38,4 @@ declare global {
   }
 }
 
-export {};
+export { };

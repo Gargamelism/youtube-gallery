@@ -388,8 +388,8 @@ class UserWatchPreferencesViewSet(viewsets.ViewSet):
         try:
             params = WatchPreferencesParams.model_validate(
                 {
-                    "auto_mark_watched": request.data.get("auto_mark_watched_enabled", True),
-                    "auto_mark_threshold_percent": request.data.get("auto_mark_threshold"),
+                    "auto_mark_watched_enabled": request.data.get("auto_mark_watched_enabled", True),
+                    "auto_mark_threshold_percent": request.data.get("auto_mark_threshold_percent"),
                 }
             )
         except PydanticValidationError as e:
@@ -399,12 +399,12 @@ class UserWatchPreferencesViewSet(viewsets.ViewSet):
         preferences, _ = UserWatchPreferences.objects.get_or_create(
             user=user,
             defaults={
-                "auto_mark_watched_enabled": params.auto_mark_watched,
+                "auto_mark_watched_enabled": params.auto_mark_watched_enabled,
                 "auto_mark_threshold": params.auto_mark_threshold_percent,
             },
         )
 
-        preferences.auto_mark_watched_enabled = params.auto_mark_watched
+        preferences.auto_mark_watched_enabled = params.auto_mark_watched_enabled
         preferences.auto_mark_threshold = params.auto_mark_threshold_percent
         preferences.save()
 

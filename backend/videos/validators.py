@@ -218,12 +218,5 @@ class WatchProgressUpdateParams(BaseModel):
 class WatchPreferencesParams(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    auto_mark_watched: bool = True
-    auto_mark_threshold_percent: int
-
-    @field_validator("auto_mark_threshold_percent")
-    @classmethod
-    def validate_threshold_percent(cls, percent: int) -> int:
-        if not (0 <= percent <= 100):
-            raise ValueError("auto_mark_threshold_percent must be between 0 and 100")
-        return percent
+    auto_mark_watched_enabled: bool = True
+    auto_mark_threshold_percent: Optional[int] = Field(default=None, ge=0, le=100)
