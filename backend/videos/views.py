@@ -252,7 +252,8 @@ class VideoViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
         try:
             params = WatchProgressUpdateParams.model_validate(request.data)
         except PydanticValidationError as e:
-            raise ValidationError(e.errors())
+            errors = {str(error["loc"][0]): error["msg"] for error in e.errors()}
+            raise ValidationError(errors)
 
         preferences, _ = UserWatchPreferences.objects.get_or_create(
             user=user,

@@ -1,5 +1,3 @@
-/// <reference types="youtube" />
-
 declare global {
   namespace YT {
     type PlayerState = -1 | 0 | 1 | 2 | 3 | 5;
