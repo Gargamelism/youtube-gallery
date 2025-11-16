@@ -23,6 +23,13 @@ repos:
         files: \.(ts|tsx)$
         pass_filenames: false
 
+      - id: ci-check
+        name: Check CI Completes
+        entry: docker-compose run --rm --use-aliases frontend npm ci
+        language: system
+        files: \.(ts|tsx)$
+        pass_filenames: false
+
       - id: dependency-check
         name: Dependency Check
         entry: docker-compose run --rm --use-aliases frontend sh -c "npx --yes dependency-cruiser --validate .dependency-cruiser.cjs ."
