@@ -37,6 +37,13 @@ repos:
         files: \.(ts|tsx)$
         pass_filenames: false
 
+      - id: npm-audit
+        name: NPM Audit Fix
+        entry: docker-compose run --rm --use-aliases frontend sh -c "npm audit fix --force"
+        language: system
+        files: \.(ts|tsx)$
+        pass_filenames: false
+
       - id: next-tests
         name: Next Tests
         entry: docker-compose run --rm --use-aliases frontend npm run test
