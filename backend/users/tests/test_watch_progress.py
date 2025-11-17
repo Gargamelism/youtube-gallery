@@ -316,7 +316,7 @@ class WatchPreferencesAPITests(APITestCase):
         """Test updating threshold preference"""
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
         response = self.client.put(
-            "/api/auth/watch-preferences", {"auto_mark_watched_enabled": True, "auto_mark_threshold": 90}
+            "/api/auth/watch-preferences", {"auto_mark_watched_enabled": True, "auto_mark_threshold_percent": 90}
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -329,7 +329,7 @@ class WatchPreferencesAPITests(APITestCase):
         """Test disabling auto-mark via preferences"""
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
         response = self.client.put(
-            "/api/auth/watch-preferences", {"auto_mark_watched_enabled": False, "auto_mark_threshold": 75}
+            "/api/auth/watch-preferences", {"auto_mark_watched_enabled": False, "auto_mark_threshold_percent": 75}
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -343,12 +343,12 @@ class WatchPreferencesAPITests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
 
         response = self.client.put(
-            "/api/auth/watch-preferences", {"auto_mark_watched_enabled": True, "auto_mark_threshold": 150}
+            "/api/auth/watch-preferences", {"auto_mark_watched_enabled": True, "auto_mark_threshold_percent": 150}
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         response = self.client.put(
-            "/api/auth/watch-preferences", {"auto_mark_watched_enabled": True, "auto_mark_threshold": -10}
+            "/api/auth/watch-preferences", {"auto_mark_watched_enabled": True, "auto_mark_threshold_percent": -10}
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -357,13 +357,13 @@ class WatchPreferencesAPITests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
 
         response = self.client.put(
-            "/api/auth/watch-preferences", {"auto_mark_watched_enabled": True, "auto_mark_threshold": 0}
+            "/api/auth/watch-preferences", {"auto_mark_watched_enabled": True, "auto_mark_threshold_percent": 0}
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["auto_mark_threshold"], 0)
 
         response = self.client.put(
-            "/api/auth/watch-preferences", {"auto_mark_watched_enabled": True, "auto_mark_threshold": 100}
+            "/api/auth/watch-preferences", {"auto_mark_watched_enabled": True, "auto_mark_threshold_percent": 100}
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["auto_mark_threshold"], 100)
