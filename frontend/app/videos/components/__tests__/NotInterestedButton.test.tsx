@@ -9,7 +9,8 @@ jest.mock('react-i18next', () => ({
         markNotInterested: 'Not interested in this video',
         markInterested: 'Mark as interested again',
       };
-      return translations[key] || key;
+      const hasKey = Object.prototype.hasOwnProperty.call(translations, key);
+      return hasKey ? (translations[key] ?? key) : key;
     },
   }),
 }));

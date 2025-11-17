@@ -1,7 +1,7 @@
 import uuid
 from typing import List, Optional, Self
 from enum import Enum
-from pydantic import BaseModel, ConfigDict, field_validator, model_validator, ValidationInfo
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator, ValidationInfo, Field
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.request import Request
 
@@ -205,3 +205,18 @@ class TagAssignmentParams(BaseModel):
             )
         except Exception as e:
             raise DRFValidationError({"request_data": str(e)})
+
+
+class WatchProgressUpdateParams(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    current_time: float = Field(..., ge=0, description="Current playback position in seconds")
+    duration: float = Field(..., gt=0, description="Total video duration in seconds")
+    auto_mark: bool = Field(default=True, description="Auto-mark as watched at threshold")
+
+
+class WatchPreferencesParams(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    auto_mark_watched_enabled: bool = True
+    auto_mark_threshold_percent: Optional[int] = Field(default=None, ge=0, le=100)

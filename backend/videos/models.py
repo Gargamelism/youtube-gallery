@@ -89,6 +89,17 @@ class Video(TimestampMixin):
     # custom fields
     duration = YouTubeDurationField(blank=True, null=True)
 
+    def get_duration_seconds(self) -> int:
+        """Get video duration in seconds"""
+        if not self.duration:
+            return 0
+        from typing import cast
+
+        from .fields import YouTubeDurationField
+
+        duration_field = cast(YouTubeDurationField, self._meta.get_field("duration"))
+        return duration_field.duration_to_seconds(self.duration)
+
     def __str__(self) -> str:
         return self.title or self.video_id
 

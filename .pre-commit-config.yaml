@@ -23,9 +23,30 @@ repos:
         files: \.(ts|tsx)$
         pass_filenames: false
 
+      - id: ci-check
+        name: Check CI Completes
+        entry: docker-compose run --rm --use-aliases frontend npm ci
+        language: system
+        files: \.(ts|tsx)$
+        pass_filenames: false
+
+      - id: dependency-check
+        name: Dependency Check
+        entry: docker-compose run --rm --use-aliases frontend sh -c "npx --yes dependency-cruiser --validate .dependency-cruiser.cjs ."
+        language: system
+        files: \.(ts|tsx)$
+        pass_filenames: false
+
       - id: ts-prune-check
         name: TS-Prune (Unused Exports)
         entry: docker-compose run --rm --use-aliases frontend sh -c "npx ts-prune | grep -v 'used in module'"
+        language: system
+        files: \.(ts|tsx)$
+        pass_filenames: false
+
+      - id: npm-audit
+        name: NPM Audit Fix
+        entry: docker-compose run --rm --use-aliases frontend sh -c "npm audit fix --force"
         language: system
         files: \.(ts|tsx)$
         pass_filenames: false

@@ -57,4 +57,12 @@ export default [
       ...nextPlugin.configs['core-web-vitals'].rules,
     },
   },
+  // Disable object-injection security rule in test files where mocks often
+  // intentionally use dynamic keys for translations and controlled data.
+  {
+    files: ['**/__tests__/**', '**/*.test.*', '**/*.spec.*'],
+    rules: {
+      'security/detect-object-injection': 'off',
+    },
+  },
 ];

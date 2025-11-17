@@ -1,0 +1,19 @@
+{
+  "closePlayer": "Close player",
+  "markAsWatched": "Mark as watched",
+  "watched": "Watched",
+  "marking": "Marking...",
+  "almostDone": "Almost done! Keep watching to auto-mark",
+  "restart": "Restart from beginning",
+  "resume": "Resume from {{time}}",
+  "autoMarkedNotification": "Video automatically marked as watched",
+  "progressSaved": "Progress saved",
+  "errorLoadingVideo": "Error loading video. Please try again.",
+  "watchProgress": "Watch progress: {{percentage}}%",
+  "loadingPlayer": "Loading player...",
+  "autoMarkThreshold": "Auto-mark threshold at {{threshold}}%",
+  "playPause": "play/pause",
+  "seek": "seek",
+  "fullscreen": "fullscreen",
+  "close": "close"
+}

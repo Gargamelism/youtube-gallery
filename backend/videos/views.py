@@ -5,6 +5,7 @@ from typing import Any, cast
 from django.db.models import QuerySet
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
+from pydantic import ValidationError as PydanticValidationError
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -12,7 +13,7 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.serializers import BaseSerializer
-from users.models import User, UserVideo
+from users.models import User, UserVideo, UserWatchPreferences
 
 from .decorators import youtube_auth_required
 from .models import Channel, Video
@@ -21,7 +22,7 @@ from .services.search import VideoSearchService
 from .services.user_quota_tracker import UserQuotaTracker
 from .services.youtube import YouTubeAuthenticationError, YouTubeService
 from .exceptions import UserQuotaExceededError
-from .validators import VideoSearchParams, WatchStatus
+from .validators import VideoSearchParams, WatchStatus, WatchProgressUpdateParams
 
 
 class ChannelViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
@@ -152,6 +153,8 @@ class VideoViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
                 "is_watched": user_video.is_watched,
                 "watched_at": user_video.watched_at,
                 "notes": user_video.notes,
+                "watch_progress_seconds": user_video.watch_progress_seconds,
+                "watch_percentage": user_video.watch_percentage,
             }
         )
 
@@ -227,3 +230,67 @@ class VideoViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
         stats = search_service.get_video_stats()
 
         return Response(stats)
+
+    @action(detail=True, methods=["get", "put"], url_path="watch-progress")
+    def watch_progress(self, request: Request, pk: Any = None) -> Response:
+        """Get or update video watch progress with auto-mark based on user preferences"""
+        video = self.get_object()
+        user = cast(User, request.user)
+
+        user_video, _ = UserVideo.objects.get_or_create(user=user, video=video)
+
+        if request.method == "GET":
+            return Response(
+                {
+                    "watch_progress_seconds": user_video.watch_progress_seconds,
+                    "watch_percentage": round(user_video.watch_percentage, 2),
+                    "is_watched": user_video.is_watched,
+                    "auto_marked_watched": user_video.auto_marked_watched,
+                }
+            )
+
+        try:
+            params = WatchProgressUpdateParams.model_validate(request.data)
+        except PydanticValidationError as e:
+            errors = {str(error["loc"][0]): error["msg"] for error in e.errors()}
+            raise ValidationError(errors)
+
+        preferences, _ = UserWatchPreferences.objects.get_or_create(
+            user=user,
+            defaults={
+                "auto_mark_watched_enabled": True,
+                "auto_mark_threshold": None,
+            },
+        )
+
+        user_video.watch_progress_seconds = int(params.current_time)
+        current_percentage = (params.current_time / params.duration) * 100 if params.duration > 0 else 0
+
+        auto_marked = False
+        if (
+            params.auto_mark
+            and preferences.auto_mark_watched_enabled
+            and not user_video.is_watched
+            and current_percentage >= preferences.get_threshold()
+        ):
+            user_video.is_watched = True
+            user_video.watched_at = timezone.now()
+            user_video.auto_marked_watched = True
+            auto_marked = True
+
+        user_video.save()
+
+        threshold = preferences.get_threshold()
+        return Response(
+            {
+                "status": "success",
+                "watch_progress_seconds": user_video.watch_progress_seconds,
+                "watch_percentage": round(user_video.watch_percentage, 2),
+                "is_watched": user_video.is_watched,
+                "auto_marked": auto_marked,
+                "threshold": threshold,
+                "message": (
+                    f"Video automatically marked as watched at {threshold}%" if auto_marked else "Progress updated"
+                ),
+            }
+        )

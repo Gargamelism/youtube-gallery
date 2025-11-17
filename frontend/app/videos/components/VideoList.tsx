@@ -1,9 +1,12 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { SkeletonGrid, VideoCardSkeleton } from '@/components/ui';
 import { VideoCard } from './VideoCard';
 import { LoadMoreButton } from './LoadMoreButton';
 import { ScrollToTopButton } from '@/components/ui/ScrollToTopButton';
+import { VideoPlayer } from '@/components/player/VideoPlayer';
 import { Video } from '@/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateVideoWatchStatus, updateVideoNotInterested } from '@/services';
@@ -14,6 +17,7 @@ import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 import { queryKeys } from '@/lib/reactQueryConfig';
 import { PAGINATION_CONFIG } from '@/lib/pagination';
 import { ScrollMode } from '@/lib/scrollMode';
+import { navigateWithUpdatedParams } from '@/utils/urlHelpers';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 
@@ -23,14 +27,13 @@ interface VideoListProps {
 
 export function VideoList({ scrollMode }: VideoListProps) {
   const queryClient = useQueryClient();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { filter, selectedTags, tagMode, searchQuery, notInterestedFilter, areFiltersEqual } = useVideoFilters();
   const { t } = useTranslation('videos');
-
-  const handleVideoClick = (url: string) => {
-    if (url) {
-      window.open(url, '_blank', 'noopener,noreferrer');
-    }
-  };
+  const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
+  const [startTime, setStartTime] = useState<number>(0);
 
   const currentFilters = { filter, selectedTags, tagMode, searchQuery, notInterestedFilter };
 
@@ -78,6 +81,60 @@ export function VideoList({ scrollMode }: VideoListProps) {
     },
   });
 
+  useEffect(() => {
+    const playerParam = searchParams.get('player');
+    const timeParam = searchParams.get('t');
+
+    if (playerParam && !selectedVideo) {
+      const video = videos.find(videoItem => videoItem.uuid === playerParam);
+      if (video) {
+        setSelectedVideo(video);
+        setStartTime(timeParam ? parseInt(timeParam, 10) : 0);
+      }
+    }
+  }, [searchParams, videos, selectedVideo]);
+
+  const updatePlayerInURL = (videoId: string | null, currentTime?: number) => {
+    const updates: Record<string, string | undefined> = {};
+
+    if (videoId) {
+      updates.player = videoId;
+      if (currentTime !== undefined && currentTime > 0) {
+        updates.t = Math.floor(currentTime).toString();
+      }
+    } else {
+      updates.player = undefined;
+      updates.t = undefined;
+    }
+
+    navigateWithUpdatedParams(router, pathname, searchParams, updates);
+  };
+
+  const handleOpenPlayer = (video: Video) => {
+    setSelectedVideo(video);
+    setStartTime(0);
+    updatePlayerInURL(video.uuid);
+  };
+
+  const handleClosePlayer = () => {
+    setSelectedVideo(null);
+    setStartTime(0);
+    updatePlayerInURL(null);
+  };
+
+  const handleTimeUpdate = (currentTime: number) => {
+    if (selectedVideo && currentTime > 0 && Math.floor(currentTime) % 10 === 0) {
+      updatePlayerInURL(selectedVideo.uuid, currentTime);
+    }
+  };
+
+  const handleWatchStatusChange = (isWatched: boolean) => {
+    if (isWatched && selectedVideo) {
+      queryClient.invalidateQueries({ queryKey: queryKeys.videos });
+      queryClient.invalidateQueries({ queryKey: queryKeys.videoStats });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -111,7 +168,7 @@ export function VideoList({ scrollMode }: VideoListProps) {
           <VideoCard
             key={video.uuid}
             video={video}
-            onWatch={() => handleVideoClick(video.video_url)}
+            onWatch={() => handleOpenPlayer(video)}
             onToggleWatched={() => toggleWatchStatus(video.uuid)}
             onToggleNotInterested={isNotInterested => toggleNotInterested({ videoId: video.uuid, isNotInterested })}
             notInterestedFilter={notInterestedFilter}
@@ -138,6 +195,16 @@ export function VideoList({ scrollMode }: VideoListProps) {
           </div>
         )}
       </div>
+
+      {selectedVideo && (
+        <VideoPlayer
+          video={selectedVideo}
+          startTime={startTime}
+          onClose={handleClosePlayer}
+          onWatchStatusChange={handleWatchStatusChange}
+          onTimeUpdate={handleTimeUpdate}
+        />
+      )}
     </div>
   );
 }

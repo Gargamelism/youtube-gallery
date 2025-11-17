@@ -7,7 +7,7 @@ from django.db.utils import IntegrityError
 from django.db import transaction
 from rest_framework import serializers
 
-from .models import User, UserChannel, UserVideo, ChannelTag
+from .models import User, UserChannel, UserVideo, ChannelTag, UserWatchPreferences
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):  # type: ignore[type-arg]
@@ -109,3 +109,17 @@ class UserVideoSerializer(serializers.ModelSerializer):  # type: ignore[type-arg
             "updated_at",
         )
         read_only_fields = ("id", "created_at", "updated_at")
+
+
+class UserWatchPreferencesSerializer(serializers.ModelSerializer):  # type: ignore[type-arg]
+    auto_mark_threshold = serializers.SerializerMethodField()
+
+    class Meta:
+        model = UserWatchPreferences
+        fields = (
+            "auto_mark_watched_enabled",
+            "auto_mark_threshold",
+        )
+
+    def get_auto_mark_threshold(self, obj: UserWatchPreferences) -> int:
+        return obj.get_threshold()

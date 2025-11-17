@@ -66,6 +66,11 @@ export const USER_QUOTA_CONFIG = {
   refetchOnWindowFocus: true,
 } as const;
 
+export const WATCH_PREFERENCES_CONFIG = {
+  ...STABLE_DATA_CONFIG,
+  staleTime: FIVE_MINUTES,
+} as const;
+
 export const DEFAULT_QUERY_CONFIG = {
   queries: {
     staleTime: TWO_MINUTES,
@@ -97,4 +102,5 @@ export const queryKeys = {
   userProfile: ['user', 'profile'] as const,
   userAuth: ['user', 'auth'] as const,
   userQuota: ['userQuota'] as const,
+  watchPreferences: ['watchPreferences'] as const,
 } as const;

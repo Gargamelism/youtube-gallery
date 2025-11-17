@@ -87,6 +87,9 @@ export interface Video {
   is_not_interested: boolean;
   not_interested_at: string | null;
   channel_tags: ChannelTag[];
+  watch_progress_seconds?: number;
+  watch_percentage?: number;
+  auto_marked_watched?: boolean;
 }
 
 export interface UserVideo {
@@ -208,5 +211,46 @@ export interface UserQuotaInfo {
 export interface QuotaExceededErrorType {
   error: string;
   quota_info: UserQuotaInfo;
+  message: string;
+}
+
+// Watch Preferences Types
+export interface WatchPreferences {
+  auto_mark_watched_enabled: boolean;
+  auto_mark_threshold: number;
+}
+
+export interface WatchPreferencesUpdateRequest {
+  auto_mark_watched_enabled: boolean;
+  auto_mark_threshold: number;
+}
+
+export interface WatchPreferencesResponse {
+  status: string;
+  auto_mark_watched_enabled: boolean;
+  auto_mark_threshold: number;
+  message?: string;
+}
+
+// Video Player Types
+export interface VideoPlayerState {
+  isOpen: boolean;
+  video: Video | null;
+  startTime?: number;
+}
+
+export interface WatchProgressUpdate {
+  current_time: number;
+  duration: number;
+  auto_mark: boolean;
+}
+
+export interface WatchProgressResponse {
+  status: string;
+  watch_progress_seconds: number;
+  watch_percentage: number;
+  is_watched: boolean;
+  auto_marked: boolean;
+  threshold: number;
   message: string;
 }

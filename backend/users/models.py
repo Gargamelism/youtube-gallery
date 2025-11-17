@@ -7,6 +7,7 @@ from typing import Any, TypeVar
 from cryptography.fernet import Fernet
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Prefetch, QuerySet
 from django.utils import timezone as dj_tz
@@ -66,6 +67,38 @@ class UserChannel(TimestampMixin):
         unique_together = ("user", "channel")
 
 
+class UserWatchPreferences(TimestampMixin):
+    """User preferences for automatic watch tracking"""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="watch_preferences")
+
+    auto_mark_watched_enabled = models.BooleanField(
+        default=True, help_text="Enable automatic marking of videos as watched"
+    )
+    auto_mark_threshold = models.IntegerField(
+        default=None,
+        null=True,
+        blank=True,
+        help_text="Percentage threshold for auto-marking (0-100), uses DEFAULT_AUTO_MARK_THRESHOLD if null",
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+
+    class Meta:
+        db_table = "user_watch_preferences"
+        verbose_name_plural = "user watch preferences"
+
+    def get_threshold(self) -> int:
+        """Get the threshold, falling back to settings default if not set"""
+        if self.auto_mark_threshold is not None:
+            return self.auto_mark_threshold
+        threshold: int = settings.DEFAULT_AUTO_MARK_THRESHOLD
+        return threshold
+
+    def __str__(self) -> str:
+        return f"Watch preferences for {self.user.email}"
+
+
 class UserVideo(TimestampMixin):
     """Track user-specific data for videos (watch status, notes, etc.)"""
 
@@ -78,12 +111,31 @@ class UserVideo(TimestampMixin):
     not_interested_at = models.DateTimeField(null=True, blank=True)
     notes = models.TextField(blank=True, null=True)
 
+    # Progress tracking fields
+    watch_progress_seconds = models.IntegerField(default=0, help_text="Current playback position in seconds")
+    auto_marked_watched = models.BooleanField(
+        default=False, help_text="True if automatically marked as watched via threshold"
+    )
+
     class Meta:
         db_table = "user_videos"
         unique_together = ("user", "video")
         indexes = [
             models.Index(fields=["user", "is_not_interested"], name="user_not_interested_idx"),
+            models.Index(fields=["user", "watch_progress_seconds"], name="user_watch_progress_idx"),
         ]
+
+    @property
+    def watch_percentage(self) -> float:
+        """Calculate watch percentage based on video duration and current progress"""
+        if not self.video or not self.video.duration:
+            return 0.0
+
+        duration_seconds = self.video.get_duration_seconds()
+        if duration_seconds <= 0:
+            return 0.0
+
+        return min((self.watch_progress_seconds / duration_seconds) * 100, 100.0)
 
 
 class ChannelTag(TimestampMixin):
