@@ -85,12 +85,17 @@ export function VideoList({ scrollMode }: VideoListProps) {
     const playerParam = searchParams.get('player');
     const timeParam = searchParams.get('t');
 
-    if (playerParam && !selectedVideo) {
-      const video = videos.find(videoItem => videoItem.uuid === playerParam);
-      if (video) {
-        setSelectedVideo(video);
-        setStartTime(timeParam ? parseInt(timeParam, 10) : 0);
+    if (playerParam) {
+      if (selectedVideo?.uuid !== playerParam) {
+        const video = videos.find(videoItem => videoItem.uuid === playerParam);
+        if (video) {
+          setSelectedVideo(video);
+          setStartTime(timeParam ? parseInt(timeParam, 10) : 0);
+        }
       }
+    } else if (selectedVideo) {
+      setSelectedVideo(null);
+      setStartTime(0);
     }
   }, [searchParams, videos, selectedVideo]);
 
