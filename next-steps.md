@@ -1,6 +1,8 @@
 ## This file is to remind me of little tasks todo without breaking my flow or claude related feature-creep
 
-1. search channels by handle
+1. search channels by handle + after import open channel to add tags
+1. email verification
+1. otp login
 1. like video from player
 1. add sidebar filtering videos by channels
 1. keep filters state when moving between pages
@@ -23,8 +25,6 @@
     1. channels search
     1. channels filter by tags
 1. sso login with google
-1. email verification
-1. otp login
 1. videos page filter appears when mouse gets near navbar
 1. add profile page
 1. review settings page
