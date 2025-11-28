@@ -93,10 +93,24 @@ export function VideoPlayer({
     }
 
     const initPlayer = () => {
-      if (!containerRef.current) return;
+      const container = containerRef.current;
+      if (!container) {
+        console.warn('Container ref not available for YouTube player initialization');
+        return;
+      }
+
+      // Clear any existing content in the container to prevent DOM conflicts
+      while (container.firstChild) {
+        container.removeChild(container.firstChild);
+      }
+
+      // Create a dedicated div for YouTube to manage
+      const playerDiv = document.createElement('div');
+      playerDiv.id = `yt-player-${video.uuid}`;
+      container.appendChild(playerDiv);
 
       try {
-        playerRef.current = new window.YT.Player(containerRef.current, {
+        playerRef.current = new window.YT.Player(playerDiv, {
           videoId: getYouTubeVideoId(),
           width: '100%',
           height: '100%',
@@ -132,7 +146,13 @@ export function VideoPlayer({
     }
 
     return () => {
-      playerRef.current?.destroy();
+      if (playerRef.current) {
+        try {
+          playerRef.current.destroy();
+        } catch (destroyError) {
+          console.warn('Error destroying YouTube player:', destroyError);
+        }
+      }
     };
   }, [video.video_id, startPosition, getYouTubeVideoId, isLoadingProgress, t]);
 
@@ -266,7 +286,7 @@ export function VideoPlayer({
             </div>
           )}
 
-          <div ref={containerRef} className="VideoPlayer__iframe absolute inset-0" id={`player-${video.uuid}`} />
+          <div ref={containerRef} className="VideoPlayer__iframe absolute inset-0" />
 
           {hasProgress && !isReady && !error && !isLoadingProgress && (
             <div className="absolute bottom-4 left-4 right-4 bg-blue-600/90 text-white px-4 py-3 rounded-lg shadow-lg">

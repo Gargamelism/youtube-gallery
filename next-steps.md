@@ -1,6 +1,7 @@
 ## This file is to remind me of little tasks todo without breaking my flow or claude related feature-creep
 
 1. search channels by handle + after import open channel to add tags
+1. auto refresh fe
 1. email verification
 1. otp login
 1. like video from player
