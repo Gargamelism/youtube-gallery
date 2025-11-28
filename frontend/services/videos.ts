@@ -24,6 +24,12 @@ export interface NotInterestedResponse {
   not_interested_at: string | null;
 }
 
+export interface MarkUnavailableResponse {
+  message: string;
+  is_available: boolean;
+  video_id: string;
+}
+
 export function buildVideoQueryParams(params: VideoFilters & PaginationParams): string {
   const queryParams = new URLSearchParams();
 
@@ -116,4 +122,12 @@ export async function updateVideoWatchProgress(
 export async function getVideoWatchProgress(videoId: string): Promise<ApiResponse<WatchProgressResponse>> {
   const response = await fetch(`${API_BASE_URL}/videos/${videoId}/watch-progress`, getRequestOptions());
   return ResponseHandler.handle<WatchProgressResponse>(response);
+}
+
+export async function markVideoUnavailable(videoId: string): Promise<ApiResponse<MarkUnavailableResponse>> {
+  const response = await fetch(`${API_BASE_URL}/videos/${videoId}/mark-unavailable`, {
+    ...getRequestOptions(),
+    method: 'POST',
+  });
+  return ResponseHandler.handle<MarkUnavailableResponse>(response);
 }

@@ -9,6 +9,8 @@
   "autoMarkedNotification": "Video automatically marked as watched",
   "progressSaved": "Progress saved",
   "errorLoadingVideo": "Error loading video. Please try again.",
+  "videoUnavailable": "This video is no longer available. It may have been deleted or made private.",
+  "embeddingNotAllowed": "This video cannot be embedded. Click below to watch on YouTube.",
   "watchProgress": "Watch progress: {{percentage}}%",
   "loadingPlayer": "Loading player...",
   "autoMarkThreshold": "Auto-mark threshold at {{threshold}}%",

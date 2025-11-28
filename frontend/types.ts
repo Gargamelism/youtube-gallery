@@ -90,6 +90,7 @@ export interface Video {
   watch_progress_seconds?: number;
   watch_percentage?: number;
   auto_marked_watched?: boolean;
+  is_available?: boolean;
 }
 
 export interface UserVideo {

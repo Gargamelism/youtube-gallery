@@ -2,6 +2,7 @@
 
 1. search channels by handle + after import open channel to add tags
 1. auto refresh fe
+1. don't scroll up when watching a video
 1. email verification
 1. otp login
 1. like video from player

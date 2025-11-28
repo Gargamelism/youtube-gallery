@@ -88,6 +88,7 @@ class VideoListSerializer(serializers.ModelSerializer):  # type: ignore[type-arg
             "channel_tags",
             "watch_progress_seconds",
             "watch_percentage",
+            "is_available",
         ]
 
     def get_is_watched(self, obj: Video) -> bool:

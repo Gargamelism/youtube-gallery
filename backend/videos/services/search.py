@@ -43,8 +43,8 @@ class VideoSearchService:
             QuerySet of filtered videos (4 optimized DB queries regardless of filtering complexity)
         """
         # Optimized 4-query strategy achieves consistent performance:
-        # Query 1: Videos with channel data
-        queryset = Video.objects.select_related("channel")
+        # Query 1: Videos with channel data, filter out unavailable videos
+        queryset = Video.objects.select_related("channel").filter(is_available=True)
 
         # Query 2: User videos prefetch
         queryset = queryset.prefetch_related(Prefetch("user_videos", queryset=UserVideo.objects.filter(user=self.user)))

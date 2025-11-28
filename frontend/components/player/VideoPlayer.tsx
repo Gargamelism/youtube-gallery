@@ -6,9 +6,18 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Video } from '@/types';
 import { X, Check, Loader2, AlertCircle } from 'lucide-react';
 import { useUpdateWatchProgress, useMarkAsWatched } from './mutations';
-import { getVideoWatchProgress } from '@/services/videos';
+import { getVideoWatchProgress, markVideoUnavailable } from '@/services/videos';
 import { useKeyboardNavigation } from '@/components/keyboard/useKeyboardNavigation';
 import { createPlayerKeyboardShortcuts } from './keyboardShortcuts';
+import { queryKeys } from '@/lib/reactQueryConfig';
+
+enum YouTubePlayerError {
+  INVALID_VIDEO_ID = 2,
+  HTML5_PLAYER_ERROR = 5,
+  VIDEO_NOT_FOUND = 100,
+  EMBEDDING_NOT_ALLOWED = 101,
+  EMBEDDING_NOT_ALLOWED_ALT = 150,
+}
 
 interface VideoPlayerProps {
   video: Video;
@@ -79,6 +88,35 @@ export function VideoPlayer({
     shortcuts: keyboardShortcuts,
   });
 
+  const handleYouTubeError = useCallback(
+    async (errorCode: number) => {
+      console.error('YouTube player error:', errorCode);
+
+      if (
+        errorCode === YouTubePlayerError.INVALID_VIDEO_ID ||
+        errorCode === YouTubePlayerError.VIDEO_NOT_FOUND
+      ) {
+        try {
+          await markVideoUnavailable(video.uuid);
+          queryClient.invalidateQueries({ queryKey: queryKeys.videos });
+          queryClient.invalidateQueries({ queryKey: queryKeys.videoStats });
+          setError(t('videoUnavailable'));
+        } catch (markError) {
+          console.error('Failed to mark video as unavailable:', markError);
+          setError(t('errorLoadingVideo'));
+        }
+      } else if (
+        errorCode === YouTubePlayerError.EMBEDDING_NOT_ALLOWED ||
+        errorCode === YouTubePlayerError.EMBEDDING_NOT_ALLOWED_ALT
+      ) {
+        setError(t('embeddingNotAllowed'));
+      } else {
+        setError(t('errorLoadingVideo'));
+      }
+    },
+    [video.uuid, queryClient, t]
+  );
+
   // Initialize YouTube IFrame API and create player instance
   useEffect(() => {
     if (isLoadingProgress) {
@@ -128,8 +166,7 @@ export function VideoPlayer({
             },
             onStateChange: handlePlayerStateChange,
             onError: (event: YT.OnErrorEvent) => {
-              console.error('YouTube player error:', event.data);
-              setError(t('errorLoadingVideo'));
+              handleYouTubeError(event.data);
             },
           },
         });
@@ -154,7 +191,7 @@ export function VideoPlayer({
         }
       }
     };
-  }, [video.video_id, startPosition, getYouTubeVideoId, isLoadingProgress, t]);
+  }, [video.video_id, startPosition, getYouTubeVideoId, isLoadingProgress, t, handleYouTubeError]);
 
   // Track playback progress and send updates to backend every 10 seconds with debouncing
   useEffect(() => {

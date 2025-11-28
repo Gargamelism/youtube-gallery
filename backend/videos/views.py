@@ -182,6 +182,24 @@ class VideoViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
             }
         )
 
+    @action(detail=True, methods=["post"], url_path="mark-unavailable")
+    def mark_unavailable(self, _request: Request, _pk: Any = None) -> Response:
+        """Mark a video as unavailable (deleted/private on YouTube)"""
+        video = self.get_object()
+
+        if not video.is_available:
+            return Response(
+                {"message": "Video already marked as unavailable", "is_available": False}, status=status.HTTP_200_OK
+            )
+
+        video.is_available = False
+        video.save(update_fields=["is_available", "updated_at"])
+
+        return Response(
+            {"message": "Video marked as unavailable", "is_available": False, "video_id": str(video.uuid)},
+            status=status.HTTP_200_OK,
+        )
+
     @action(detail=False, methods=["get"])
     def unwatched(self, request: Request) -> Response:
         search_params = VideoSearchParams.from_request(self.request)
