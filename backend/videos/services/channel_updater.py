@@ -99,6 +99,7 @@ class ChannelUpdateService:
             channel_details = self.youtube_service.get_channel_details(channel_id)
 
             if not channel_details:
+                print(f"WARNING: get_channel_details returned None for channel {channel_id}")
                 raise ChannelNotFoundError(f"Channel {channel_id} not found")
 
             request = self.youtube_service.youtube.channels().list(part="snippet,statistics", id=channel_id)

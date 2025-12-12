@@ -39,6 +39,16 @@ class Command(BaseCommand):
         if created:
             self.stdout.write("Created hourly schedule")
 
+        every_six_hours_schedule, created = CrontabSchedule.objects.get_or_create(
+            minute=30,
+            hour="*/6",
+            day_of_week="*",
+            day_of_month="*",
+            month_of_year="*",
+        )
+        if created:
+            self.stdout.write("Created every-6-hours schedule (at 30 minutes past the hour)")
+
         # Create periodic tasks
         tasks = [
             {
@@ -61,6 +71,13 @@ class Command(BaseCommand):
                 "schedule": hourly_schedule,
                 "queue": "priority",
                 "description": "Hourly update of priority channels",
+            },
+            {
+                "name": "retry-unavailable-channels",
+                "task": "videos.tasks.retry_unavailable_channels",
+                "schedule": every_six_hours_schedule,
+                "queue": "maintenance",
+                "description": "Retry channels marked as unavailable every 6 hours",
             },
         ]
 

@@ -42,6 +42,7 @@ if CELERY_ENABLED:
             "videos.tasks.update_priority_channels_async": {"queue": "priority"},
             "videos.tasks.update_channels_batch": {"queue": "bulk"},
             "videos.tasks.cleanup_orphaned_channels": {"queue": "maintenance"},
+            "videos.tasks.retry_unavailable_channels": {"queue": "maintenance"},
         },
         # Retry settings
         task_acks_late=True,

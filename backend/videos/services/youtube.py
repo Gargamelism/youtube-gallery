@@ -292,9 +292,9 @@ class YouTubeService:
 
             return self._format_channel_response(channel_info)
 
-        except Exception:
-            # Error fetching channel details
-            return None
+        except Exception as e:
+            print(f"ERROR: Failed to fetch channel details for {channel_identifier}: {type(e).__name__}: {str(e)}")
+            raise
 
     def get_channel_videos(self, uploads_playlist_id: str) -> Any:
         """Generator that yields pages of video data"""
