@@ -3,6 +3,7 @@ import { Poppins } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 import Navigation from '@/components/navigation/Navigation';
+import { YouTubeAuthBanner } from '@/components/auth/YouTubeAuthBanner';
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={poppins.className}>
         <Providers>
+          <YouTubeAuthBanner />
           <Navigation />
           {children}
         </Providers>
