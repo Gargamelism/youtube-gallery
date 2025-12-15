@@ -92,7 +92,8 @@ export function ImportChannelModal({ isOpen, onClose }: ImportChannelModalProps)
 
   const handleYoutubeAuth = async () => {
     try {
-      const redirectUri = (process.env.BE_PUBLIC_API_URL || 'http://localhost:8000/api') + '/auth/youtube/callback';
+      const { getYouTubeCallbackUrl } = await import('@/lib/config');
+      const redirectUri = getYouTubeCallbackUrl();
       const response = await getYouTubeAuthUrl(redirectUri, window.location.href);
 
       if (response.error) {

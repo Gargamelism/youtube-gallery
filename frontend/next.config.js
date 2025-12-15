@@ -1,3 +1,23 @@
+function parseBackendUrl() {
+  const backendUrl = process.env.BE_PUBLIC_API_URL || 'http://localhost:8000/api';
+  try {
+    const url = new URL(backendUrl);
+    return {
+      protocol: url.protocol.replace(':', ''),
+      hostname: url.hostname,
+      port: url.port || '8000',
+    };
+  } catch {
+    return {
+      protocol: 'http',
+      hostname: 'localhost',
+      port: '8000',
+    };
+  }
+}
+
+const backendConfig = parseBackendUrl();
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
@@ -10,9 +30,9 @@ const nextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '8000',
+        protocol: backendConfig.protocol,
+        hostname: backendConfig.hostname,
+        port: backendConfig.port,
         pathname: '/media/**',
       },
       {
