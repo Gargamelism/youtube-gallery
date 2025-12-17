@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from datetime import datetime
 from pathlib import Path
@@ -18,6 +19,8 @@ YouTubeResource = Any  # Type stub for Resource isn't available
 
 YOUTUBE_SCOPES = ["https://www.googleapis.com/auth/youtube.readonly"]
 MAX_SEARCH_RESULTS = 50  # Max results for searching channel by handle
+
+logger = logging.getLogger(__name__)
 
 
 class CredentialsData(TypedDict, total=False):
@@ -293,7 +296,12 @@ class YouTubeService:
             return self._format_channel_response(channel_info)
 
         except Exception as e:
-            print(f"ERROR: Failed to fetch channel details for {channel_identifier}: {type(e).__name__}: {str(e)}")
+            logger.error(
+                "Failed to fetch channel details for %s: %s: %s",
+                channel_identifier,
+                type(e).__name__,
+                str(e),
+            )
             raise
 
     def get_channel_videos(self, uploads_playlist_id: str) -> Any:

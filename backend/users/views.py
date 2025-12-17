@@ -73,7 +73,7 @@ def validate_recaptcha_v3(token: str | None, action: str, threshold: float = 0.5
         bool: True if validation passes, False otherwise
     """
     # Skip validation in DEBUG mode if SKIP_RECAPTCHA is set
-    if settings.DEBUG and getattr(settings, 'SKIP_RECAPTCHA', False):
+    if settings.DEBUG and getattr(settings, "SKIP_RECAPTCHA", False):
         return True
 
     data = {"secret": settings.CAPTCHA_PRIVATE_KEY, "response": token}

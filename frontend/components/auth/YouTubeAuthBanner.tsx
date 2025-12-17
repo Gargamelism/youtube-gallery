@@ -75,10 +75,7 @@ export function YouTubeAuthBanner() {
       <div className="YouTubeAuthBanner__container max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8">
         <div className="YouTubeAuthBanner__content flex items-center justify-between gap-4">
           <div className="YouTubeAuthBanner__message-section flex items-center gap-3 flex-1 min-w-0">
-            <AlertCircle
-              className="YouTubeAuthBanner__icon h-5 w-5 text-amber-600 flex-shrink-0"
-              aria-hidden="true"
-            />
+            <AlertCircle className="YouTubeAuthBanner__icon h-5 w-5 text-amber-600 flex-shrink-0" aria-hidden="true" />
             <div className="YouTubeAuthBanner__text flex-1 min-w-0">
               <p className="YouTubeAuthBanner__title text-sm font-medium text-amber-900">
                 {t('youtubeAuthBanner.title')}
@@ -86,9 +83,7 @@ export function YouTubeAuthBanner() {
               <p className="YouTubeAuthBanner__description text-sm text-amber-700 mt-0.5">
                 {t('youtubeAuthBanner.message')}
               </p>
-              {errorMessage && (
-                <p className="YouTubeAuthBanner__error text-xs text-amber-600 mt-1">{errorMessage}</p>
-              )}
+              {errorMessage && <p className="YouTubeAuthBanner__error text-xs text-amber-600 mt-1">{errorMessage}</p>}
             </div>
           </div>
 

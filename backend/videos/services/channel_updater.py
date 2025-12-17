@@ -2,6 +2,7 @@
 Service for updating channel metadata from YouTube API.
 """
 
+import logging
 from dataclasses import dataclass
 from typing import Any, Dict, Iterable, Optional
 
@@ -37,6 +38,8 @@ PRIORITY_NEVER_UPDATED_BONUS = 200
 
 # Channel update behavior constants
 MAX_FAILED_ATTEMPTS_BEFORE_UNAVAILABLE = 5
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -99,7 +102,7 @@ class ChannelUpdateService:
             channel_details = self.youtube_service.get_channel_details(channel_id)
 
             if not channel_details:
-                print(f"WARNING: get_channel_details returned None for channel {channel_id}")
+                logger.warning("get_channel_details returned None for channel %s", channel_id)
                 raise ChannelNotFoundError(f"Channel {channel_id} not found")
 
             request = self.youtube_service.youtube.channels().list(part="snippet,statistics", id=channel_id)
