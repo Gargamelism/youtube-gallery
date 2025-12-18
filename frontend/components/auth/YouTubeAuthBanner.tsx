@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getYouTubeAuthUrl } from '@/services';
 import { X, AlertCircle } from 'lucide-react';
@@ -17,13 +17,13 @@ export function YouTubeAuthBanner() {
     setIsMounted(true);
   }, []);
 
-  const handleAuthMessage = (event: MessageEvent) => {
+  const handleAuthMessage = useCallback((event: MessageEvent) => {
     if (event.data === PostMessageType.YOUTUBE_AUTH_SUCCESS) {
       setIsVisible(false);
       setErrorMessage('');
       setIsAuthenticating(false);
     }
-  };
+  }, []);
 
   usePostMessage(handleAuthMessage);
 
@@ -52,7 +52,7 @@ export function YouTubeAuthBanner() {
       if (response.error) {
         setErrorMessage(`${t('youtubeAuthBanner.authenticationFailed')} ${response.error}`);
         setIsAuthenticating(false);
-      } else if (response.data.auth_url) {
+      } else if (response.data?.auth_url) {
         window.location.href = response.data.auth_url;
       } else {
         setErrorMessage(t('youtubeAuthBanner.failedToGetAuthUrl'));

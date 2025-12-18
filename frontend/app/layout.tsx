@@ -3,7 +3,7 @@ import { Poppins } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 import Navigation from '@/components/navigation/Navigation';
-import { YouTubeAuthBanner } from '@/components/auth/YouTubeAuthBanner';
+import { YouTubeAuthBanner } from '@/components/auth';
 
 const poppins = Poppins({
   subsets: ['latin'],

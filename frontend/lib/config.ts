@@ -18,8 +18,7 @@ export const config = {
 
 export function getApiBaseUrl(): string {
   if (typeof window !== 'undefined') {
-    const host = window.location.hostname;
-    return `http://${host}:8000/api`;
+    return process.env.NEXT_PUBLIC_API_URL || `http://${window.location.hostname}:8000/api`;
   }
   return getEnvVar('BE_INTERNAL_API_URL', 'http://backend:8000/api');
 }
@@ -34,12 +33,21 @@ export function getYouTubeCallbackUrl(): string {
 
 export function parseBackendUrl(): { protocol: string; hostname: string; port: string } {
   if (typeof window !== 'undefined') {
-    const host = window.location.hostname;
-    return {
-      protocol: window.location.protocol.replace(':', ''),
-      hostname: host,
-      port: '8000',
-    };
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || `http://${window.location.hostname}:8000/api`;
+    try {
+      const urlObj = new URL(apiUrl);
+      return {
+        protocol: urlObj.protocol.replace(':', ''),
+        hostname: urlObj.hostname,
+        port: urlObj.port || '8000',
+      };
+    } catch {
+      return {
+        protocol: window.location.protocol.replace(':', ''),
+        hostname: window.location.hostname,
+        port: '8000',
+      };
+    }
   }
 
   const backendUrl = getEnvVar('BE_INTERNAL_API_URL', 'http://backend:8000/api');

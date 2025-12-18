@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django_celery_beat.models import PeriodicTask, CrontabSchedule
 
@@ -8,13 +9,14 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write(self.style.SUCCESS("Setting up periodic tasks..."))
 
-        # Create crontab schedules
+        # Create crontab schedules with explicit timezone
         daily_schedule, created = CrontabSchedule.objects.get_or_create(
             minute=0,
             hour=2,
             day_of_week="*",
             day_of_month="*",
             month_of_year="*",
+            timezone="UTC",
         )
         if created:
             self.stdout.write("Created daily schedule (2 AM UTC)")
@@ -22,9 +24,10 @@ class Command(BaseCommand):
         weekly_schedule, created = CrontabSchedule.objects.get_or_create(
             minute=0,
             hour=3,
-            day_of_week=1,  # Monday
+            day_of_week="1",  # Monday
             day_of_month="*",
             month_of_year="*",
+            timezone="UTC",
         )
         if created:
             self.stdout.write("Created weekly schedule (Monday 3 AM UTC)")
@@ -35,6 +38,7 @@ class Command(BaseCommand):
             day_of_week="*",
             day_of_month="*",
             month_of_year="*",
+            timezone="UTC",
         )
         if created:
             self.stdout.write("Created hourly schedule")
@@ -45,6 +49,7 @@ class Command(BaseCommand):
             day_of_week="*",
             day_of_month="*",
             month_of_year="*",
+            timezone="UTC",
         )
         if created:
             self.stdout.write("Created every-6-hours schedule (at 30 minutes past the hour)")
