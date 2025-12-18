@@ -62,8 +62,8 @@ export function VideoPlayer({
           setStartPosition(response.data.watch_progress_seconds || 0);
           setAutoMarkThreshold(response.data.threshold || 75);
         }
-      } catch (fetchError) {
-        console.error('Failed to fetch watch progress:', fetchError);
+      } catch {
+        // Error fetching progress - will use default start position
       } finally {
         setIsLoadingProgress(false);
       }
@@ -89,7 +89,11 @@ export function VideoPlayer({
       const tag = document.createElement('script');
       tag.src = 'https://www.youtube.com/iframe_api';
       const firstScriptTag = document.getElementsByTagName('script')[0];
-      firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
+      if (firstScriptTag && firstScriptTag.parentNode) {
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+      } else {
+        document.head.appendChild(tag);
+      }
     }
 
     const initPlayer = () => {
@@ -113,14 +117,12 @@ export function VideoPlayer({
               setError(null);
             },
             onStateChange: handlePlayerStateChange,
-            onError: (event: YT.OnErrorEvent) => {
-              console.error('YouTube player error:', event.data);
+            onError: () => {
               setError(t('errorLoadingVideo'));
             },
           },
         });
-      } catch (playerError) {
-        console.error('Failed to initialize player:', playerError);
+      } catch {
         setError(t('errorLoadingVideo'));
       }
     };
@@ -169,8 +171,8 @@ export function VideoPlayer({
               setAutoMarkThreshold(response.data.threshold);
             }
           })
-          .catch(progressError => {
-            console.error('Failed to update progress:', progressError);
+          .catch(() => {
+            // Progress update failed - will retry on next interval
           });
 
         if (onTimeUpdate) {
@@ -204,8 +206,8 @@ export function VideoPlayer({
         setIsWatched(true);
         onWatchStatusChange(true);
       }
-    } catch (markError) {
-      console.error('Failed to mark as watched:', markError);
+    } catch {
+      // Failed to mark as watched - user can retry manually
     }
   };
 

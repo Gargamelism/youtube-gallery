@@ -140,10 +140,14 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "users.User"
 
 # CORS settings
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
+# In DEBUG mode, allow all origins for easier development across different machines
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True
+else:
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
@@ -174,6 +178,7 @@ REST_FRAMEWORK = {
 
 # recaptcha settings
 CAPTCHA_PRIVATE_KEY = config("RECAPTCHA_PRIVATE_KEY")
+SKIP_RECAPTCHA = config("SKIP_RECAPTCHA", default=False, cast=bool)
 
 FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:3000")
 

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { config } from '@/lib/config';
+import { config, getApiBaseUrl } from '@/lib/config';
 import { clearAuthCookie } from '@/utils/authUtils';
 import { getRequestOptions } from '@/services';
 
@@ -14,7 +14,7 @@ export async function POST() {
 
       if (token) {
         try {
-          await fetch(`${config.api.baseUrl}/auth/logout`, {
+          await fetch(`${getApiBaseUrl()}/auth/logout`, {
             ...getRequestOptions(),
             method: 'POST',
           });

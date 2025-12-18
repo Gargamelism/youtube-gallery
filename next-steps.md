@@ -1,6 +1,7 @@
 ## This file is to remind me of little tasks todo without breaking my flow or claude related feature-creep
 
-1. search channels by handle
+1. handle videos that are removed after being indexed
+1. flickering video appearance
 1. like video from player
 1. add sidebar filtering videos by channels
 1. keep filters state when moving between pages
