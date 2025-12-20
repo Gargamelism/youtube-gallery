@@ -30,8 +30,8 @@ export function TagFilter({
   const [isExpanded, setIsExpanded] = useState(false);
   const [scrollMode, setLocalScrollMode] = useState<ScrollMode>(ScrollMode.AUTO);
   const { data: allTags } = useChannelTags();
-  const selectedTagObjects = allTags?.results.filter(tag => selectedTags.includes(tag.name));
-  const availableTags = allTags?.results.filter(tag => !selectedTags.includes(tag.name));
+  const selectedTagObjects = allTags?.results?.filter(tag => selectedTags.includes(tag.name)) || [];
+  const availableTags = allTags?.results?.filter(tag => !selectedTags.includes(tag.name)) || [];
 
   useEffect(() => {
     setLocalScrollMode(getScrollMode());

@@ -1,6 +1,7 @@
 # YAML anchors for shared environment variables
 x-backend-env: &backend-env
   DEBUG: True
+  ALLOWED_HOSTS: ${ALLOWED_HOSTS}
   DB_HOST: ${DB_HOST}
   DB_NAME: ${DB_NAME}
   DB_USER: ${DB_USER}
@@ -56,14 +57,20 @@ services:
   db:
     image: postgres:15
     environment:
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - '5432:5432'
     networks:
       - youtube_gallery_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   # Django Backend Tests
   backend_test:
@@ -79,8 +86,10 @@ services:
     ports:
       - '5679:5679' # debugpy port for test debugging
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
     networks:
       - youtube_gallery_network
     # Exit after running tests (or debug mode)
@@ -101,8 +110,10 @@ services:
       - '8000:8000'
       - '5678:5678' # debugpy port for VS Code debugging
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
     networks:
       - youtube_gallery_network
     command: >
@@ -125,8 +136,10 @@ services:
     volumes:
       - ./backend:/app
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
     networks:
       - youtube_gallery_network
     command: celery -A youtube_gallery worker --loglevel=info --concurrency=2 -Q celery,priority,bulk,maintenance
@@ -142,9 +155,12 @@ services:
     volumes:
       - ./backend:/app
     depends_on:
-      - db
-      - redis
-      - celery_worker
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      celery_worker:
+        condition: service_started
     networks:
       - youtube_gallery_network
     command: celery -A youtube_gallery beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
