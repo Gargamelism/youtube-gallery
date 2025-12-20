@@ -80,6 +80,7 @@ sync_files() {
     --exclude '__pycache__' \
     --exclude '*.pyc' \
     --exclude '.git' \
+    --exclude '.venv' \
     --exclude 'backend/staticfiles' \
     --exclude 'backend/media' \
     --exclude '.env' \

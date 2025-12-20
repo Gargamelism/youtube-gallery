@@ -1,9 +1,11 @@
 import json
 import logging
 import os
+import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, TypedDict, Union, cast
+from urllib.parse import urlparse
 
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
@@ -21,6 +23,37 @@ YOUTUBE_SCOPES = ["https://www.googleapis.com/auth/youtube.readonly"]
 MAX_SEARCH_RESULTS = 50  # Max results for searching channel by handle
 
 logger = logging.getLogger(__name__)
+
+
+def _is_private_ip_redirect_uri(redirect_uri: str) -> bool:
+    """Check if redirect URI uses a private/local IP address"""
+    try:
+        parsed = urlparse(redirect_uri)
+        hostname = parsed.hostname
+        if not hostname:
+            return False
+
+        # Check for localhost
+        if hostname in ("localhost", "127.0.0.1", "::1"):
+            return True
+
+        # Check for private IP ranges (RFC 1918)
+        if hostname.startswith("10.") or hostname.startswith("192.168.") or hostname.startswith("172."):
+            parts = hostname.split(".")
+            if len(parts) == 4:
+                # 10.0.0.0/8
+                if parts[0] == "10":
+                    return True
+                # 192.168.0.0/16
+                if parts[0] == "192" and parts[1] == "168":
+                    return True
+                # 172.16.0.0/12
+                if parts[0] == "172" and 16 <= int(parts[1]) <= 31:
+                    return True
+
+        return False
+    except Exception:
+        return False
 
 
 class CredentialsData(TypedDict, total=False):
@@ -44,6 +77,14 @@ class GoogleCredentialsData(TypedDict, total=False):
     scope: str
     token_type: str
     refresh_token_expires_in: int
+
+
+class DeviceFlowResponse(TypedDict):
+    device_code: str
+    user_code: str
+    verification_url: str
+    expires_in: int
+    interval: int
 
 
 class YouTubeAuthenticationError(Exception):
@@ -124,6 +165,7 @@ class YouTubeService:
                 auth_params["state"] = state
 
             authorization_url, _ = flow.authorization_url(**auth_params)
+            logger.debug(f"Generated OAuth URL: {authorization_url}")
 
             return authorization_url  # type: ignore[no-any-return]
         except Exception as e:
