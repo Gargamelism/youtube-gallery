@@ -84,7 +84,7 @@ describe('useChannelFilters', () => {
       const { result } = renderHook(() => useChannelFilters(ChannelType.SUBSCRIBED));
       result.current.updatePage(3);
 
-      expect(mockRouter.push).toHaveBeenCalledWith('/channels?ss=test&sts=tag1&sp=3');
+      expect(mockRouter.push).toHaveBeenCalledWith('/channels?ss=test&sts=tag1&sp=3&stm=any');
     });
 
     it('adds tag to existing tags', () => {

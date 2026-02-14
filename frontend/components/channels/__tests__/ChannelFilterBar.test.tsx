@@ -118,15 +118,15 @@ describe('ChannelFilterBar', () => {
     expect(screen.queryByText('tagMode.all')).not.toBeInTheDocument();
   });
 
-  it('does not show tag mode toggle when only one tag selected', () => {
+  it('shows tag mode toggle when one tag selected', () => {
     render(
       <TestWrapper>
         <ChannelFilterBar {...mockProps} selectedTags={['Tech']} showTagFilter={true} />
       </TestWrapper>
     );
 
-    expect(screen.queryByText('tagMode.any')).not.toBeInTheDocument();
-    expect(screen.queryByText('tagMode.all')).not.toBeInTheDocument();
+    expect(screen.getByText('tagMode.any')).toBeInTheDocument();
+    expect(screen.getByText('tagMode.all')).toBeInTheDocument();
   });
 
   it('highlights ANY tag mode button when selected', () => {

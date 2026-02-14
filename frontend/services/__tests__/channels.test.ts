@@ -65,7 +65,7 @@ describe('fetchUserChannels', () => {
       expect(callUrl).toContain('tag_mode=all');
     });
 
-    it('includes tags without tag_mode for single tag', async () => {
+    it('includes tags with tag_mode for single tag', async () => {
       const filters: Partial<ChannelFilters> = {
         selectedTags: ['javascript'],
         tagMode: TagMode.ANY,
@@ -75,7 +75,7 @@ describe('fetchUserChannels', () => {
 
       const callUrl = (global.fetch as jest.Mock).mock.calls[0][0];
       expect(callUrl).toContain('tags=javascript');
-      expect(callUrl).not.toContain('tag_mode');
+      expect(callUrl).toContain('tag_mode=any');
     });
 
     it('omits tags when array is empty', async () => {
