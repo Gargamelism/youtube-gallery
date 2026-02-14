@@ -41,7 +41,7 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
     const allFilters = {
       filter,
       selectedTags,
-      tag_mode: selectedTags.length > 1 ? tagMode : undefined,
+      tag_mode: selectedTags.length > 0 ? tagMode : undefined,
       notInterestedFilter,
       ...newFilters,
     };
@@ -49,7 +49,7 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
     updateUrl({
       filter: allFilters.filter,
       tags: allFilters.selectedTags,
-      tag_mode: allFilters.selectedTags.length > 1 ? allFilters.tag_mode : undefined,
+      tag_mode: allFilters.selectedTags.length > 0 ? allFilters.tag_mode : undefined,
       search: allFilters.searchQuery,
       not_interested_filter: allFilters.notInterestedFilter,
     });

@@ -470,5 +470,37 @@ describe('buildVideoQueryParams', () => {
 
       expect(result).toBe('watch_status=unwatched&not_interested_filter=exclude&search=Next.js');
     });
+
+    it('should build query for "all videos except from yoga channels"', () => {
+      const result = buildVideoQueryParams({
+        filter: 'all',
+        selectedTags: ['yoga'],
+        tagMode: TagMode.EXCEPT,
+        searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
+      });
+
+      expect(result).toContain('tags=yoga');
+      expect(result).toContain('tag_mode=except');
+      expect(result).toContain('not_interested_filter=exclude');
+    });
+
+    it('should build query for "unwatched videos except cooking and gardening"', () => {
+      const result = buildVideoQueryParams({
+        filter: 'unwatched',
+        selectedTags: ['cooking', 'gardening'],
+        tagMode: TagMode.EXCEPT,
+        searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
+        page: 1,
+        page_size: 24,
+      });
+
+      expect(result).toContain('watch_status=unwatched');
+      expect(result).toContain('tags=cooking%2Cgardening');
+      expect(result).toContain('tag_mode=except');
+      expect(result).toContain('page=1');
+      expect(result).toContain('page_size=24');
+    });
   });
 });

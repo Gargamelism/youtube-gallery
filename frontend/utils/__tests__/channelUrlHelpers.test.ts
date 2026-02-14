@@ -21,7 +21,7 @@ describe('filtersToUrlParams', () => {
       });
     });
 
-    it('omits tag mode when only one tag is selected', () => {
+    it('includes tag mode when only one tag is selected', () => {
       const filters: Partial<ChannelFilters> = {
         search: 'react',
         selectedTags: ['javascript'],
@@ -34,7 +34,25 @@ describe('filtersToUrlParams', () => {
       expect(result).toEqual({
         ss: 'react',
         sts: 'javascript',
-        stm: undefined,
+        stm: TagMode.ALL,
+        sp: undefined,
+      });
+    });
+
+    it('includes EXCEPT tag mode in URL params', () => {
+      const filters: Partial<ChannelFilters> = {
+        search: '',
+        selectedTags: ['yoga'],
+        tagMode: TagMode.EXCEPT,
+        page: 1,
+      };
+
+      const result = filtersToUrlParams(filters, ChannelType.SUBSCRIBED);
+
+      expect(result).toEqual({
+        ss: undefined,
+        sts: 'yoga',
+        stm: TagMode.EXCEPT,
         sp: undefined,
       });
     });
@@ -198,6 +216,15 @@ describe('urlParamsToFilters', () => {
 
       expect(result.selectedTags).toEqual(['frontend']);
     });
+
+    it('parses EXCEPT tag mode from URL params', () => {
+      const searchParams = new URLSearchParams('sts=yoga,cooking&stm=except');
+
+      const result = urlParamsToFilters(searchParams, ChannelType.SUBSCRIBED);
+
+      expect(result.tagMode).toBe(TagMode.EXCEPT);
+      expect(result.selectedTags).toEqual(['yoga', 'cooking']);
+    });
   });
 
   describe('available channel parameters', () => {
@@ -291,7 +318,7 @@ describe('filtersToApiParams', () => {
       });
     });
 
-    it('omits tag_mode when only one tag is selected', () => {
+    it('includes tag_mode when only one tag is selected', () => {
       const filters: Partial<ChannelFilters> = {
         search: 'react',
         selectedTags: ['javascript'],
@@ -304,7 +331,24 @@ describe('filtersToApiParams', () => {
       expect(result).toEqual({
         search: 'react',
         tags: ['javascript'],
-        tag_mode: undefined,
+        tag_mode: TagMode.ALL,
+        page: 1,
+      });
+    });
+
+    it('includes EXCEPT tag_mode in API params', () => {
+      const filters: Partial<ChannelFilters> = {
+        search: '',
+        selectedTags: ['yoga'],
+        tagMode: TagMode.EXCEPT,
+        page: 1,
+      };
+
+      const result = filtersToApiParams(filters);
+
+      expect(result).toEqual({
+        tags: ['yoga'],
+        tag_mode: TagMode.EXCEPT,
         page: 1,
       });
     });
@@ -486,7 +530,7 @@ describe('integration tests - round trip conversions', () => {
     expect(allParams).toEqual({
       ss: 'tech',
       sts: 'programming',
-      stm: undefined,
+      stm: TagMode.ANY,
       sp: '2',
       as: 'python',
       ats: undefined,

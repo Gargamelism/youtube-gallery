@@ -14,6 +14,7 @@ MAX_SEARCH_QUERY_LENGTH = 50
 class TagMode(str, Enum):
     ANY = "any"
     ALL = "all"
+    EXCEPT = "except"
 
     @classmethod
     def from_param(cls, value: Optional[str]) -> "TagMode":

@@ -129,9 +129,10 @@ export enum NotInterestedFilter {
 export enum TagMode {
   ALL = 'all',
   ANY = 'any',
+  EXCEPT = 'except',
 }
 
-export type TagModeType = TagMode.ALL | TagMode.ANY;
+export type TagModeType = TagMode.ALL | TagMode.ANY | TagMode.EXCEPT;
 
 export interface VideoFilters {
   filter: string;

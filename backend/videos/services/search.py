@@ -107,6 +107,19 @@ class VideoSearchService:
                 )
                 return queryset.filter(Exists(tag_exists))
 
+            case TagMode.EXCEPT:
+                # Channel must have NONE of the specified tags - NOT EXISTS
+                tag_exists = UserChannelTag.objects.filter(
+                    user_channel__channel=OuterRef("channel"),
+                    user_channel__user=self.user,
+                    tag__name__in=tag_names,
+                    tag__user=self.user,
+                )
+                return queryset.filter(~Exists(tag_exists))
+
+            case _:
+                return queryset
+
     def _apply_watch_status_filter(self, queryset: QuerySet[Video], watch_status: WatchStatus) -> QuerySet[Video]:
         """Apply watch status filtering using EXISTS subquery"""
         match watch_status:

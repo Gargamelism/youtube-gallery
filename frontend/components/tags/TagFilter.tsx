@@ -50,8 +50,11 @@ export function TagFilter({
   };
 
   const handleToggleMode = () => {
-    const newMode = tagMode === TagMode.ANY ? TagMode.ALL : TagMode.ANY;
-    onTagModeChange(newMode);
+    const modes: TagModeType[] = [TagMode.ANY, TagMode.ALL, TagMode.EXCEPT];
+    const currentIndex = modes.indexOf(tagMode);
+    const nextIndex = (currentIndex + 1) % modes.length;
+    const nextMode = modes.at(nextIndex) ?? TagMode.ANY;
+    onTagModeChange(nextMode);
   };
 
   const handleScrollModeToggle = () => {
@@ -103,7 +106,7 @@ export function TagFilter({
             ))}
           </div>
 
-          {selectedTags.length > 1 && (
+          {selectedTags.length > 0 && (
             <div className="TagFilter__mode flex items-center gap-2">
               <span className="text-xs text-gray-500">{t('showVideosFrom')}:</span>
               <button
@@ -131,6 +134,19 @@ export function TagFilter({
                 `}
               >
                 {t('tagMode.all')}
+              </button>
+              <button
+                onClick={handleToggleMode}
+                className={`
+                  TagFilter__mode-button text-xs px-2 py-1 rounded
+                  ${
+                    tagMode === TagMode.EXCEPT
+                      ? 'bg-red-100 text-red-700'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }
+                `}
+              >
+                {t('tagMode.except')}
               </button>
             </div>
           )}
