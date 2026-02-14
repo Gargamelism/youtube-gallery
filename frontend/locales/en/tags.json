@@ -11,7 +11,8 @@
   "filterByTags": "Filter by Tags",
   "tagMode": {
     "any": "Any of these tags",
-    "all": "All of these tags"
+    "all": "All of these tags",
+    "except": "None of these tags"
   },
   "noTags": "No tags assigned",
   "noMatchingTags": "No matching tags found",

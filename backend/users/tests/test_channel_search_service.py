@@ -264,6 +264,47 @@ class ChannelSearchServiceTests(TestCase):
 
         self.assertEqual(channels.count(), 0)
 
+    def test_filter_by_single_tag_except_mode(self) -> None:
+        """Test EXCEPT mode excludes channels that have the specified tag"""
+        service = ChannelSearchService(self.user)
+        channels = service.search_user_channels(tag_names=["Programming"], tag_mode=TagMode.EXCEPT)
+
+        self.assertEqual(channels.count(), 1)
+        first_user_channel = channels.first()
+        assert first_user_channel is not None
+        self.assertEqual(first_user_channel.channel.title, "JavaScript Tutorials")
+
+    def test_filter_by_multiple_tags_except_mode(self) -> None:
+        """Test EXCEPT mode with multiple tags excludes channels with ANY of those tags"""
+        service = ChannelSearchService(self.user)
+        channels = service.search_user_channels(tag_names=["Programming", "Tutorial"], tag_mode=TagMode.EXCEPT)
+
+        self.assertEqual(channels.count(), 0)
+
+    def test_filter_by_sparse_tag_except_mode(self) -> None:
+        """Test EXCEPT mode can return multiple channels when tag is not widely assigned"""
+        service = ChannelSearchService(self.user)
+        channels = service.search_user_channels(tag_names=["Web"], tag_mode=TagMode.EXCEPT)
+
+        self.assertEqual(channels.count(), 2)
+        channel_titles = [uc.channel.title for uc in channels]
+        self.assertIn("Python Programming", channel_titles)
+        self.assertIn("JavaScript Tutorials", channel_titles)
+
+    def test_combined_search_and_except_tag_filter(self) -> None:
+        """Test combining search query and EXCEPT tag filtering"""
+        service = ChannelSearchService(self.user)
+        channels = service.search_user_channels(
+            search_query="Tutorials",
+            tag_names=["Programming"],
+            tag_mode=TagMode.EXCEPT,
+        )
+
+        self.assertEqual(channels.count(), 1)
+        first_user_channel = channels.first()
+        assert first_user_channel is not None
+        self.assertEqual(first_user_channel.channel.title, "JavaScript Tutorials")
+
     def test_filter_by_nonexistent_tag(self) -> None:
         """Test filtering by tag that doesn't exist"""
         service = ChannelSearchService(self.user)

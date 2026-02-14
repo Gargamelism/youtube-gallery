@@ -84,7 +84,7 @@ describe('useChannelFilters', () => {
       const { result } = renderHook(() => useChannelFilters(ChannelType.SUBSCRIBED));
       result.current.updatePage(3);
 
-      expect(mockRouter.push).toHaveBeenCalledWith('/channels?ss=test&sts=tag1&sp=3');
+      expect(mockRouter.push).toHaveBeenCalledWith('/channels?ss=test&sts=tag1&sp=3&stm=any');
     });
 
     it('adds tag to existing tags', () => {
@@ -209,13 +209,22 @@ describe('useChannelFilters', () => {
       expect(mockRouter.push).toHaveBeenCalledWith('/channels');
     });
 
-    it('handles single tag without tag mode', () => {
+    it('includes tag mode with single tag', () => {
       mockSearchParamsString = '';
 
       const { result } = renderHook(() => useChannelFilters(ChannelType.SUBSCRIBED));
       result.current.updateTags(['single-tag']);
 
-      expect(mockRouter.push).toHaveBeenCalledWith('/channels?sts=single-tag');
+      expect(mockRouter.push).toHaveBeenCalledWith('/channels?sts=single-tag&stm=any');
+    });
+
+    it('parses EXCEPT tag mode from URL', () => {
+      mockSearchParamsString = 'sts=yoga&stm=except';
+
+      const { result } = renderHook(() => useChannelFilters(ChannelType.SUBSCRIBED));
+
+      expect(result.current.tagMode).toBe(TagMode.EXCEPT);
+      expect(result.current.selectedTags).toEqual(['yoga']);
     });
 
     it('includes tag mode when multiple tags are selected', () => {

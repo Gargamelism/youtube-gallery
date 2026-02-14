@@ -38,20 +38,15 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
   };
 
   const updateAllFilters = (newFilters: Partial<VideoFilters>) => {
-    const allFilters = {
-      filter,
-      selectedTags,
-      tag_mode: selectedTags.length > 1 ? tagMode : undefined,
-      notInterestedFilter,
-      ...newFilters,
-    };
+    const mergedTags = newFilters.selectedTags ?? selectedTags;
+    const mergedTagMode = newFilters.tagMode ?? tagMode;
 
     updateUrl({
-      filter: allFilters.filter,
-      tags: allFilters.selectedTags,
-      tag_mode: allFilters.selectedTags.length > 1 ? allFilters.tag_mode : undefined,
-      search: allFilters.searchQuery,
-      not_interested_filter: allFilters.notInterestedFilter,
+      filter: newFilters.filter ?? filter,
+      tags: mergedTags,
+      tag_mode: mergedTags.length > 0 ? mergedTagMode : undefined,
+      search: newFilters.searchQuery ?? searchQuery,
+      not_interested_filter: newFilters.notInterestedFilter ?? notInterestedFilter,
     });
   };
 

@@ -83,23 +83,36 @@ class ChannelSearchService:
         self, queryset: QuerySet[UserChannel], tag_names: List[str], tag_mode: TagMode
     ) -> QuerySet[UserChannel]:
         """Apply tag-based filtering to UserChannel queryset"""
-        if tag_mode == TagMode.ALL:
-            queryset = queryset.annotate(
-                matching_tag_count=Count(
-                    "channel_tags__tag",
-                    filter=Q(
-                        channel_tags__tag__name__in=tag_names,
-                        channel_tags__tag__user=self.user,
-                    ),
-                    distinct=True,
+        match tag_mode:
+            case TagMode.ALL:
+                queryset = queryset.annotate(
+                    matching_tag_count=Count(
+                        "channel_tags__tag",
+                        filter=Q(
+                            channel_tags__tag__name__in=tag_names,
+                            channel_tags__tag__user=self.user,
+                        ),
+                        distinct=True,
+                    )
+                ).filter(matching_tag_count=len(tag_names))
+
+            case TagMode.ANY:
+                tag_exists = UserChannelTag.objects.filter(
+                    user_channel=OuterRef("pk"),
+                    tag__name__in=tag_names,
+                    tag__user=self.user,
                 )
-            ).filter(matching_tag_count=len(tag_names))
-        else:
-            tag_exists = UserChannelTag.objects.filter(
-                user_channel=OuterRef("pk"),
-                tag__name__in=tag_names,
-                tag__user=self.user,
-            )
-            queryset = queryset.filter(Exists(tag_exists))
+                queryset = queryset.filter(Exists(tag_exists))
+
+            case TagMode.EXCEPT:
+                tag_exists = UserChannelTag.objects.filter(
+                    user_channel=OuterRef("pk"),
+                    tag__name__in=tag_names,
+                    tag__user=self.user,
+                )
+                queryset = queryset.filter(~Exists(tag_exists))
+
+            case _:
+                pass
 
         return queryset

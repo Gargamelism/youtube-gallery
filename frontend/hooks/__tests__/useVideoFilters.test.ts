@@ -191,6 +191,41 @@ describe('useVideoFilters', () => {
     });
   });
 
+  describe('EXCEPT tag mode', () => {
+    it('parses EXCEPT tag mode from URL', () => {
+      mockSearchParamsString = 'tags=yoga,cooking&tag_mode=except';
+
+      const { result } = renderHook(() => useVideoFilters());
+
+      expect(result.current.tagMode).toBe(TagMode.EXCEPT);
+      expect(result.current.selectedTags).toEqual(['yoga', 'cooking']);
+    });
+
+    it('updates tag mode to EXCEPT', () => {
+      mockSearchParamsString = 'tags=yoga,cooking&tag_mode=any';
+      const { result } = renderHook(() => useVideoFilters());
+
+      act(() => {
+        result.current.updateTagMode(TagMode.EXCEPT);
+      });
+
+      const pushCall = (mockRouter.push as jest.Mock).mock.calls[0][0];
+      expect(pushCall).toContain('tag_mode=except');
+    });
+
+    it('includes tag_mode in URL for single tag selection', () => {
+      mockSearchParamsString = 'tags=yoga&tag_mode=except';
+      const { result } = renderHook(() => useVideoFilters());
+
+      act(() => {
+        result.current.updateFilter('watched');
+      });
+
+      const pushCall = (mockRouter.push as jest.Mock).mock.calls[0][0];
+      expect(pushCall).toContain('tag_mode=except');
+    });
+  });
+
   describe('Filter combinations', () => {
     it('supports all three notInterestedFilter modes', () => {
       const modes = [NotInterestedFilter.EXCLUDE, NotInterestedFilter.ONLY, NotInterestedFilter.INCLUDE];

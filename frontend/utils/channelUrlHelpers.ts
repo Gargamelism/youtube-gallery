@@ -16,7 +16,7 @@ export function filtersToUrlParams(
   return {
     [`${prefix}s`]: filters.search || undefined,
     [`${prefix}ts`]: filters.selectedTags?.length ? filters.selectedTags.join(',') : undefined,
-    [`${prefix}tm`]: filters.selectedTags?.length && filters.selectedTags.length > 1 ? filters.tagMode : undefined,
+    [`${prefix}tm`]: filters.selectedTags?.length ? filters.tagMode : undefined,
     [`${prefix}p`]: filters.page && filters.page > 1 ? filters.page.toString() : undefined,
   };
 }
@@ -65,7 +65,7 @@ export function filtersToApiParams(filters: Partial<ChannelFilters>): ChannelApi
     params.tags = filters.selectedTags;
   }
 
-  if (filters.selectedTags?.length && filters.selectedTags.length > 1 && filters.tagMode) {
+  if (filters.selectedTags?.length && filters.tagMode) {
     params.tag_mode = filters.tagMode;
   }
 

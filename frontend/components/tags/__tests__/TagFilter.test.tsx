@@ -72,10 +72,11 @@ describe('TagFilter', () => {
     });
   });
 
-  it('toggles tag mode between ANY and ALL', () => {
+  it('cycles tag mode from ANY to ALL', () => {
     const propsWithSelected = {
       ...mockProps,
-      selectedTags: ['Tech', 'Gaming'], // Need multiple tags to show mode toggle
+      selectedTags: ['Tech', 'Gaming'],
+      tagMode: TagMode.ANY,
     };
 
     render(
@@ -88,6 +89,78 @@ describe('TagFilter', () => {
     fireEvent.click(anyButton);
 
     expect(mockProps.onTagModeChange).toHaveBeenCalledWith(TagMode.ALL);
+  });
+
+  it('cycles tag mode from ALL to EXCEPT', () => {
+    const propsWithSelected = {
+      ...mockProps,
+      selectedTags: ['Tech', 'Gaming'],
+      tagMode: TagMode.ALL,
+    };
+
+    render(
+      <TestWrapper>
+        <TagFilter {...propsWithSelected} />
+      </TestWrapper>
+    );
+
+    const allButton = screen.getByText('tagMode.all');
+    fireEvent.click(allButton);
+
+    expect(mockProps.onTagModeChange).toHaveBeenCalledWith(TagMode.EXCEPT);
+  });
+
+  it('cycles tag mode from EXCEPT to ANY', () => {
+    const propsWithSelected = {
+      ...mockProps,
+      selectedTags: ['Tech', 'Gaming'],
+      tagMode: TagMode.EXCEPT,
+    };
+
+    render(
+      <TestWrapper>
+        <TagFilter {...propsWithSelected} />
+      </TestWrapper>
+    );
+
+    const exceptButton = screen.getByText('tagMode.except');
+    fireEvent.click(exceptButton);
+
+    expect(mockProps.onTagModeChange).toHaveBeenCalledWith(TagMode.ANY);
+  });
+
+  it('shows mode toggle with single selected tag', () => {
+    const propsWithSingleTag = {
+      ...mockProps,
+      selectedTags: ['Tech'],
+      tagMode: TagMode.ANY,
+    };
+
+    render(
+      <TestWrapper>
+        <TagFilter {...propsWithSingleTag} />
+      </TestWrapper>
+    );
+
+    expect(screen.getByText('tagMode.any')).toBeInTheDocument();
+    expect(screen.getByText('tagMode.all')).toBeInTheDocument();
+    expect(screen.getByText('tagMode.except')).toBeInTheDocument();
+  });
+
+  it('shows EXCEPT mode button with active styling when selected', () => {
+    const propsWithExcept = {
+      ...mockProps,
+      selectedTags: ['Tech', 'Gaming'],
+      tagMode: TagMode.EXCEPT,
+    };
+
+    render(
+      <TestWrapper>
+        <TagFilter {...propsWithExcept} />
+      </TestWrapper>
+    );
+
+    expect(screen.getByText('tagMode.except')).toBeInTheDocument();
   });
 
   it('shows selected tags', () => {

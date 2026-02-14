@@ -11,6 +11,24 @@ from videos.validators import TagMode, WatchStatus
 from users.models import ChannelTag, UserChannel, UserChannelTag, UserVideo, User
 
 
+class TagModeEnumTests(TestCase):
+    """Unit tests for TagMode enum"""
+
+    def test_except_mode_exists(self) -> None:
+        """Test that EXCEPT tag mode exists in the TagMode enum"""
+        self.assertEqual(TagMode.EXCEPT.value, "except")
+
+    def test_from_param_except(self) -> None:
+        """Test that TagMode.from_param parses 'except' correctly"""
+        result = TagMode.from_param("except")
+        self.assertEqual(result, TagMode.EXCEPT)
+
+    def test_from_param_invalid_still_defaults_to_any(self) -> None:
+        """Test that invalid values still default to ANY"""
+        result = TagMode.from_param("invalid")
+        self.assertEqual(result, TagMode.ANY)
+
+
 class ChannelTagModelTests(TestCase):
     """Unit tests for ChannelTag model"""
 
@@ -664,6 +682,172 @@ class VideoTagFilteringAPITests(APITestCase):
 
         # Should handle gracefully by using default
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_filter_videos_by_single_tag_except_mode(self) -> None:
+        """Test filtering videos by single tag in 'except' mode via API"""
+        response = self.client.get("/api/videos?tags=Tech&tag_mode=except")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        video_ids = [video["video_id"] for video in response.data["results"]]
+
+        self.assertIn("gaming_video_1", video_ids)
+        self.assertNotIn("tech_video_1", video_ids)
+        self.assertNotIn("mixed_video_1", video_ids)
+
+    def test_filter_videos_by_multiple_tags_except_mode(self) -> None:
+        """Test filtering videos by multiple tags in 'except' mode via API"""
+        response = self.client.get("/api/videos?tags=Tech,Gaming&tag_mode=except")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        video_ids = [video["video_id"] for video in response.data["results"]]
+
+        self.assertEqual(len(video_ids), 0)
+
+    def test_filter_videos_except_mode_with_watch_status(self) -> None:
+        """Test combining EXCEPT tag mode with watch status filtering"""
+        UserVideo.objects.create(user=self.user, video=self.gaming_video, is_watched=True)
+
+        response = self.client.get("/api/videos?tags=Tech&tag_mode=except&watch_status=watched")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        video_ids = [video["video_id"] for video in response.data["results"]]
+
+        self.assertIn("gaming_video_1", video_ids)
+        self.assertEqual(len(video_ids), 1)
+
+    def test_filter_videos_except_tutorial(self) -> None:
+        """Test EXCEPT with Tutorial tag returns channels without Tutorial"""
+        response = self.client.get("/api/videos?tags=Tutorial&tag_mode=except")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        video_ids = [video["video_id"] for video in response.data["results"]]
+
+        self.assertIn("gaming_video_1", video_ids)
+        self.assertIn("mixed_video_1", video_ids)
+        self.assertNotIn("tech_video_1", video_ids)
+
+
+class ExceptModeSearchServiceTests(TestCase):
+    """Integration tests for EXCEPT mode in VideoSearchService"""
+
+    user: User
+    tech_channel: Channel
+    gaming_channel: Channel
+    mixed_channel: Channel
+
+    @classmethod
+    def setUpTestData(cls) -> None:
+        cls.user = User.objects.create_user(
+            username="except_testuser",
+            email="except@example.com",
+            password="testpass123",  # nosec B105 - test-only password
+        )
+        cls.tech_channel = Channel.objects.create(channel_id="UC_EXCEPT_TECH", title="Tech Channel")
+        cls.gaming_channel = Channel.objects.create(channel_id="UC_EXCEPT_GAMING", title="Gaming Channel")
+        cls.mixed_channel = Channel.objects.create(channel_id="UC_EXCEPT_MIXED", title="Mixed Channel")
+
+        UserChannel.objects.create(user=cls.user, channel=cls.tech_channel)
+        UserChannel.objects.create(user=cls.user, channel=cls.gaming_channel)
+        UserChannel.objects.create(user=cls.user, channel=cls.mixed_channel)
+
+        Video.objects.create(channel=cls.tech_channel, video_id="except_tech_v1", title="Tech Video")
+        Video.objects.create(channel=cls.gaming_channel, video_id="except_gaming_v1", title="Gaming Video")
+        Video.objects.create(channel=cls.mixed_channel, video_id="except_mixed_v1", title="Mixed Video")
+
+    def setUp(self) -> None:
+        self.tech_tag = ChannelTag.objects.create(user=self.user, name="Tech")
+        self.gaming_tag = ChannelTag.objects.create(user=self.user, name="Gaming")
+        self.tutorial_tag = ChannelTag.objects.create(user=self.user, name="Tutorial")
+
+        user_tech = UserChannel.objects.get(user=self.user, channel=self.tech_channel)
+        user_gaming = UserChannel.objects.get(user=self.user, channel=self.gaming_channel)
+        user_mixed = UserChannel.objects.get(user=self.user, channel=self.mixed_channel)
+
+        UserChannelTag.objects.create(user_channel=user_tech, tag=self.tech_tag)
+        UserChannelTag.objects.create(user_channel=user_tech, tag=self.tutorial_tag)
+        UserChannelTag.objects.create(user_channel=user_gaming, tag=self.gaming_tag)
+        UserChannelTag.objects.create(user_channel=user_mixed, tag=self.tech_tag)
+        UserChannelTag.objects.create(user_channel=user_mixed, tag=self.gaming_tag)
+
+    def tearDown(self) -> None:
+        ChannelTag.objects.filter(user=self.user).delete()
+        UserChannelTag.objects.filter(user_channel__user=self.user).delete()
+        UserVideo.objects.filter(user=self.user).delete()
+
+    def test_except_single_tag_excludes_matching_channels(self) -> None:
+        """EXCEPT with single tag excludes channels that have that tag"""
+        service = VideoSearchService(self.user)
+        results = list(service.search_videos(tag_names=["Tech"], tag_mode=TagMode.EXCEPT))
+        video_ids = [v.video_id for v in results]
+
+        self.assertIn("except_gaming_v1", video_ids)
+        self.assertNotIn("except_tech_v1", video_ids)
+        self.assertNotIn("except_mixed_v1", video_ids)
+
+    def test_except_multiple_tags_excludes_all_matching(self) -> None:
+        """EXCEPT with multiple tags excludes channels that have ANY of those tags"""
+        service = VideoSearchService(self.user)
+        results = list(service.search_videos(tag_names=["Tech", "Gaming"], tag_mode=TagMode.EXCEPT))
+        video_ids = [v.video_id for v in results]
+
+        self.assertEqual(len(video_ids), 0)
+
+    def test_except_tag_sparse(self) -> None:
+        """EXCEPT with a tag that only one channel has returns others"""
+        service = VideoSearchService(self.user)
+        results = list(service.search_videos(tag_names=["Tutorial"], tag_mode=TagMode.EXCEPT))
+        video_ids = [v.video_id for v in results]
+
+        self.assertIn("except_gaming_v1", video_ids)
+        self.assertIn("except_mixed_v1", video_ids)
+        self.assertNotIn("except_tech_v1", video_ids)
+
+    def test_except_combined_with_watch_status_watched(self) -> None:
+        """EXCEPT mode combined with watched filter"""
+        gaming_video = Video.objects.get(video_id="except_gaming_v1")
+        UserVideo.objects.create(user=self.user, video=gaming_video, is_watched=True)
+
+        service = VideoSearchService(self.user)
+        results = list(
+            service.search_videos(
+                tag_names=["Tech"],
+                tag_mode=TagMode.EXCEPT,
+                watch_status=WatchStatus.WATCHED,
+            )
+        )
+        video_ids = [v.video_id for v in results]
+
+        self.assertEqual(video_ids, ["except_gaming_v1"])
+
+    def test_except_combined_with_watch_status_unwatched(self) -> None:
+        """EXCEPT mode combined with unwatched filter"""
+        gaming_video = Video.objects.get(video_id="except_gaming_v1")
+        UserVideo.objects.create(user=self.user, video=gaming_video, is_watched=True)
+
+        service = VideoSearchService(self.user)
+        results = list(
+            service.search_videos(
+                tag_names=["Tech"],
+                tag_mode=TagMode.EXCEPT,
+                watch_status=WatchStatus.UNWATCHED,
+            )
+        )
+        video_ids = [v.video_id for v in results]
+
+        self.assertEqual(len(video_ids), 0)
+
+    def test_except_mode_query_optimization(self) -> None:
+        """EXCEPT mode maintains the 4-query optimization strategy"""
+        service = VideoSearchService(self.user)
+
+        with self.assertNumQueries(4):
+            list(
+                service.search_videos(
+                    tag_names=["Tech"],
+                    tag_mode=TagMode.EXCEPT,
+                    watch_status=WatchStatus.ALL,
+                )
+            )
 
 
 class SearchServiceIntegrationTests(TestCase):
