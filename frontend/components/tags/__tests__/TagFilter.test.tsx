@@ -72,26 +72,7 @@ describe('TagFilter', () => {
     });
   });
 
-  it('cycles tag mode from ANY to ALL', () => {
-    const propsWithSelected = {
-      ...mockProps,
-      selectedTags: ['Tech', 'Gaming'],
-      tagMode: TagMode.ANY,
-    };
-
-    render(
-      <TestWrapper>
-        <TagFilter {...propsWithSelected} />
-      </TestWrapper>
-    );
-
-    const anyButton = screen.getByText('tagMode.any');
-    fireEvent.click(anyButton);
-
-    expect(mockProps.onTagModeChange).toHaveBeenCalledWith(TagMode.ALL);
-  });
-
-  it('cycles tag mode from ALL to EXCEPT', () => {
+  it('clicking ANY button sets mode to ANY', () => {
     const propsWithSelected = {
       ...mockProps,
       selectedTags: ['Tech', 'Gaming'],
@@ -104,17 +85,36 @@ describe('TagFilter', () => {
       </TestWrapper>
     );
 
-    const allButton = screen.getByText('tagMode.all');
-    fireEvent.click(allButton);
+    const anyButton = screen.getByText('tagMode.any');
+    fireEvent.click(anyButton);
 
-    expect(mockProps.onTagModeChange).toHaveBeenCalledWith(TagMode.EXCEPT);
+    expect(mockProps.onTagModeChange).toHaveBeenCalledWith(TagMode.ANY);
   });
 
-  it('cycles tag mode from EXCEPT to ANY', () => {
+  it('clicking ALL button sets mode to ALL', () => {
     const propsWithSelected = {
       ...mockProps,
       selectedTags: ['Tech', 'Gaming'],
-      tagMode: TagMode.EXCEPT,
+      tagMode: TagMode.ANY,
+    };
+
+    render(
+      <TestWrapper>
+        <TagFilter {...propsWithSelected} />
+      </TestWrapper>
+    );
+
+    const allButton = screen.getByText('tagMode.all');
+    fireEvent.click(allButton);
+
+    expect(mockProps.onTagModeChange).toHaveBeenCalledWith(TagMode.ALL);
+  });
+
+  it('clicking EXCEPT button sets mode to EXCEPT', () => {
+    const propsWithSelected = {
+      ...mockProps,
+      selectedTags: ['Tech', 'Gaming'],
+      tagMode: TagMode.ANY,
     };
 
     render(
@@ -126,7 +126,7 @@ describe('TagFilter', () => {
     const exceptButton = screen.getByText('tagMode.except');
     fireEvent.click(exceptButton);
 
-    expect(mockProps.onTagModeChange).toHaveBeenCalledWith(TagMode.ANY);
+    expect(mockProps.onTagModeChange).toHaveBeenCalledWith(TagMode.EXCEPT);
   });
 
   it('shows mode toggle with single selected tag', () => {
