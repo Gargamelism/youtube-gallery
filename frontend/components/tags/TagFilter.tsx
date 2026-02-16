@@ -49,14 +49,6 @@ export function TagFilter({
     onTagsChange([]);
   };
 
-  const handleToggleMode = () => {
-    const modes: TagModeType[] = [TagMode.ANY, TagMode.ALL, TagMode.EXCEPT];
-    const currentIndex = modes.indexOf(tagMode);
-    const nextIndex = (currentIndex + 1) % modes.length;
-    const nextMode = modes.at(nextIndex) ?? TagMode.ANY;
-    onTagModeChange(nextMode);
-  };
-
   const handleScrollModeToggle = () => {
     const newMode = scrollMode === ScrollMode.AUTO ? ScrollMode.MANUAL : ScrollMode.AUTO;
     setScrollMode(newMode);
@@ -110,7 +102,7 @@ export function TagFilter({
             <div className="TagFilter__mode flex items-center gap-2">
               <span className="text-xs text-gray-500">{t('showVideosFrom')}:</span>
               <button
-                onClick={handleToggleMode}
+                onClick={() => onTagModeChange(TagMode.ANY)}
                 className={`
                   TagFilter__mode-button text-xs px-2 py-1 rounded
                   ${
@@ -123,7 +115,7 @@ export function TagFilter({
                 {t('tagMode.any')}
               </button>
               <button
-                onClick={handleToggleMode}
+                onClick={() => onTagModeChange(TagMode.ALL)}
                 className={`
                   TagFilter__mode-button text-xs px-2 py-1 rounded
                   ${
@@ -136,7 +128,7 @@ export function TagFilter({
                 {t('tagMode.all')}
               </button>
               <button
-                onClick={handleToggleMode}
+                onClick={() => onTagModeChange(TagMode.EXCEPT)}
                 className={`
                   TagFilter__mode-button text-xs px-2 py-1 rounded
                   ${
