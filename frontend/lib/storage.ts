@@ -34,9 +34,15 @@ interface ScrollPosition {
   filters: VideoFilters;
 }
 
+interface WatchProgressEntry {
+  seconds: number;
+  timestamp: number;
+}
+
 interface LocalStorageData {
   auth?: AuthData;
   scroll_mode?: ScrollMode;
+  watch_progress?: Record<string, WatchProgressEntry>;
 }
 
 interface SessionStorageData {
@@ -161,6 +167,34 @@ class StorageManager {
     this.setLocal('scroll_mode', mode);
   }
 
+  // Watch progress helpers (localStorage fallback when API is unavailable)
+  getWatchProgress(videoId: string): number {
+    const progress = this.getLocal('watch_progress');
+    // eslint-disable-next-line security/detect-object-injection
+    const entry = progress?.[videoId];
+    if (!entry) return 0;
+    // Expire entries older than 30 days
+    const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+    if (Date.now() - entry.timestamp > thirtyDaysMs) return 0;
+    return entry.seconds;
+  }
+
+  setWatchProgress(videoId: string, seconds: number): void {
+    const progress = this.getLocal('watch_progress') || {};
+    // eslint-disable-next-line security/detect-object-injection
+    progress[videoId] = { seconds, timestamp: Date.now() };
+    this.setLocal('watch_progress', progress);
+  }
+
+  removeWatchProgress(videoId: string): void {
+    const progress = this.getLocal('watch_progress');
+    if (progress) {
+      // eslint-disable-next-line security/detect-object-injection
+      delete progress[videoId];
+      this.setLocal('watch_progress', progress);
+    }
+  }
+
   // Clear all app storage (for logout)
   clearAll(): void {
     this.clearLocal();
@@ -169,4 +203,4 @@ class StorageManager {
 }
 
 export const storage = new StorageManager();
-export type { AuthData, ScrollPosition, LocalStorageData, SessionStorageData };
+export type { AuthData, ScrollPosition, LocalStorageData, SessionStorageData, WatchProgressEntry };
