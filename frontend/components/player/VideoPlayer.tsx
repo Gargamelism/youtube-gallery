@@ -13,7 +13,7 @@ import { createPlayerKeyboardShortcuts } from './keyboardShortcuts';
 
 interface VideoPlayerProps {
   video: Video;
-  startTime?: number;
+  startTime?: number | undefined;
   onClose: () => void;
   onWatchStatusChange: (isWatched: boolean) => void;
   onTimeUpdate?: (currentTime: number) => void;
