@@ -35,7 +35,8 @@
   },
   "overrides": {
     "js-yaml": "^4.1.1",
-    "glob": "^11.0.3"
+    "glob": "^11.0.3",
+    "minimatch": "^10.2.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
@@ -52,16 +53,16 @@
     "@typescript-eslint/parser": "^8.40.0",
     "autoprefixer": "^10.4.21",
     "dependency-cruiser": "^17.0.2",
-    "eslint": "^9.37.0",
-    "eslint-config-next": "^15.5.0",
+    "eslint": "^10.0.1",
+    "eslint-config-next": "^0.2.4",
     "eslint-plugin-security": "^3.0.1",
     "eslint-plugin-security-node": "^1.1.4",
     "jest": "^30.2.0",
-    "jest-environment-jsdom": "^29.7.0",
-    "madge": "^8.0.0",
+    "jest-environment-jsdom": "^30.0.0",
+    "knip": "^5.0.0",
+    "madge": "^7.0.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
-    "ts-prune": "^0.10.3",
     "typescript": "^5.9.2"
   }
 }

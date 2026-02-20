@@ -19,6 +19,7 @@ When configuration changes are needed, document the requirements and ask the use
 ## Command Execution
 
 **CRITICAL**: Never run commands directly using the Bash tool. Always ask the user to run commands instead. Instead of executing commands, provide the exact command for the user to run and explain what it does.
+unless it's docker command.
 
 ## Code Formatting Standards
 

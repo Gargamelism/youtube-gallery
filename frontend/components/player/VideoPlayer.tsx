@@ -7,12 +7,13 @@ import { Video } from '@/types';
 import { X, Check, Loader2, AlertCircle } from 'lucide-react';
 import { useUpdateWatchProgress, useMarkAsWatched } from './mutations';
 import { getVideoWatchProgress } from '@/services/videos';
+import { storage } from '@/lib/storage';
 import { useKeyboardNavigation } from '@/components/keyboard/useKeyboardNavigation';
 import { createPlayerKeyboardShortcuts } from './keyboardShortcuts';
 
 interface VideoPlayerProps {
   video: Video;
-  startTime?: number;
+  startTime?: number | undefined;
   onClose: () => void;
   onWatchStatusChange: (isWatched: boolean) => void;
   onTimeUpdate?: (currentTime: number) => void;
@@ -59,11 +60,17 @@ export function VideoPlayer({
         setIsLoadingProgress(true);
         const response = await getVideoWatchProgress(video.uuid);
         if (response.data) {
-          setStartPosition(response.data.watch_progress_seconds || 0);
+          const apiSeconds = response.data.watch_progress_seconds || 0;
+          const localSeconds = storage.getWatchProgress(video.uuid);
+          setStartPosition(Math.max(apiSeconds, localSeconds));
           setAutoMarkThreshold(response.data.threshold || 75);
         }
-      } catch {
-        // Error fetching progress - will use default start position
+      } catch (error) {
+        console.warn('Failed to fetch watch progress from API, falling back to localStorage:', error);
+        const localSeconds = storage.getWatchProgress(video.uuid);
+        if (localSeconds > 0) {
+          setStartPosition(localSeconds);
+        }
       } finally {
         setIsLoadingProgress(false);
       }
@@ -157,6 +164,8 @@ export function VideoPlayer({
       if (shouldUpdate) {
         lastProgressUpdateRef.current = currentFloor;
 
+        storage.setWatchProgress(video.uuid, currentFloor);
+
         updateProgress({
           current_time: current,
           duration: total,
@@ -171,8 +180,8 @@ export function VideoPlayer({
               setAutoMarkThreshold(response.data.threshold);
             }
           })
-          .catch(() => {
-            // Progress update failed - will retry on next interval
+          .catch(error => {
+            console.warn('Failed to save watch progress to API, saved to localStorage:', error);
           });
 
         if (onTimeUpdate) {
@@ -182,7 +191,7 @@ export function VideoPlayer({
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isReady, isPlaying, updateProgress, isWatched, onWatchStatusChange, onTimeUpdate]);
+  }, [isReady, isPlaying, updateProgress, isWatched, onWatchStatusChange, onTimeUpdate, video.uuid]);
 
   const handlePlayerStateChange = (event: YT.OnStateChangeEvent) => {
     const state = event.data;

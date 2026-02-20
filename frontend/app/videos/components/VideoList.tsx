@@ -33,7 +33,7 @@ export function VideoList({ scrollMode }: VideoListProps) {
   const { filter, selectedTags, tagMode, searchQuery, notInterestedFilter, areFiltersEqual } = useVideoFilters();
   const { t } = useTranslation('videos');
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
-  const [startTime, setStartTime] = useState<number>(0);
+  const [startTime, setStartTime] = useState<number | undefined>(undefined);
 
   const currentFilters = { filter, selectedTags, tagMode, searchQuery, notInterestedFilter };
 
@@ -90,7 +90,7 @@ export function VideoList({ scrollMode }: VideoListProps) {
         const video = videos.find(videoItem => videoItem.uuid === playerParam);
         if (video) {
           setSelectedVideo(video);
-          setStartTime(timeParam ? parseInt(timeParam, 10) : 0);
+          setStartTime(timeParam ? parseInt(timeParam, 10) : undefined);
         }
       }
     } else if (selectedVideo) {
@@ -117,13 +117,13 @@ export function VideoList({ scrollMode }: VideoListProps) {
 
   const handleOpenPlayer = (video: Video) => {
     setSelectedVideo(video);
-    setStartTime(0);
+    setStartTime(undefined);
     updatePlayerInURL(video.uuid);
   };
 
   const handleClosePlayer = () => {
     setSelectedVideo(null);
-    setStartTime(0);
+    setStartTime(undefined);
     updatePlayerInURL(null);
   };
 

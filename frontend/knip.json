@@ -1,0 +1,6 @@
+{
+  "$schema": "https://unpkg.com/knip/schema.json",
+  "ignoreExportsUsedInFile": true,
+  "ignore": [".next/**"],
+  "ignoreFiles": ["**/index.ts", "app/layout.tsx", "middleware.ts"]
+}

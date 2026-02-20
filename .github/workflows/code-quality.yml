@@ -46,12 +46,12 @@ jobs:
       - name: Check Import Rules (depcruise)
         run: npx --yes dependency-cruiser --validate .dependency-cruiser.cjs .
 
-      - name: Check Unused Exports (ts-prune)
+      - name: Check Unused Exports (knip)
         run: |
-          npx ts-prune | grep -v "used in module" | grep -v ".next/" | grep -v "index.ts" | grep -v "app/layout.tsx" | grep -v "middleware.ts:23" | tee ts-prune-report.txt || true
-          if [ -s ts-prune-report.txt ]; then
-            echo "::warning::Unused exports found (review ts-prune-report.txt)"
-            cat ts-prune-report.txt
+          npx knip --reporter compact 2>&1 | tee knip-report.txt || true
+          if [ -s knip-report.txt ]; then
+            echo "::warning::Unused exports found (review knip-report.txt)"
+            cat knip-report.txt
           else
             echo "No unexpected unused exports found"
           fi
