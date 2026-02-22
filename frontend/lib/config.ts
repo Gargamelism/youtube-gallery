@@ -27,10 +27,6 @@ export function getApiUrl(path: string = ''): string {
   return `${getApiBaseUrl()}${path}`;
 }
 
-export function getYouTubeCallbackUrl(): string {
-  return getApiUrl('/auth/youtube/callback');
-}
-
 export function parseBackendUrl(): { protocol: string; hostname: string; port: string } {
   if (typeof window !== 'undefined') {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || `http://${window.location.hostname}:8000/api`;

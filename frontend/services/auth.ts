@@ -41,12 +41,9 @@ export async function fetchUserProfile(): Promise<ApiResponse<User>> {
   return ResponseHandler.handle<User>(response);
 }
 
-export async function getYouTubeAuthUrl(
-  redirectUri: string,
-  returnUrl: string
-): Promise<ApiResponse<{ auth_url: string }>> {
+export async function getYouTubeAuthUrl(returnUrl: string): Promise<ApiResponse<{ auth_url: string }>> {
   const response = await fetch(
-    `${API_BASE_URL}/auth/youtube-url?redirect_uri=${encodeURIComponent(redirectUri)}&return_url=${encodeURIComponent(returnUrl)}`,
+    `${API_BASE_URL}/auth/youtube-url?return_url=${encodeURIComponent(returnUrl)}`,
     getRequestOptions()
   );
   return ResponseHandler.handle<{ auth_url: string }>(response);
