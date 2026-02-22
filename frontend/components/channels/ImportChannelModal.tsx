@@ -92,9 +92,7 @@ export function ImportChannelModal({ isOpen, onClose }: ImportChannelModalProps)
 
   const handleYoutubeAuth = async () => {
     try {
-      const { getYouTubeCallbackUrl } = await import('@/lib/config');
-      const redirectUri = getYouTubeCallbackUrl();
-      const response = await getYouTubeAuthUrl(redirectUri, window.location.href);
+      const response = await getYouTubeAuthUrl(window.location.href);
 
       if (response.error) {
         setImportError(`${t('import.authenticationFailed')} ${response.error}`);

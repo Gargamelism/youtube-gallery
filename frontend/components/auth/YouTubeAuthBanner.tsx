@@ -45,9 +45,7 @@ export function YouTubeAuthBanner() {
     setIsAuthenticating(true);
 
     try {
-      const { getYouTubeCallbackUrl } = await import('@/lib/config');
-      const redirectUri = getYouTubeCallbackUrl();
-      const response = await getYouTubeAuthUrl(redirectUri, window.location.href);
+      const response = await getYouTubeAuthUrl(window.location.href);
 
       if (response.error) {
         setErrorMessage(`${t('youtubeAuthBanner.authenticationFailed')} ${response.error}`);
