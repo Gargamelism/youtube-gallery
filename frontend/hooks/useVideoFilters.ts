@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { TagMode, TagModeType, VideoFilters, NotInterestedFilter } from '@/types';
+import { TagMode, TagModeType, VideoFilters, NotInterestedFilter, VideoSortMode } from '@/types';
 import { navigateWithUpdatedParams } from '@/utils/urlHelpers';
 
 export interface VideoFiltersActions {
@@ -10,6 +10,7 @@ export interface VideoFiltersActions {
   updateTagMode: (newMode: TagModeType) => void;
   updateSearchQuery: (query: string) => void;
   updateNotInterestedFilter: (newFilter: NotInterestedFilter) => void;
+  updateSort: (newSort: VideoSortMode) => void;
   addTag: (tagName: string) => void;
   removeTag: (tagName: string) => void;
   areFiltersEqual: (otherFilters: VideoFilters) => boolean;
@@ -31,6 +32,7 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
     Object.values(NotInterestedFilter).includes(notInterestedFilterParam as NotInterestedFilter)
       ? (notInterestedFilterParam as NotInterestedFilter)
       : NotInterestedFilter.EXCLUDE;
+  const sort = (searchParams.get('sort') as VideoSortMode) || 'in_progress_first';
 
   // Helper function to update URL with current state
   const updateUrl = (updates: Record<string, string | string[] | undefined>) => {
@@ -70,6 +72,10 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
     updateAllFilters({ notInterestedFilter: newFilter });
   };
 
+  const updateSort = (newSort: VideoSortMode) => {
+    updateUrl({ sort: newSort, page: undefined });
+  };
+
   const addTag = (tagName: string) => {
     if (!selectedTags.includes(tagName)) {
       const newTags = [...selectedTags, tagName];
@@ -92,7 +98,8 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
       areTagsEqual &&
       tagMode === otherFilters.tagMode &&
       searchQuery === otherFilters.searchQuery &&
-      notInterestedFilter === otherFilters.notInterestedFilter
+      notInterestedFilter === otherFilters.notInterestedFilter &&
+      sort === (otherFilters.sort ?? 'in_progress_first')
     );
   };
 
@@ -102,11 +109,13 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
     tagMode,
     searchQuery,
     notInterestedFilter,
+    sort,
     updateFilter,
     updateTags,
     updateTagMode,
     updateSearchQuery,
     updateNotInterestedFilter,
+    updateSort,
     addTag,
     removeTag,
     areFiltersEqual,

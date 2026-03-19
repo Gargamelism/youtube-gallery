@@ -28,6 +28,11 @@
     "auto": "Enable Auto scroll",
     "manual": "Enable Manual load"
   },
+  "sort": {
+    "label": "Sort by",
+    "inProgressFirst": "In Progress First",
+    "newest": "Newest First"
+  },
   "search": {
     "placeholder": "Search videos by title or description...",
     "clear": "Clear search"

@@ -97,6 +97,22 @@ services:
     # Don't restart
     restart: 'no'
 
+  # Next.js Frontend Tests
+  frontend_test:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: test
+    working_dir: /app
+    profiles: ['test']
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - youtube_gallery_network
+    command: npm test
+    restart: 'no'
+
   # Django Backend (Development with hot reload)
   backend:
     build:

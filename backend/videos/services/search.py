@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import List, Optional, TypedDict
-from django.db.models import QuerySet, Count, Q, Exists, OuterRef, Prefetch
+from django.db.models import Case, Count, DateTimeField, Exists, IntegerField, OuterRef, Prefetch, Q, QuerySet, Subquery, Value, When
 
 from ..models import Video
 from ..validators import TagMode, WatchStatus, NotInterestedFilter
@@ -149,6 +149,35 @@ class VideoSearchService:
 
             case NotInterestedFilter.INCLUDE:
                 return queryset
+
+    def apply_ordering(self, queryset: QuerySet[Video], sort_mode: str) -> QuerySet[Video]:
+        if sort_mode == "newest":
+            return queryset.order_by("-published_at")
+
+        # Default: in_progress_first — uses Exists/Subquery to stay user-scoped
+        in_progress_filter = dict(
+            video=OuterRef("pk"),
+            user=self.user,
+            watch_progress_seconds__gt=0,
+            is_watched=False,
+        )
+        in_progress_exists = Exists(
+            UserVideo.objects.filter(**in_progress_filter).exclude(is_not_interested=True)
+        )
+        in_progress_updated_at = Subquery(
+            UserVideo.objects.filter(**in_progress_filter)
+            .exclude(is_not_interested=True)
+            .values("updated_at")[:1],
+            output_field=DateTimeField(),
+        )
+        return queryset.annotate(
+            progress_priority=Case(
+                When(in_progress_exists, then=Value(0)),
+                default=Value(1),
+                output_field=IntegerField(),
+            ),
+            progress_updated_at=in_progress_updated_at,
+        ).order_by("progress_priority", "-progress_updated_at", "-published_at")
 
     def get_video_stats(self) -> VideoStats:
         """Get video statistics using a single query with annotations"""

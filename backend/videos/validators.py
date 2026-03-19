@@ -1,5 +1,5 @@
 import uuid
-from typing import List, Optional, Self
+from typing import List, Literal, Optional, Self
 from enum import Enum
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator, ValidationInfo, Field
 from rest_framework.exceptions import ValidationError as DRFValidationError
@@ -221,3 +221,7 @@ class WatchPreferencesParams(BaseModel):
 
     auto_mark_watched_enabled: bool = True
     auto_mark_threshold_percent: Optional[int] = Field(default=None, ge=0, le=100)
+
+
+class VideoSortParams(BaseModel):
+    sort: Literal["in_progress_first", "newest"] = "in_progress_first"

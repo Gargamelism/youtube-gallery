@@ -22,7 +22,7 @@ from .services.search import VideoSearchService
 from .services.user_quota_tracker import UserQuotaTracker
 from .services.youtube import YouTubeAuthenticationError, YouTubeService
 from .exceptions import UserQuotaExceededError
-from .validators import VideoSearchParams, WatchStatus, WatchProgressUpdateParams
+from .validators import VideoSearchParams, VideoSortParams, WatchStatus, WatchProgressUpdateParams
 
 
 class ChannelViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
@@ -109,16 +109,29 @@ class VideoViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
     ordering = ["-published_at"]
 
     def get_queryset(self) -> QuerySet[Video]:
-        search_params = VideoSearchParams.from_request(self.request)
-
         user = cast(User, self.request.user)
+        # Detail mutation actions need to find videos regardless of their current watch/interest state,
+        # so bypass content filtering and return only the subscription scope.
+        if self.action in ('not_interested', 'watch', 'watch_progress'):
+            return Video.objects.filter(
+                channel__user_subscriptions__user=user,
+                channel__user_subscriptions__is_active=True,
+            ).distinct()
+
+        search_params = VideoSearchParams.from_request(self.request)
         search_service = VideoSearchService(user)
-        return search_service.search_videos(
+        try:
+            sort_params = VideoSortParams.model_validate({"sort": self.request.query_params.get("sort", "in_progress_first")})
+        except PydanticValidationError as e:
+            errors = {str(error["loc"][0]): error["msg"] for error in e.errors()}
+            raise ValidationError(errors)
+        queryset = search_service.search_videos(
             tag_names=search_params.tags,
             tag_mode=search_params.tag_mode,
             watch_status=search_params.watch_status,
             not_interested_filter=search_params.not_interested_filter,
         )
+        return search_service.apply_ordering(queryset, sort_params.sort)
 
     def get_serializer_class(self) -> type[BaseSerializer[Any]]:
         if self.action in ["list", "watched", "unwatched"]:
@@ -171,7 +184,10 @@ class VideoViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
         )
 
         user_video.is_not_interested = is_not_interested
-        user_video.not_interested_at = timezone.now() if is_not_interested else None
+        if is_not_interested and not user_video.not_interested_at:
+            user_video.not_interested_at = timezone.now()
+        elif not is_not_interested:
+            user_video.not_interested_at = None
         user_video.save()
 
         return Response(

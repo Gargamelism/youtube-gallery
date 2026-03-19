@@ -44,6 +44,10 @@ export function buildVideoQueryParams(params: VideoFilters & PaginationParams): 
     queryParams.set('search', params.searchQuery);
   }
 
+  if (params.sort) {
+    queryParams.set('sort', params.sort);
+  }
+
   if (typeof params.page === 'number' && params.page > 0) {
     queryParams.set('page', params.page.toString());
   }
