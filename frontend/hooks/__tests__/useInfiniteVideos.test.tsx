@@ -10,6 +10,7 @@ const mockFilters: VideoFilters = {
   tagMode: TagMode.ANY,
   searchQuery: '',
   notInterestedFilter: NotInterestedFilter.EXCLUDE,
+  sort: 'in_progress_first',
 };
 
 const createMockVideo = (uuid: string, title: string): Video => ({
@@ -98,6 +99,7 @@ describe('useInfiniteVideos', () => {
       tagMode: TagMode.ANY,
       searchQuery: '',
       notInterestedFilter: NotInterestedFilter.EXCLUDE,
+      sort: 'in_progress_first',
       page: 1,
       page_size: 24,
     });
@@ -127,6 +129,7 @@ describe('useInfiniteVideos', () => {
       tagMode: TagMode.ANY,
       searchQuery: '',
       notInterestedFilter: NotInterestedFilter.EXCLUDE,
+      sort: 'in_progress_first',
       page: 2,
       page_size: 24,
     });

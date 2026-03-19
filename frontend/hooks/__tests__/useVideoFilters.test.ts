@@ -121,6 +121,7 @@ describe('useVideoFilters', () => {
         tagMode: TagMode.ANY,
         searchQuery: '',
         notInterestedFilter: NotInterestedFilter.ONLY,
+        sort: 'in_progress_first',
       });
 
       expect(isEqual).toBe(true);
@@ -136,6 +137,7 @@ describe('useVideoFilters', () => {
         tagMode: TagMode.ANY,
         searchQuery: '',
         notInterestedFilter: NotInterestedFilter.ONLY,
+        sort: 'in_progress_first',
       });
 
       expect(isEqual).toBe(false);
@@ -151,6 +153,7 @@ describe('useVideoFilters', () => {
         tagMode: TagMode.ANY,
         searchQuery: '',
         notInterestedFilter: NotInterestedFilter.EXCLUDE,
+        sort: 'in_progress_first',
       });
 
       expect(isEqual).toBe(false);

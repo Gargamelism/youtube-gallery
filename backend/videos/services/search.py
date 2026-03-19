@@ -1,7 +1,20 @@
 from __future__ import annotations
 
 from typing import List, Optional, TypedDict
-from django.db.models import Case, Count, DateTimeField, Exists, IntegerField, OuterRef, Prefetch, Q, QuerySet, Subquery, Value, When
+from django.db.models import (
+    Case,
+    Count,
+    DateTimeField,
+    Exists,
+    IntegerField,
+    OuterRef,
+    Prefetch,
+    Q,
+    QuerySet,
+    Subquery,
+    Value,
+    When,
+)
 
 from ..models import Video
 from ..validators import TagMode, WatchStatus, NotInterestedFilter
@@ -161,13 +174,9 @@ class VideoSearchService:
             watch_progress_seconds__gt=0,
             is_watched=False,
         )
-        in_progress_exists = Exists(
-            UserVideo.objects.filter(**in_progress_filter).exclude(is_not_interested=True)
-        )
+        in_progress_exists = Exists(UserVideo.objects.filter(**in_progress_filter).exclude(is_not_interested=True))
         in_progress_updated_at = Subquery(
-            UserVideo.objects.filter(**in_progress_filter)
-            .exclude(is_not_interested=True)
-            .values("updated_at")[:1],
+            UserVideo.objects.filter(**in_progress_filter).exclude(is_not_interested=True).values("updated_at")[:1],
             output_field=DateTimeField(),
         )
         return queryset.annotate(

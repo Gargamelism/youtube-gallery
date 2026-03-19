@@ -15,7 +15,7 @@ from rest_framework.response import Response
 from rest_framework.serializers import BaseSerializer
 from users.models import User, UserVideo, UserWatchPreferences
 
-from .decorators import youtube_auth_required
+from .decorators import YouTubeRequest, youtube_auth_required
 from .models import Channel, Video
 from .serializers import ChannelSerializer, VideoListSerializer, VideoSerializer
 from .services.search import VideoSearchService
@@ -37,7 +37,7 @@ class ChannelViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
 
     @action(detail=False, methods=["post"])
     @youtube_auth_required
-    def fetch_from_youtube(self, request: Request) -> Response:
+    def fetch_from_youtube(self, request: YouTubeRequest) -> Response:
         """Import channel from YouTube with per-user quota limits"""
         channel_id = request.data.get("channel_id")
         if not channel_id:
@@ -112,7 +112,7 @@ class VideoViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
         user = cast(User, self.request.user)
         # Detail mutation actions need to find videos regardless of their current watch/interest state,
         # so bypass content filtering and return only the subscription scope.
-        if self.action in ('not_interested', 'watch', 'watch_progress'):
+        if self.action in ("not_interested", "watch", "watch_progress"):
             return Video.objects.filter(
                 channel__user_subscriptions__user=user,
                 channel__user_subscriptions__is_active=True,
@@ -121,7 +121,9 @@ class VideoViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
         search_params = VideoSearchParams.from_request(self.request)
         search_service = VideoSearchService(user)
         try:
-            sort_params = VideoSortParams.model_validate({"sort": self.request.query_params.get("sort", "in_progress_first")})
+            sort_params = VideoSortParams.model_validate(
+                {"sort": self.request.query_params.get("sort", "in_progress_first")}
+            )
         except PydanticValidationError as e:
             errors = {str(error["loc"][0]): error["msg"] for error in e.errors()}
             raise ValidationError(errors)

@@ -275,14 +275,13 @@ class ChannelPerformanceTestCase(TestCase):
         )
 
     @override_settings(DEBUG=True)
-    def test_index_usage_text_search_on_title(self) -> None:
-        """Verify an index scan is performed when filtering channels by title"""
+    def test_index_usage_on_title(self) -> None:
+        """Verify an index scan (any) is performed when filtering channels by title"""
         service = ChannelSearchService(self.user1)
 
         queryset = service.search_user_channels(search_query="Programming")
         explain_output = self._get_explain_analyze(queryset)
 
-        # Verify the query uses an index scan rather than a sequential scan on channels
         self.assertIn(
             "Index Scan",
             explain_output,
