@@ -9,7 +9,7 @@ from pydantic import ValidationError as PydanticValidationError
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import SearchFilter
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.serializers import BaseSerializer
@@ -102,11 +102,9 @@ class ChannelViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
 
 class VideoViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
     permission_classes = [permissions.IsAuthenticated]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_fields = ["channel"]
     search_fields = ["title", "description"]
-    ordering_fields = ["title", "published_at", "view_count", "like_count"]
-    ordering = ["-published_at"]
 
     def get_queryset(self) -> QuerySet[Video]:
         user = cast(User, self.request.user)
