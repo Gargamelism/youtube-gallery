@@ -102,11 +102,9 @@ class ChannelViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
 
 class VideoViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
     permission_classes = [permissions.IsAuthenticated]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_fields = ["channel"]
     search_fields = ["title", "description"]
-    ordering_fields = ["title", "published_at", "view_count", "like_count"]
-    ordering = ["-published_at"]
 
     def get_queryset(self) -> QuerySet[Video]:
         user = cast(User, self.request.user)
