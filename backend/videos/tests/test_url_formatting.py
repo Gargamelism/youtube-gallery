@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import unittest
-import pytest
 from typing import Any
 
 from rest_framework import viewsets
@@ -89,9 +88,9 @@ class TestKebabCaseRouter(unittest.TestCase):
         self.assertNotIn("custom_action_name", combined_patterns)
         self.assertNotIn("another_custom_action", combined_patterns)
 
-    @pytest.mark.parametrize(
-        "input_str,expected",
-        [
+    def test_to_kebab_case_method(self) -> None:
+        """Test the internal _to_kebab_case method directly"""
+        cases = [
             ("snake_case_string", "snake-case-string"),
             ("already-kebab-case", "already-kebab-case"),
             ("mixedCamelCase", "mixedcamelcase"),
@@ -100,13 +99,12 @@ class TestKebabCaseRouter(unittest.TestCase):
             ("multiple__underscores", "multiple-underscores"),
             ("ends_with_underscore_", "ends-with-underscore"),
             ("_starts_with_underscore", "starts-with-underscore"),
-        ],
-    )
-    def test_to_kebab_case_method(self, input_str: str, expected: str) -> None:
-        """Test the internal _to_kebab_case method directly"""
-        actual = self.router._to_kebab_case(input_str)
-        self.assertEqual(
-            actual,
-            expected,
-            f"Failed to convert '{input_str}' to kebab-case. Expected '{expected}', got '{actual}'",
-        )
+        ]
+        for input_str, expected in cases:
+            with self.subTest(input_str=input_str):
+                actual = self.router._to_kebab_case(input_str)
+                self.assertEqual(
+                    actual,
+                    expected,
+                    f"Failed to convert '{input_str}' to kebab-case. Expected '{expected}', got '{actual}'",
+                )

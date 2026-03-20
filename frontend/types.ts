@@ -134,12 +134,20 @@ export enum TagMode {
 
 export type TagModeType = TagMode.ALL | TagMode.ANY | TagMode.EXCEPT;
 
+export type VideoSortMode = 'in_progress_first' | 'newest';
+
+export const VIDEO_SORT_OPTIONS: { value: VideoSortMode; labelKey: string }[] = [
+  { value: 'in_progress_first', labelKey: 'sort.inProgressFirst' },
+  { value: 'newest', labelKey: 'sort.newest' },
+];
+
 export interface VideoFilters {
   filter: string;
   selectedTags: string[];
   tagMode: TagModeType;
   searchQuery: string;
   notInterestedFilter: NotInterestedFilter;
+  sort?: VideoSortMode;
 }
 
 // Channel Filter Types

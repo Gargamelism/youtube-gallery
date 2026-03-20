@@ -1,14 +1,20 @@
 from functools import wraps
-from typing import Any, Callable, ParamSpec, TypeVar
+from typing import Any, Callable, ParamSpec, TypeVar, cast
 
 from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
 from rest_framework import status
+from rest_framework.request import Request as DRFRequest
 from rest_framework.response import Response
 
 from users.models import UserYouTubeCredentials
 
 P = ParamSpec("P")
 R = TypeVar("R")
+
+
+class YouTubeRequest(DRFRequest):
+    youtube_credentials: Credentials
 
 
 def youtube_auth_required(view_func: Callable[P, R]) -> Callable[P, R | Response]:
@@ -45,7 +51,7 @@ def youtube_auth_required(view_func: Callable[P, R]) -> Callable[P, R | Response
                         status=status.HTTP_403_FORBIDDEN,
                     )
 
-            request.youtube_credentials = credentials
+            cast(YouTubeRequest, request).youtube_credentials = credentials
 
         except Exception:
             return Response(

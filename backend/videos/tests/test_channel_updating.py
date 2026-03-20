@@ -53,7 +53,7 @@ class ChannelUpdatingServiceTests(TestCase):
     def test_identify_orphaned_channels(self) -> None:
         """Test identifying channels with no active subscriptions"""
         # Mock the service method to identify orphaned channels
-        orphaned_channels = Channel.objects.filter(user_channels__isnull=True).distinct()
+        orphaned_channels = Channel.objects.filter(user_subscriptions__isnull=True).distinct()
 
         self.assertEqual(orphaned_channels.count(), 1)
         self.assertEqual(orphaned_channels.first(), self.orphaned_channel)
@@ -71,7 +71,7 @@ class ChannelUpdatingServiceTests(TestCase):
     def test_channel_removal_safety_checks(self) -> None:
         """Test safety checks before removing channels"""
         # Ensure channels with subscriptions are not removed
-        channels_with_users = Channel.objects.filter(user_channels__isnull=False).distinct()
+        channels_with_users = Channel.objects.filter(user_subscriptions__isnull=False).distinct()
 
         self.assertIn(self.active_channel, channels_with_users)
         self.assertIn(self.outdated_channel, channels_with_users)

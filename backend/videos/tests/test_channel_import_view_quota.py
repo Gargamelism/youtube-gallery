@@ -29,11 +29,9 @@ class ChannelImportViewQuotaTests(TestCase):
         self, mock_youtube_service_class, mock_user_quota_tracker_class
     ):
         """Test that fetch_from_youtube endpoint creates and uses UserQuotaTracker"""
-        # Mock the quota tracker instance
         mock_quota_tracker = Mock()
         mock_user_quota_tracker_class.return_value = mock_quota_tracker
 
-        # Mock the YouTube service instance
         mock_youtube_service = Mock()
         mock_channel = Channel.objects.create(
             channel_id="UC123456", title="Test Channel", description="Test Description", url="https://youtube.com/test"
@@ -41,26 +39,13 @@ class ChannelImportViewQuotaTests(TestCase):
         mock_youtube_service.import_or_create_channel.return_value = mock_channel
         mock_youtube_service_class.return_value = mock_youtube_service
 
-        # Mock credentials in request
-        with patch("videos.decorators.youtube_auth_required") as mock_decorator:
-
-            def mock_wrapper(func):
-                def wrapper(self, request, *args, **kwargs):
-                    request.youtube_credentials = Mock()
-                    return func(self, request, *args, **kwargs)
-
-                return wrapper
-
-            mock_decorator.return_value = mock_wrapper
-
-            response = self.client.post("/api/channels/fetch-from-youtube/", {"channel_id": "UC123456"})
+        with patch("videos.decorators.UserYouTubeCredentials"):
+            response = self.client.post("/api/channels/fetch-from-youtube", {"channel_id": "UC123456"})
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            # Verify QuotaTracker was created
             mock_user_quota_tracker_class.assert_called_once_with(user=self.user)
 
-            # Verify YouTubeService was created with quota tracker
             mock_youtube_service_class.assert_called_once()
             call_args = mock_youtube_service_class.call_args
             self.assertIn("quota_tracker", call_args.kwargs)
@@ -72,7 +57,6 @@ class ChannelImportViewQuotaTests(TestCase):
         self, mock_youtube_service_class, mock_user_quota_tracker_class
     ):
         """Test that view handles UserQuotaExceededError gracefully"""
-        # Mock user quota exceeded error
         quota_info = {
             "daily_usage": 950,
             "daily_limit": 1000,
@@ -85,19 +69,8 @@ class ChannelImportViewQuotaTests(TestCase):
             "Daily user quota limit exceeded", quota_info=quota_info
         )
 
-        # Mock credentials in request
-        with patch("videos.decorators.youtube_auth_required") as mock_decorator:
-
-            def mock_wrapper(func):
-                def wrapper(self, request, *args, **kwargs):
-                    request.youtube_credentials = Mock()
-                    return func(self, request, *args, **kwargs)
-
-                return wrapper
-
-            mock_decorator.return_value = mock_wrapper
-
-            response = self.client.post("/api/channels/fetch-from-youtube/", {"channel_id": "UC123456"})
+        with patch("videos.decorators.UserYouTubeCredentials"):
+            response = self.client.post("/api/channels/fetch-from-youtube", {"channel_id": "UC123456"})
 
             self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
             self.assertIn("error", response.data)
@@ -111,14 +84,12 @@ class ChannelImportViewQuotaTests(TestCase):
         self, mock_youtube_service_class, mock_user_quota_tracker_class
     ):
         """Test complete integration flow with quota tracking"""
-        # Mock the quota tracker with specific behavior
         mock_quota_tracker = Mock()
         mock_quota_tracker.can_make_request.return_value = True
         mock_quota_tracker.get_current_usage.return_value = 25
         mock_quota_tracker.get_remaining_quota.return_value = 75
         mock_user_quota_tracker_class.return_value = mock_quota_tracker
 
-        # Mock successful channel import
         mock_youtube_service = Mock()
         mock_channel = Channel.objects.create(
             channel_id="UC123456", title="Test Channel", description="Test Description", url="https://youtube.com/test"
@@ -126,23 +97,11 @@ class ChannelImportViewQuotaTests(TestCase):
         mock_youtube_service.import_or_create_channel.return_value = mock_channel
         mock_youtube_service_class.return_value = mock_youtube_service
 
-        # Mock credentials in request
-        with patch("videos.decorators.youtube_auth_required") as mock_decorator:
-
-            def mock_wrapper(func):
-                def wrapper(self, request, *args, **kwargs):
-                    request.youtube_credentials = Mock()
-                    return func(self, request, *args, **kwargs)
-
-                return wrapper
-
-            mock_decorator.return_value = mock_wrapper
-
-            response = self.client.post("/api/channels/fetch-from-youtube/", {"channel_id": "UC123456"})
+        with patch("videos.decorators.UserYouTubeCredentials"):
+            response = self.client.post("/api/channels/fetch-from-youtube", {"channel_id": "UC123456"})
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            # Verify the complete flow
             mock_user_quota_tracker_class.assert_called_once_with(user=self.user)
             mock_youtube_service_class.assert_called_once_with(
                 credentials=mock_youtube_service_class.call_args.kwargs["credentials"], quota_tracker=mock_quota_tracker
@@ -151,19 +110,8 @@ class ChannelImportViewQuotaTests(TestCase):
 
     def test_fetch_from_youtube_requires_channel_id(self) -> None:
         """Test that endpoint validates channel_id parameter"""
-        # Mock credentials in request
-        with patch("videos.decorators.youtube_auth_required") as mock_decorator:
-
-            def mock_wrapper(func):
-                def wrapper(self, request, *args, **kwargs):
-                    request.youtube_credentials = Mock()
-                    return func(self, request, *args, **kwargs)
-
-                return wrapper
-
-            mock_decorator.return_value = mock_wrapper
-
-            response = self.client.post("/api/channels/fetch-from-youtube/", {})
+        with patch("videos.decorators.UserYouTubeCredentials"):
+            response = self.client.post("/api/channels/fetch-from-youtube", {})
 
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
             self.assertIn("channel_id", response.data)
@@ -174,7 +122,6 @@ class ChannelImportViewQuotaTests(TestCase):
         self, mock_youtube_service_class, mock_user_quota_tracker_class
     ):
         """Test that UserQuotaTracker is properly passed to YouTubeService constructor"""
-        # Create specific mock instances
         mock_quota_tracker = Mock(spec=UserQuotaTracker)
         mock_user_quota_tracker_class.return_value = mock_quota_tracker
 
@@ -185,26 +132,13 @@ class ChannelImportViewQuotaTests(TestCase):
         mock_youtube_service.import_or_create_channel.return_value = mock_channel
         mock_youtube_service_class.return_value = mock_youtube_service
 
-        # Mock credentials in request
-        with patch("videos.decorators.youtube_auth_required") as mock_decorator:
-
-            def mock_wrapper(func):
-                def wrapper(self, request, *args, **kwargs):
-                    request.youtube_credentials = Mock()
-                    return func(self, request, *args, **kwargs)
-
-                return wrapper
-
-            mock_decorator.return_value = mock_wrapper
-
-            response = self.client.post("/api/channels/fetch-from-youtube/", {"channel_id": "UC123456"})
+        with patch("videos.decorators.UserYouTubeCredentials"):
+            response = self.client.post("/api/channels/fetch-from-youtube", {"channel_id": "UC123456"})
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            # Verify QuotaTracker constructor was called
             mock_user_quota_tracker_class.assert_called_once_with(user=self.user)
 
-            # Verify YouTubeService was called with the quota tracker
             mock_youtube_service_class.assert_called_once()
             call_kwargs = mock_youtube_service_class.call_args.kwargs
 

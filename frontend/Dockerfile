@@ -1,3 +1,10 @@
+FROM node:24-alpine AS test
+WORKDIR /app
+COPY package*.json ./
+RUN npm install --legacy-peer-deps
+COPY . .
+CMD ["npm", "test"]
+
 FROM node:24-alpine
 
 # Set working directory

@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { useVideoFilters } from '../useVideoFilters';
-import { TagMode, NotInterestedFilter } from '@/types';
+import { TagMode, NotInterestedFilter, VideoSortMode } from '@/types';
 import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 
 const mockRouter: AppRouterInstance = {
@@ -60,6 +60,69 @@ describe('useVideoFilters', () => {
       const { result } = renderHook(() => useVideoFilters());
 
       expect(result.current.notInterestedFilter).toBe(NotInterestedFilter.EXCLUDE);
+    });
+
+    it('defaults sort to in_progress_first when URL param is missing', () => {
+      mockSearchParamsString = '';
+
+      const { result } = renderHook(() => useVideoFilters());
+
+      expect(result.current.sort).toBe('in_progress_first');
+    });
+
+    it('parses sort=newest from URL', () => {
+      mockSearchParamsString = 'sort=newest';
+
+      const { result } = renderHook(() => useVideoFilters());
+
+      expect(result.current.sort).toBe<VideoSortMode>('newest');
+    });
+
+    it('parses sort=in_progress_first from URL', () => {
+      mockSearchParamsString = 'sort=in_progress_first';
+
+      const { result } = renderHook(() => useVideoFilters());
+
+      expect(result.current.sort).toBe<VideoSortMode>('in_progress_first');
+    });
+  });
+
+  describe('sort updates', () => {
+    it('updateSort sets sort param in URL', () => {
+      const { result } = renderHook(() => useVideoFilters());
+
+      act(() => {
+        result.current.updateSort('newest');
+      });
+
+      expect(mockRouter.push).toHaveBeenCalledWith(expect.stringContaining('sort=newest'));
+    });
+
+    it('updateSort clears page param', () => {
+      mockSearchParamsString = 'page=3';
+      const { result } = renderHook(() => useVideoFilters());
+
+      act(() => {
+        result.current.updateSort('in_progress_first');
+      });
+
+      const pushCall = (mockRouter.push as jest.Mock).mock.calls[0][0];
+      expect(pushCall).not.toContain('page=');
+    });
+
+    it('updateSort preserves other filters', () => {
+      mockSearchParamsString = 'filter=watched&tags=tech&not_interested_filter=only';
+      const { result } = renderHook(() => useVideoFilters());
+
+      act(() => {
+        result.current.updateSort('newest');
+      });
+
+      const pushCall = (mockRouter.push as jest.Mock).mock.calls[0][0];
+      expect(pushCall).toContain('sort=newest');
+      expect(pushCall).toContain('filter=watched');
+      expect(pushCall).toContain('tags=tech');
+      expect(pushCall).toContain('not_interested_filter=only');
     });
   });
 
@@ -121,6 +184,7 @@ describe('useVideoFilters', () => {
         tagMode: TagMode.ANY,
         searchQuery: '',
         notInterestedFilter: NotInterestedFilter.ONLY,
+        sort: 'in_progress_first',
       });
 
       expect(isEqual).toBe(true);
@@ -136,9 +200,42 @@ describe('useVideoFilters', () => {
         tagMode: TagMode.ANY,
         searchQuery: '',
         notInterestedFilter: NotInterestedFilter.ONLY,
+        sort: 'in_progress_first',
       });
 
       expect(isEqual).toBe(false);
+    });
+
+    it('returns false when sort differs', () => {
+      mockSearchParamsString = 'sort=newest';
+      const { result } = renderHook(() => useVideoFilters());
+
+      const isEqual = result.current.areFiltersEqual({
+        filter: 'unwatched',
+        selectedTags: [],
+        tagMode: TagMode.ANY,
+        searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
+        sort: 'in_progress_first',
+      });
+
+      expect(isEqual).toBe(false);
+    });
+
+    it('returns true when sort matches', () => {
+      mockSearchParamsString = 'sort=newest';
+      const { result } = renderHook(() => useVideoFilters());
+
+      const isEqual = result.current.areFiltersEqual({
+        filter: 'unwatched',
+        selectedTags: [],
+        tagMode: TagMode.ANY,
+        searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
+        sort: 'newest',
+      });
+
+      expect(isEqual).toBe(true);
     });
 
     it('returns false when other filters differ but notInterestedFilter matches', () => {
@@ -151,6 +248,7 @@ describe('useVideoFilters', () => {
         tagMode: TagMode.ANY,
         searchQuery: '',
         notInterestedFilter: NotInterestedFilter.EXCLUDE,
+        sort: 'in_progress_first',
       });
 
       expect(isEqual).toBe(false);

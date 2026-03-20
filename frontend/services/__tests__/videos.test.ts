@@ -503,4 +503,62 @@ describe('buildVideoQueryParams', () => {
       expect(result).toContain('page_size=24');
     });
   });
+
+  describe('sort parameter', () => {
+    it('should include sort when provided', () => {
+      const result = buildVideoQueryParams({
+        filter: 'all',
+        selectedTags: [],
+        tagMode: TagMode.ANY,
+        searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
+        sort: 'in_progress_first',
+      });
+
+      expect(result).toContain('sort=in_progress_first');
+    });
+
+    it('should include sort=newest when newest is provided', () => {
+      const result = buildVideoQueryParams({
+        filter: 'all',
+        selectedTags: [],
+        tagMode: TagMode.ANY,
+        searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
+        sort: 'newest',
+      });
+
+      expect(result).toContain('sort=newest');
+    });
+
+    it('should not include sort when not provided', () => {
+      const result = buildVideoQueryParams({
+        filter: 'all',
+        selectedTags: [],
+        tagMode: TagMode.ANY,
+        searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
+      });
+
+      expect(result).not.toContain('sort');
+    });
+
+    it('should include sort alongside other params', () => {
+      const result = buildVideoQueryParams({
+        filter: 'unwatched',
+        selectedTags: ['tech'],
+        tagMode: TagMode.ANY,
+        searchQuery: 'typescript',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
+        sort: 'newest',
+        page: 2,
+      });
+
+      expect(result).toContain('watch_status=unwatched');
+      expect(result).toContain('tags=tech');
+      expect(result).toContain('search=typescript');
+      expect(result).toContain('sort=newest');
+      expect(result).toContain('page=2');
+    });
+  });
 });

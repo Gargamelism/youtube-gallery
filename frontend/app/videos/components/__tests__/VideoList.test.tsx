@@ -42,6 +42,7 @@ jest.mock('@/hooks/useVideoFilters', () => ({
     selectedTags: [],
     tagMode: TagMode.ANY,
     notInterestedFilter: NotInterestedFilter.EXCLUDE,
+    sort: 'in_progress_first',
     areFiltersEqual: jest.fn(() => true),
   }),
 }));

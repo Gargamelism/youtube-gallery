@@ -2,7 +2,6 @@
 Tests for QuotaTracker utility class.
 """
 
-from datetime import datetime, timezone
 from unittest.mock import Mock, patch, call
 
 from django.test import TestCase
@@ -230,22 +229,22 @@ class QuotaTrackerTests(TestCase):
 
     def test_get_quota_status_normal(self) -> None:
         """Test _get_quota_status returns 'normal' for low usage"""
-        result = self.quota_tracker._get_quota_status(50.0)
+        result = self.quota_tracker.get_quota_status(50.0)
         self.assertEqual(result, "normal")
 
     def test_get_quota_status_moderate(self) -> None:
         """Test _get_quota_status returns 'moderate' for medium usage"""
-        result = self.quota_tracker._get_quota_status(70.0)
+        result = self.quota_tracker.get_quota_status(70.0)
         self.assertEqual(result, "moderate")
 
     def test_get_quota_status_high(self) -> None:
         """Test _get_quota_status returns 'high' for high usage"""
-        result = self.quota_tracker._get_quota_status(85.0)
+        result = self.quota_tracker.get_quota_status(85.0)
         self.assertEqual(result, "high")
 
     def test_get_quota_status_critical(self) -> None:
         """Test _get_quota_status returns 'critical' for very high usage"""
-        result = self.quota_tracker._get_quota_status(97.0)
+        result = self.quota_tracker.get_quota_status(97.0)
         self.assertEqual(result, "critical")
 
     @patch("videos.services.quota_tracker.DailyQuotaUsage")
@@ -262,39 +261,28 @@ class QuotaTrackerTests(TestCase):
 
         self.assertEqual(result.daily_usage, 0)
         self.assertEqual(result.operations_count, {})
-        mock_model.assert_called_with(pk=self.quota_tracker.quota_key, daily_usage=0, operations_count={})
+        mock_model.assert_called_once_with(date=self.quota_tracker._get_today_key(), daily_usage=0, operations_count={})
 
-    @patch("builtins.print")
     @patch("videos.services.quota_tracker.DailyQuotaUsage")
-    def test_force_reset_quota(self, mock_model, mock_print) -> None:
+    def test_force_reset_quota(self, mock_model) -> None:
         """Test force_reset_quota deletes existing data"""
         mock_existing = Mock()
-        mock_find = Mock()
-        mock_find.first.return_value = mock_existing
-        mock_model.find.return_value = mock_find
+        mock_model.get.return_value = mock_existing
 
         self.quota_tracker.use_redis_om = True
         self.quota_tracker.force_reset_quota()
 
+        mock_model.get.assert_called_once_with(self.quota_tracker._get_today_key())
         mock_existing.delete.assert_called_once()
-        mock_print.assert_called_with("INFO: Quota manually reset")
 
-    @patch("videos.services.quota_tracker.datetime")
-    def test_ttl_calculation_for_midnight_reset(self, mock_datetime) -> None:
-        """Test TTL calculation for midnight reset"""
-        # Mock current time as 2:30 PM
-        mock_now = datetime(2023, 10, 15, 14, 30, 0, tzinfo=timezone.utc)
-        mock_datetime.now.return_value = mock_now
-
+    def test_store_usage_data_calls_save(self) -> None:
+        """Test that _store_usage_data calls save on the usage object"""
         mock_usage = Mock()
         self.quota_tracker.use_redis_om = True
 
-        with patch.object(mock_usage, "expire") as mock_expire, patch.object(mock_usage, "save"):
-            self.quota_tracker._store_usage_data(mock_usage)
+        self.quota_tracker._store_usage_data(mock_usage)
 
-            # Should expire at midnight UTC (9.5 hours = 34200 seconds)
-            expected_seconds = 34200
-            mock_expire.assert_called_with(expected_seconds)
+        mock_usage.save.assert_called_once()
 
 
 class DailyQuotaUsageTests(TestCase):

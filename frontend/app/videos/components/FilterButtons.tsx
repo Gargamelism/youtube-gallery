@@ -6,6 +6,7 @@ import { SearchAndTagFilter } from '@/components/ui/SearchAndTagFilter';
 import { useVideoFilters } from '@/hooks/useVideoFilters';
 import { ScrollMode } from '@/lib/scrollMode';
 import { NotInterestedFilter } from '@/types';
+import { SortSelector } from './SortSelector';
 
 interface FilterButtonsProps {
   totalCount: number;
@@ -35,11 +36,13 @@ export function FilterButtons({
     tagMode,
     searchQuery,
     notInterestedFilter,
+    sort,
     updateFilter,
     updateTags,
     updateTagMode,
     updateSearchQuery,
     updateNotInterestedFilter,
+    updateSort,
   } = useVideoFilters();
 
   const watchFilters: Filter[] = [
@@ -94,6 +97,10 @@ export function FilterButtons({
             </button>
           );
         })}
+      </div>
+
+      <div data-testid="sort-selector-row" className="flex items-center border-t pt-4">
+        <SortSelector sort={sort ?? 'in_progress_first'} onSortChange={updateSort} />
       </div>
 
       <SearchAndTagFilter

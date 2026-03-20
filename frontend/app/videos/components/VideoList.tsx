@@ -30,12 +30,19 @@ export function VideoList({ scrollMode }: VideoListProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { filter, selectedTags, tagMode, searchQuery, notInterestedFilter, areFiltersEqual } = useVideoFilters();
+  const { filter, selectedTags, tagMode, searchQuery, notInterestedFilter, sort, areFiltersEqual } = useVideoFilters();
   const { t } = useTranslation('videos');
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const [startTime, setStartTime] = useState<number | undefined>(undefined);
 
-  const currentFilters = { filter, selectedTags, tagMode, searchQuery, notInterestedFilter };
+  const currentFilters = {
+    filter,
+    selectedTags,
+    tagMode,
+    searchQuery,
+    notInterestedFilter,
+    sort: sort ?? 'in_progress_first',
+  };
 
   const { data, fetchNextPage, hasNextPage, isFetching, isLoading, error, isRestoring } = useInfiniteVideos(
     currentFilters,

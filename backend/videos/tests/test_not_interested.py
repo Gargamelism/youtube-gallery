@@ -126,7 +126,7 @@ class NotInterestedFilteringTests(TestCase):
 
     def test_filter_exclude_not_interested(self) -> None:
         """Test that not_interested_filter=exclude excludes dismissed videos (default)"""
-        response = self.client.get("/api/videos/?not_interested_filter=exclude")
+        response = self.client.get("/api/videos?not_interested_filter=exclude")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         video_ids = [video["video_id"] for video in response.data["results"]]
@@ -136,7 +136,7 @@ class NotInterestedFilteringTests(TestCase):
 
     def test_filter_only_not_interested(self) -> None:
         """Test that not_interested_filter=only shows only dismissed videos"""
-        response = self.client.get("/api/videos/?not_interested_filter=only")
+        response = self.client.get("/api/videos?not_interested_filter=only")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         video_ids = [video["video_id"] for video in response.data["results"]]
@@ -146,7 +146,7 @@ class NotInterestedFilteringTests(TestCase):
 
     def test_filter_include_all(self) -> None:
         """Test that not_interested_filter=include shows all videos"""
-        response = self.client.get("/api/videos/?not_interested_filter=include")
+        response = self.client.get("/api/videos?not_interested_filter=include")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         video_ids = [video["video_id"] for video in response.data["results"]]
@@ -156,7 +156,7 @@ class NotInterestedFilteringTests(TestCase):
 
     def test_default_behavior_excludes_not_interested(self) -> None:
         """Test that default behavior excludes not interested videos"""
-        response = self.client.get("/api/videos/")
+        response = self.client.get("/api/videos")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         video_ids = [video["video_id"] for video in response.data["results"]]
@@ -164,9 +164,9 @@ class NotInterestedFilteringTests(TestCase):
 
     def test_combined_with_watch_status_filter(self) -> None:
         """Test not_interested_filter works with watch_status filter"""
-        UserVideo.objects.filter(user=self.user, video=self.video1).update_or_create(defaults={"is_watched": True})
+        UserVideo.objects.update_or_create(user=self.user, video=self.video1, defaults={"is_watched": True})
 
-        response = self.client.get("/api/videos/?watch_status=unwatched&not_interested_filter=exclude")
+        response = self.client.get("/api/videos?watch_status=unwatched&not_interested_filter=exclude")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         video_ids = [video["video_id"] for video in response.data["results"]]
@@ -176,7 +176,7 @@ class NotInterestedFilteringTests(TestCase):
 
     def test_stats_include_not_interested_count(self) -> None:
         """Test that stats endpoint includes not_interested count"""
-        response = self.client.get("/api/videos/stats/")
+        response = self.client.get("/api/videos/stats")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("not_interested", response.data)

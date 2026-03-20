@@ -1,4 +1,4 @@
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.db import connection
 from rest_framework.test import APIRequestFactory
 from videos.models import Channel, Video
@@ -96,6 +96,7 @@ class VideoSerializerOptimizationTests(TestCase):
         self.assertFalse(video2_data["is_watched"])
         self.assertEqual(len(video2_data["channel_tags"]), 1)  # Tech tag only
 
+    @override_settings(DEBUG=True)
     def test_serializer_without_optimization(self) -> None:
         """Test query count without optimization (for comparison)"""
         # Get videos without prefetching optimization

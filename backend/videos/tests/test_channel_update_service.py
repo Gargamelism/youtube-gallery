@@ -156,7 +156,7 @@ class ChannelUpdateServiceTests(TestCase):
         result = self.service.update_channel(self.channel)
 
         self.assertFalse(result.success)
-        self.assertIn("Rate limited", result.error_message)
+        self.assertIn("rate limit exceeded", result.error_message)
 
     def test_youtube_api_access_denied_error(self) -> None:
         """Test handling of YouTube API access denied error"""
@@ -196,7 +196,7 @@ class ChannelUpdateServiceTests(TestCase):
         result = self.service.update_channel(self.channel)
 
         self.assertFalse(result.success)
-        self.assertIn("Rate limited", result.error_message)
+        self.assertIn("server error", result.error_message)
 
     def test_youtube_api_server_error_502(self) -> None:
         """Test handling of YouTube API server error (502)"""
@@ -207,7 +207,7 @@ class ChannelUpdateServiceTests(TestCase):
         result = self.service.update_channel(self.channel)
 
         self.assertFalse(result.success)
-        self.assertIn("Rate limited", result.error_message)
+        self.assertIn("server error", result.error_message)
 
     def test_youtube_api_server_error_503(self) -> None:
         """Test handling of YouTube API server error (503)"""
@@ -218,7 +218,7 @@ class ChannelUpdateServiceTests(TestCase):
         result = self.service.update_channel(self.channel)
 
         self.assertFalse(result.success)
-        self.assertIn("Rate limited", result.error_message)
+        self.assertIn("server error", result.error_message)
 
     def test_priority_calculation_high_subscriber_threshold(self) -> None:
         """Test priority calculation for high subscriber count (1M+)"""
