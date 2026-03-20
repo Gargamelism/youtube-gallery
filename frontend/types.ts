@@ -147,7 +147,7 @@ export interface VideoFilters {
   tagMode: TagModeType;
   searchQuery: string;
   notInterestedFilter: NotInterestedFilter;
-  sort: VideoSortMode;
+  sort?: VideoSortMode;
 }
 
 // Channel Filter Types

@@ -100,7 +100,7 @@ export function FilterButtons({
       </div>
 
       <div data-testid="sort-selector-row" className="flex items-center border-t pt-4">
-        <SortSelector sort={sort} onSortChange={updateSort} />
+        <SortSelector sort={sort ?? 'in_progress_first'} onSortChange={updateSort} />
       </div>
 
       <SearchAndTagFilter
