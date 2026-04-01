@@ -3,6 +3,19 @@
   "subtitle": "Manage your account settings and preferences",
   "account": "Account Information",
   "loading": "Loading...",
+  "durationThresholds": {
+    "title": "Video Length Categories",
+    "description": "Customize the duration boundaries used for the short, medium, and long video filters",
+    "shortLabel": "Short videos",
+    "shortDescription": "Videos shorter than this duration",
+    "longLabel": "Long videos",
+    "longDescription": "Videos longer than this duration",
+    "mediumDerived": "Medium videos: {{short}} – {{long}}",
+    "validationError": "Short threshold must be less than long threshold",
+    "saveChanges": "Save Changes",
+    "cancel": "Cancel",
+    "resetToDefaults": "Reset to defaults"
+  },
   "watchPreferences": {
     "title": "Video Watch Preferences",
     "description": "Configure how videos are automatically marked as watched",

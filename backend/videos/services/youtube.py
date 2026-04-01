@@ -86,6 +86,29 @@ class DeviceFlowResponse(TypedDict):
     interval: int
 
 
+_SHORTS_URL_TEMPLATE = "https://www.youtube.com/shorts/{video_id}"
+
+
+def check_is_short_via_redirect(video_id: str) -> Optional[bool]:
+    """
+    Check whether a video is a YouTube Short using the redirect heuristic.
+
+    Returns True (Short), False (not Short), or None (could not determine).
+    No heuristic fallback — None means unknown, not a guess.
+    """
+    try:
+        response = http.head(_SHORTS_URL_TEMPLATE.format(video_id=video_id), allow_redirects=False)
+        if response.status_code == 200:
+            return True
+        if 300 <= response.status_code < 400:
+            return False
+        logger.warning("Unexpected status %s for Shorts check on video %s", response.status_code, video_id)
+        return None
+    except Exception:
+        logger.warning("Shorts redirect check failed for video %s", video_id, exc_info=True)
+        return None
+
+
 class YouTubeAuthenticationError(Exception):
     """Custom exception for YouTube authentication errors that require user intervention"""
 
@@ -345,8 +368,65 @@ class YouTubeService:
             )
             raise
 
-    def get_channel_videos(self, uploads_playlist_id: str) -> Any:
+    def _get_shorts_video_ids(self, channel_id: str) -> set[str]:
+        """
+        Returns the set of video IDs confirmed as Shorts via the channel's Shorts playlist.
+        Returns an empty set if the Shorts playlist is absent or any API error occurs.
+        """
+        try:
+            if not self.quota_tracker.can_make_request("channels.list"):
+                logger.warning("Insufficient quota for channels.list — skipping Shorts playlist lookup")
+                return set()
+
+            channels_response = self.youtube.channels().list(part="contentDetails", id=channel_id).execute()
+            self.quota_tracker.record_usage("channels.list")
+
+            items = channels_response.get("items", [])
+            if not items:
+                return set()
+
+            shorts_playlist_id = (
+                items[0].get("contentDetails", {}).get("relatedPlaylists", {}).get("shorts")
+            )
+            if not shorts_playlist_id:
+                return set()
+
+            video_ids: set[str] = set()
+            page_token = None
+            while True:
+                if not self.quota_tracker.can_make_request("playlistItems.list"):
+                    logger.warning("Insufficient quota for playlistItems.list — Shorts playlist fetch incomplete")
+                    break
+
+                pl_response = self.youtube.playlistItems().list(
+                    part="contentDetails",
+                    playlistId=shorts_playlist_id,
+                    maxResults=50,
+                    pageToken=page_token,
+                ).execute()
+                self.quota_tracker.record_usage("playlistItems.list")
+
+                for item in pl_response.get("items", []):
+                    video_ids.add(item["contentDetails"]["videoId"])
+
+                page_token = pl_response.get("nextPageToken")
+                if not page_token:
+                    break
+
+            return video_ids
+        except Exception:
+            logger.warning("Shorts playlist fetch failed for channel %s", channel_id, exc_info=True)
+            return set()
+
+    def get_channel_videos(self, uploads_playlist_id: str, channel_id: Optional[str] = None) -> Any:
         """Generator that yields pages of video data"""
+        shorts_video_ids: set[str] = set()
+        playlist_fetch_succeeded = False
+
+        if channel_id:
+            shorts_video_ids = self._get_shorts_video_ids(channel_id)
+            playlist_fetch_succeeded = True
+
         next_page_token = None
 
         while True:
@@ -379,8 +459,14 @@ class YouTubeService:
 
                     page_videos = []
                     for video in video_response["items"]:
+                        video_id = video["id"]
+                        if playlist_fetch_succeeded:
+                            is_short: Optional[bool] = video_id in shorts_video_ids
+                        else:
+                            is_short = check_is_short_via_redirect(video_id)
+
                         video_data = {
-                            "video_id": video["id"],
+                            "video_id": video_id,
                             "title": video["snippet"].get("title"),
                             "description": video["snippet"].get("description"),
                             "published_at": timezone_aware_datetime(video["snippet"]["publishedAt"]),
@@ -389,12 +475,13 @@ class YouTubeService:
                             "comment_count": int(video["statistics"].get("commentCount", 0)),
                             "duration": video["contentDetails"]["duration"],
                             "thumbnail_url": video["snippet"]["thumbnails"]["high"]["url"],
-                            "video_url": f'https://www.youtube.com/watch?v={video["id"]}',
+                            "video_url": f'https://www.youtube.com/watch?v={video_id}',
                             "category_id": video["snippet"].get("categoryId"),
                             "default_language": video["snippet"].get("defaultLanguage"),
                             "tags": (
                                 ",".join(video["snippet"].get("tags", [])) if video["snippet"].get("tags") else None
                             ),
+                            "is_short": is_short,
                         }
                         page_videos.append(video_data)
 
@@ -422,7 +509,10 @@ class YouTubeService:
             },
         )
 
-        videos_generator = self.get_channel_videos(channel_info["uploads_playlist_id"])
+        videos_generator = self.get_channel_videos(
+            channel_info["uploads_playlist_id"],
+            channel_id=channel_info["channel_id"],
+        )
 
         for page_videos in videos_generator:
             for video_data in page_videos:

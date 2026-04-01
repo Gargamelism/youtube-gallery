@@ -11,6 +11,9 @@ export interface VideoFiltersActions {
   updateSearchQuery: (query: string) => void;
   updateNotInterestedFilter: (newFilter: NotInterestedFilter) => void;
   updateSort: (newSort: VideoSortMode) => void;
+  updateShorterThan: (minutes: number | undefined) => void;
+  updateLongerThan: (minutes: number | undefined) => void;
+  updateIsShort: (value: boolean | undefined) => void;
   addTag: (tagName: string) => void;
   removeTag: (tagName: string) => void;
   areFiltersEqual: (otherFilters: VideoFilters) => boolean;
@@ -34,6 +37,18 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
       : NotInterestedFilter.EXCLUDE;
   const sort = (searchParams.get('sort') as VideoSortMode) || 'in_progress_first';
 
+  const rawShorterThan = searchParams.get('shorter_than');
+  const shorterThan: number | undefined =
+    rawShorterThan !== null && parseInt(rawShorterThan, 10) > 0 ? parseInt(rawShorterThan, 10) : undefined;
+
+  const rawLongerThan = searchParams.get('longer_than');
+  const longerThan: number | undefined =
+    rawLongerThan !== null && parseInt(rawLongerThan, 10) > 0 ? parseInt(rawLongerThan, 10) : undefined;
+
+  const rawIsShort = searchParams.get('is_short');
+  const isShort: boolean | undefined =
+    rawIsShort === 'true' ? true : rawIsShort === 'false' ? false : undefined;
+
   // Helper function to update URL with current state
   const updateUrl = (updates: Record<string, string | string[] | undefined>) => {
     navigateWithUpdatedParams(router, pathname, searchParams, updates);
@@ -42,6 +57,9 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
   const updateAllFilters = (newFilters: Partial<VideoFilters>) => {
     const mergedTags = newFilters.selectedTags ?? selectedTags;
     const mergedTagMode = newFilters.tagMode ?? tagMode;
+    const mergedShorterThan = newFilters.shorterThan !== undefined ? newFilters.shorterThan : shorterThan;
+    const mergedLongerThan = newFilters.longerThan !== undefined ? newFilters.longerThan : longerThan;
+    const mergedIsShort = newFilters.isShort !== undefined ? newFilters.isShort : isShort;
 
     updateUrl({
       filter: newFilters.filter ?? filter,
@@ -49,6 +67,9 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
       tag_mode: mergedTags.length > 0 ? mergedTagMode : undefined,
       search: newFilters.searchQuery ?? searchQuery,
       not_interested_filter: newFilters.notInterestedFilter ?? notInterestedFilter,
+      shorter_than: mergedShorterThan !== undefined ? String(mergedShorterThan) : undefined,
+      longer_than: mergedLongerThan !== undefined ? String(mergedLongerThan) : undefined,
+      is_short: mergedIsShort !== undefined ? String(mergedIsShort) : undefined,
     });
   };
 
@@ -76,6 +97,18 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
     updateUrl({ sort: newSort, page: undefined });
   };
 
+  const updateShorterThan = (minutes: number | undefined) => {
+    updateAllFilters({ shorterThan: minutes });
+  };
+
+  const updateLongerThan = (minutes: number | undefined) => {
+    updateAllFilters({ longerThan: minutes });
+  };
+
+  const updateIsShort = (newIsShort: boolean | undefined) => {
+    updateAllFilters({ isShort: newIsShort });
+  };
+
   const addTag = (tagName: string) => {
     if (!selectedTags.includes(tagName)) {
       const newTags = [...selectedTags, tagName];
@@ -99,7 +132,10 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
       tagMode === otherFilters.tagMode &&
       searchQuery === otherFilters.searchQuery &&
       notInterestedFilter === otherFilters.notInterestedFilter &&
-      sort === (otherFilters.sort ?? 'in_progress_first')
+      sort === (otherFilters.sort ?? 'in_progress_first') &&
+      shorterThan === otherFilters.shorterThan &&
+      longerThan === otherFilters.longerThan &&
+      isShort === otherFilters.isShort
     );
   };
 
@@ -110,12 +146,18 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
     searchQuery,
     notInterestedFilter,
     sort,
+    shorterThan,
+    longerThan,
+    isShort,
     updateFilter,
     updateTags,
     updateTagMode,
     updateSearchQuery,
     updateNotInterestedFilter,
     updateSort,
+    updateShorterThan,
+    updateLongerThan,
+    updateIsShort,
     addTag,
     removeTag,
     areFiltersEqual,

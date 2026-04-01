@@ -130,6 +130,9 @@ class VideoViewSet(viewsets.ModelViewSet):  # type: ignore[type-arg]
             tag_mode=search_params.tag_mode,
             watch_status=search_params.watch_status,
             not_interested_filter=search_params.not_interested_filter,
+            shorter_than_seconds=search_params.shorter_than_seconds,
+            longer_than_seconds=search_params.longer_than_seconds,
+            is_short=search_params.is_short,
         )
         return search_service.apply_ordering(queryset, sort_params.sort)
 

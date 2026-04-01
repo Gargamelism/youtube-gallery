@@ -48,6 +48,18 @@ export function buildVideoQueryParams(params: VideoFilters & PaginationParams): 
     queryParams.set('sort', params.sort);
   }
 
+  if (params.shorterThan !== undefined && params.shorterThan > 0) {
+    queryParams.set('shorter_than', String(params.shorterThan));
+  }
+
+  if (params.longerThan !== undefined && params.longerThan > 0) {
+    queryParams.set('longer_than', String(params.longerThan));
+  }
+
+  if (params.isShort !== undefined) {
+    queryParams.set('is_short', String(params.isShort));
+  }
+
   if (typeof params.page === 'number' && params.page > 0) {
     queryParams.set('page', params.page.toString());
   }

@@ -148,6 +148,9 @@ export interface VideoFilters {
   searchQuery: string;
   notInterestedFilter: NotInterestedFilter;
   sort?: VideoSortMode;
+  shorterThan?: number;
+  longerThan?: number;
+  isShort?: boolean;
 }
 
 // Channel Filter Types

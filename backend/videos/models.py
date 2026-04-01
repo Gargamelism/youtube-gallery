@@ -88,7 +88,9 @@ class Video(TimestampMixin):
 
     # custom fields
     duration = YouTubeDurationField(blank=True, null=True)
+    duration_seconds = models.IntegerField(null=True, blank=True, db_index=True)
     is_available = models.BooleanField(default=True, db_index=True)
+    is_short = models.BooleanField(null=True, blank=True, db_index=True)
 
     def get_duration_seconds(self) -> int:
         """Get video duration in seconds"""
@@ -100,6 +102,11 @@ class Video(TimestampMixin):
 
         duration_field = cast(YouTubeDurationField, self._meta.get_field("duration"))
         return duration_field.duration_to_seconds(self.duration)
+
+    def save(self, *args: object, **kwargs: object) -> None:
+        raw_seconds = self.get_duration_seconds()
+        self.duration_seconds = raw_seconds if raw_seconds else None
+        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return self.title or self.video_id

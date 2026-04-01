@@ -37,6 +37,16 @@
     "placeholder": "Search videos by title or description...",
     "clear": "Clear search"
   },
+  "durationFilter": {
+    "shorterThan": "Shorter than",
+    "longerThan": "Longer than",
+    "minutesSuffix": "min"
+  },
+  "shortsFilter": {
+    "all": "All",
+    "only": "Shorts only",
+    "hide": "Hide Shorts"
+  },
   "keyboardShortcuts": {
     "scrollToTop": "Scroll to top",
     "focusSearch": "Focus search",

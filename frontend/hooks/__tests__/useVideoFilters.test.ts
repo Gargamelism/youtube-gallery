@@ -339,4 +339,226 @@ describe('useVideoFilters', () => {
       });
     });
   });
+
+  describe('shorterThan URL parsing', () => {
+    it('returns undefined when shorter_than is absent', () => {
+      mockSearchParamsString = '';
+      const { result } = renderHook(() => useVideoFilters());
+      expect(result.current.shorterThan).toBeUndefined();
+    });
+
+    it('parses shorter_than=10 as number 10', () => {
+      mockSearchParamsString = 'shorter_than=10';
+      const { result } = renderHook(() => useVideoFilters());
+      expect(result.current.shorterThan).toBe(10);
+    });
+
+    it('returns undefined when shorter_than=0', () => {
+      mockSearchParamsString = 'shorter_than=0';
+      const { result } = renderHook(() => useVideoFilters());
+      expect(result.current.shorterThan).toBeUndefined();
+    });
+
+    it('returns undefined for a non-numeric shorter_than value', () => {
+      mockSearchParamsString = 'shorter_than=abc';
+      const { result } = renderHook(() => useVideoFilters());
+      expect(result.current.shorterThan).toBeUndefined();
+    });
+  });
+
+  describe('longerThan URL parsing', () => {
+    it('returns undefined when longer_than is absent', () => {
+      mockSearchParamsString = '';
+      const { result } = renderHook(() => useVideoFilters());
+      expect(result.current.longerThan).toBeUndefined();
+    });
+
+    it('parses longer_than=20 as number 20', () => {
+      mockSearchParamsString = 'longer_than=20';
+      const { result } = renderHook(() => useVideoFilters());
+      expect(result.current.longerThan).toBe(20);
+    });
+
+    it('returns undefined when longer_than=0', () => {
+      mockSearchParamsString = 'longer_than=0';
+      const { result } = renderHook(() => useVideoFilters());
+      expect(result.current.longerThan).toBeUndefined();
+    });
+  });
+
+  describe('isShort URL parsing', () => {
+    it('returns undefined when is_short is absent', () => {
+      mockSearchParamsString = '';
+      const { result } = renderHook(() => useVideoFilters());
+      expect(result.current.isShort).toBeUndefined();
+    });
+
+    it('parses is_short=true', () => {
+      mockSearchParamsString = 'is_short=true';
+      const { result } = renderHook(() => useVideoFilters());
+      expect(result.current.isShort).toBe(true);
+    });
+
+    it('parses is_short=false', () => {
+      mockSearchParamsString = 'is_short=false';
+      const { result } = renderHook(() => useVideoFilters());
+      expect(result.current.isShort).toBe(false);
+    });
+
+    it('returns undefined for an invalid is_short value', () => {
+      mockSearchParamsString = 'is_short=maybe';
+      const { result } = renderHook(() => useVideoFilters());
+      expect(result.current.isShort).toBeUndefined();
+    });
+  });
+
+  describe('updateShorterThan', () => {
+    it('sets shorter_than in URL when given a positive number', () => {
+      const { result } = renderHook(() => useVideoFilters());
+
+      act(() => {
+        result.current.updateShorterThan(15);
+      });
+
+      expect(mockRouter.push).toHaveBeenCalledWith(expect.stringContaining('shorter_than=15'));
+    });
+
+    it('removes shorter_than from URL when set to undefined', () => {
+      mockSearchParamsString = 'shorter_than=10';
+      const { result } = renderHook(() => useVideoFilters());
+
+      act(() => {
+        result.current.updateShorterThan(undefined);
+      });
+
+      const pushArg: string = (mockRouter.push as jest.Mock).mock.calls[0][0];
+      expect(pushArg).not.toContain('shorter_than');
+    });
+  });
+
+  describe('updateLongerThan', () => {
+    it('sets longer_than in URL when given a positive number', () => {
+      const { result } = renderHook(() => useVideoFilters());
+
+      act(() => {
+        result.current.updateLongerThan(30);
+      });
+
+      expect(mockRouter.push).toHaveBeenCalledWith(expect.stringContaining('longer_than=30'));
+    });
+
+    it('removes longer_than from URL when set to undefined', () => {
+      mockSearchParamsString = 'longer_than=20';
+      const { result } = renderHook(() => useVideoFilters());
+
+      act(() => {
+        result.current.updateLongerThan(undefined);
+      });
+
+      const pushArg: string = (mockRouter.push as jest.Mock).mock.calls[0][0];
+      expect(pushArg).not.toContain('longer_than');
+    });
+  });
+
+  describe('updateIsShort', () => {
+    it('sets is_short=true in URL', () => {
+      const { result } = renderHook(() => useVideoFilters());
+
+      act(() => {
+        result.current.updateIsShort(true);
+      });
+
+      expect(mockRouter.push).toHaveBeenCalledWith(expect.stringContaining('is_short=true'));
+    });
+
+    it('sets is_short=false in URL', () => {
+      const { result } = renderHook(() => useVideoFilters());
+
+      act(() => {
+        result.current.updateIsShort(false);
+      });
+
+      expect(mockRouter.push).toHaveBeenCalledWith(expect.stringContaining('is_short=false'));
+    });
+
+    it('removes is_short from URL when set to undefined', () => {
+      mockSearchParamsString = 'is_short=true';
+      const { result } = renderHook(() => useVideoFilters());
+
+      act(() => {
+        result.current.updateIsShort(undefined);
+      });
+
+      const pushArg: string = (mockRouter.push as jest.Mock).mock.calls[0][0];
+      expect(pushArg).not.toContain('is_short');
+    });
+  });
+
+  describe('areFiltersEqual with duration fields', () => {
+    it('returns false when shorterThan differs', () => {
+      mockSearchParamsString = 'shorter_than=10';
+      const { result } = renderHook(() => useVideoFilters());
+
+      const equal = result.current.areFiltersEqual({
+        filter: 'unwatched',
+        selectedTags: [],
+        tagMode: TagMode.ANY,
+        searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
+        sort: 'in_progress_first',
+        shorterThan: 5,
+      });
+      expect(equal).toBe(false);
+    });
+
+    it('returns false when longerThan differs', () => {
+      mockSearchParamsString = 'longer_than=20';
+      const { result } = renderHook(() => useVideoFilters());
+
+      const equal = result.current.areFiltersEqual({
+        filter: 'unwatched',
+        selectedTags: [],
+        tagMode: TagMode.ANY,
+        searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
+        sort: 'in_progress_first',
+        longerThan: 30,
+      });
+      expect(equal).toBe(false);
+    });
+
+    it('returns false when isShort differs', () => {
+      mockSearchParamsString = 'is_short=true';
+      const { result } = renderHook(() => useVideoFilters());
+
+      const equal = result.current.areFiltersEqual({
+        filter: 'unwatched',
+        selectedTags: [],
+        tagMode: TagMode.ANY,
+        searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
+        sort: 'in_progress_first',
+        isShort: false,
+      });
+      expect(equal).toBe(false);
+    });
+
+    it('returns true when all duration/shorts fields match', () => {
+      mockSearchParamsString = 'shorter_than=15&longer_than=5&is_short=false';
+      const { result } = renderHook(() => useVideoFilters());
+
+      const equal = result.current.areFiltersEqual({
+        filter: 'unwatched',
+        selectedTags: [],
+        tagMode: TagMode.ANY,
+        searchQuery: '',
+        notInterestedFilter: NotInterestedFilter.EXCLUDE,
+        sort: 'in_progress_first',
+        shorterThan: 15,
+        longerThan: 5,
+        isShort: false,
+      });
+      expect(equal).toBe(true);
+    });
+  });
 });
