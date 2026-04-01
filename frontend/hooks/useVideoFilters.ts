@@ -38,12 +38,12 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
   const sort = (searchParams.get('sort') as VideoSortMode) || 'in_progress_first';
 
   const rawShorterThan = searchParams.get('shorter_than');
-  const shorterThan: number | undefined =
-    rawShorterThan !== null && parseInt(rawShorterThan, 10) > 0 ? parseInt(rawShorterThan, 10) : undefined;
+  const parsedShorterThan = rawShorterThan !== null ? parseInt(rawShorterThan, 10) : NaN;
+  const shorterThan: number | undefined = parsedShorterThan > 0 ? parsedShorterThan : undefined;
 
   const rawLongerThan = searchParams.get('longer_than');
-  const longerThan: number | undefined =
-    rawLongerThan !== null && parseInt(rawLongerThan, 10) > 0 ? parseInt(rawLongerThan, 10) : undefined;
+  const parsedLongerThan = rawLongerThan !== null ? parseInt(rawLongerThan, 10) : NaN;
+  const longerThan: number | undefined = parsedLongerThan > 0 ? parsedLongerThan : undefined;
 
   const rawIsShort = searchParams.get('is_short');
   const isShort: boolean | undefined =
@@ -98,15 +98,15 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
   };
 
   const updateShorterThan = (minutes: number | undefined) => {
-    updateAllFilters({ shorterThan: minutes });
+    updateUrl({ shorter_than: minutes !== undefined ? String(minutes) : undefined });
   };
 
   const updateLongerThan = (minutes: number | undefined) => {
-    updateAllFilters({ longerThan: minutes });
+    updateUrl({ longer_than: minutes !== undefined ? String(minutes) : undefined });
   };
 
   const updateIsShort = (newIsShort: boolean | undefined) => {
-    updateAllFilters({ isShort: newIsShort });
+    updateUrl({ is_short: newIsShort !== undefined ? String(newIsShort) : undefined });
   };
 
   const addTag = (tagName: string) => {

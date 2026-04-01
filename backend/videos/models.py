@@ -105,7 +105,8 @@ class Video(TimestampMixin):
 
     def save(self, *args: object, **kwargs: object) -> None:
         raw_seconds = self.get_duration_seconds()
-        self.duration_seconds = raw_seconds if raw_seconds else None
+        # Treat 0-second durations as unknown (null) — they indicate missing/unset duration data
+        self.duration_seconds = raw_seconds or None
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:

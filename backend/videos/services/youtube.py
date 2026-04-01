@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, TypedDict, Union, cast
 from urllib.parse import urlparse
 
+import requests
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
@@ -89,7 +90,7 @@ class DeviceFlowResponse(TypedDict):
 _SHORTS_URL_TEMPLATE = "https://www.youtube.com/shorts/{video_id}"
 
 
-def check_is_short_via_redirect(video_id: str) -> Optional[bool]:
+def check_is_short_via_redirect(video_id: str, session: requests.Session = http) -> Optional[bool]:
     """
     Check whether a video is a YouTube Short using the redirect heuristic.
 
@@ -97,7 +98,7 @@ def check_is_short_via_redirect(video_id: str) -> Optional[bool]:
     No heuristic fallback — None means unknown, not a guess.
     """
     try:
-        response = http.head(_SHORTS_URL_TEMPLATE.format(video_id=video_id), allow_redirects=False)
+        response = session.head(_SHORTS_URL_TEMPLATE.format(video_id=video_id), allow_redirects=False)
         if response.status_code == 200:
             return True
         if 300 <= response.status_code < 400:
@@ -368,15 +369,16 @@ class YouTubeService:
             )
             raise
 
-    def _get_shorts_video_ids(self, channel_id: str) -> set[str]:
+    def _get_shorts_video_ids(self, channel_id: str) -> Optional[set[str]]:
         """
         Returns the set of video IDs confirmed as Shorts via the channel's Shorts playlist.
-        Returns an empty set if the Shorts playlist is absent or any API error occurs.
+        Returns None on quota exhaustion or API error — callers should fall back to the redirect
+        heuristic in that case. Returns an empty set when the channel has no Shorts playlist.
         """
         try:
             if not self.quota_tracker.can_make_request("channels.list"):
                 logger.warning("Insufficient quota for channels.list — skipping Shorts playlist lookup")
-                return set()
+                return None
 
             channels_response = self.youtube.channels().list(part="contentDetails", id=channel_id).execute()
             self.quota_tracker.record_usage("channels.list")
@@ -416,16 +418,14 @@ class YouTubeService:
             return video_ids
         except Exception:
             logger.warning("Shorts playlist fetch failed for channel %s", channel_id, exc_info=True)
-            return set()
+            return None
 
     def get_channel_videos(self, uploads_playlist_id: str, channel_id: Optional[str] = None) -> Any:
         """Generator that yields pages of video data"""
-        shorts_video_ids: set[str] = set()
-        playlist_fetch_succeeded = False
+        shorts_video_ids: Optional[set[str]] = None
 
         if channel_id:
             shorts_video_ids = self._get_shorts_video_ids(channel_id)
-            playlist_fetch_succeeded = True
 
         next_page_token = None
 
@@ -460,7 +460,7 @@ class YouTubeService:
                     page_videos = []
                     for video in video_response["items"]:
                         video_id = video["id"]
-                        if playlist_fetch_succeeded:
+                        if shorts_video_ids is not None:
                             is_short: Optional[bool] = video_id in shorts_video_ids
                         else:
                             is_short = check_is_short_via_redirect(video_id)

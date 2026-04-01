@@ -181,12 +181,12 @@ class VideoSearchService:
         longer_than_seconds: Optional[int],
     ) -> QuerySet[Video]:
         """Filter by optional shorter-than / longer-than boundaries; both may apply simultaneously"""
-        if not shorter_than_seconds and not longer_than_seconds:
+        if shorter_than_seconds is None and longer_than_seconds is None:
             return queryset
         queryset = queryset.exclude(duration_seconds__isnull=True)
-        if shorter_than_seconds:
+        if shorter_than_seconds is not None:
             queryset = queryset.filter(duration_seconds__lt=shorter_than_seconds)
-        if longer_than_seconds:
+        if longer_than_seconds is not None:
             queryset = queryset.filter(duration_seconds__gt=longer_than_seconds)
         return queryset
 

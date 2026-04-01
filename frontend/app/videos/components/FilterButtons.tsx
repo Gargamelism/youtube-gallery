@@ -144,8 +144,8 @@ export function FilterButtons({
             <button
               key={option.label}
               onClick={() => updateIsShort(isActive ? undefined : option.value)}
-              className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800 aria-selected:bg-blue-600 aria-selected:text-white"
-              aria-selected={isActive}
+              className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800 aria-pressed:bg-blue-600 aria-pressed:text-white"
+              aria-pressed={isActive}
             >
               {option.label}
             </button>
