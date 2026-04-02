@@ -1,7 +1,3 @@
-/**
- * Watch preferences default values and constraints
- */
-
 export const DEFAULT_AUTO_MARK_ENABLED = true;
 export const DEFAULT_AUTO_MARK_THRESHOLD = 75;
 

@@ -113,6 +113,7 @@ export function VideoPlayer({
           height: '100%',
           playerVars: {
             autoplay: 1,
+            controls: 1,
             start: startPosition,
             rel: 0,
             modestbranding: 1,

@@ -61,6 +61,18 @@ class VideoSearchParams(BaseModel):
     watch_status: Optional[WatchStatus] = None
     not_interested_filter: NotInterestedFilter = NotInterestedFilter.EXCLUDE
     user: Optional[User] = None
+    shorter_than_seconds: Optional[int] = None
+    longer_than_seconds: Optional[int] = None
+    is_short: Optional[bool] = None
+
+    @model_validator(mode="after")
+    def validate_duration_bounds(self) -> Self:
+        if self.shorter_than_seconds is not None and self.longer_than_seconds is not None:
+            if self.shorter_than_seconds <= self.longer_than_seconds:
+                raise ValueError(
+                    "shorter_than must be greater than longer_than — the provided duration range is impossible"
+                )
+        return self
 
     @field_validator("tags")
     @classmethod
@@ -88,6 +100,18 @@ class VideoSearchParams(BaseModel):
         tag_mode = TagMode.from_param(request.query_params.get("tag_mode"))
         watch_status = WatchStatus.from_param(request.query_params.get("watch_status"))
         not_interested_filter = NotInterestedFilter.from_param(request.query_params.get("not_interested_filter"))
+        raw_is_short = request.query_params.get("is_short")
+        is_short: Optional[bool] = True if raw_is_short == "true" else (False if raw_is_short == "false" else None)
+
+        def _parse_minutes_to_seconds(param: str) -> Optional[int]:
+            raw = request.query_params.get(param)
+            if raw is None:
+                return None
+            try:
+                minutes = int(raw)
+                return minutes * 60 if minutes > 0 else None
+            except ValueError:
+                return None
 
         try:
             return cls.model_validate(
@@ -97,6 +121,9 @@ class VideoSearchParams(BaseModel):
                     "watch_status": watch_status,
                     "not_interested_filter": not_interested_filter,
                     "user": request.user,
+                    "shorter_than_seconds": _parse_minutes_to_seconds("shorter_than"),
+                    "longer_than_seconds": _parse_minutes_to_seconds("longer_than"),
+                    "is_short": is_short,
                 },
                 context={"user": request.user},
             )

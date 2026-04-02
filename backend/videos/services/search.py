@@ -42,6 +42,9 @@ class VideoSearchService:
         tag_mode: TagMode = TagMode.ANY,
         watch_status: Optional[WatchStatus] = None,
         not_interested_filter: NotInterestedFilter = NotInterestedFilter.EXCLUDE,
+        shorter_than_seconds: Optional[int] = None,
+        longer_than_seconds: Optional[int] = None,
+        is_short: Optional[bool] = None,
     ) -> QuerySet[Video]:
         """
         Search videos with complex filtering using optimized 4-query strategy
@@ -86,6 +89,8 @@ class VideoSearchService:
             queryset = self._apply_watch_status_filter(queryset, watch_status)
 
         queryset = self._apply_not_interested_filter(queryset, not_interested_filter)
+        queryset = self._apply_is_short_filter(queryset, is_short)
+        queryset = self._apply_duration_filter(queryset, shorter_than_seconds, longer_than_seconds)
 
         return queryset.distinct()
 
@@ -162,6 +167,28 @@ class VideoSearchService:
 
             case NotInterestedFilter.INCLUDE:
                 return queryset
+
+    def _apply_is_short_filter(self, queryset: QuerySet[Video], is_short: Optional[bool]) -> QuerySet[Video]:
+        """Filter by Shorts status — both True and False explicitly exclude NULL (unknown) rows"""
+        if is_short is None:
+            return queryset
+        return queryset.filter(is_short=is_short)
+
+    def _apply_duration_filter(
+        self,
+        queryset: QuerySet[Video],
+        shorter_than_seconds: Optional[int],
+        longer_than_seconds: Optional[int],
+    ) -> QuerySet[Video]:
+        """Filter by optional shorter-than / longer-than boundaries; both may apply simultaneously"""
+        if shorter_than_seconds is None and longer_than_seconds is None:
+            return queryset
+        queryset = queryset.exclude(duration_seconds__isnull=True)
+        if shorter_than_seconds is not None:
+            queryset = queryset.filter(duration_seconds__lt=shorter_than_seconds)
+        if longer_than_seconds is not None:
+            queryset = queryset.filter(duration_seconds__gt=longer_than_seconds)
+        return queryset
 
     def apply_ordering(self, queryset: QuerySet[Video], sort_mode: str) -> QuerySet[Video]:
         if sort_mode == "newest":

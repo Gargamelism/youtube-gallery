@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SearchAndTagFilter } from '@/components/ui/SearchAndTagFilter';
 import { useVideoFilters } from '@/hooks/useVideoFilters';
@@ -37,12 +36,17 @@ export function FilterButtons({
     searchQuery,
     notInterestedFilter,
     sort,
+    shorterThan,
+    longerThan,
+    isShort,
     updateFilter,
     updateTags,
     updateTagMode,
     updateSearchQuery,
     updateNotInterestedFilter,
     updateSort,
+    updateDurationBounds,
+    updateIsShort,
   } = useVideoFilters();
 
   const watchFilters: Filter[] = [
@@ -51,15 +55,39 @@ export function FilterButtons({
     { name: 'all', label: t('allVideos'), count: totalCount },
   ];
 
+  const shortsOptions: { value: boolean | undefined; label: string }[] = [
+    { value: undefined, label: t('shortsFilter.all') },
+    { value: true, label: t('shortsFilter.only') },
+    { value: false, label: t('shortsFilter.hide') },
+  ];
+
   const notInterestedFilters: Filter[] = [
     { name: NotInterestedFilter.EXCLUDE, label: t('hideNotInterested'), count: 0 },
     { name: NotInterestedFilter.ONLY, label: t('notInterested'), count: notInterestedCount },
     { name: NotInterestedFilter.INCLUDE, label: t('includeNotInterested'), count: 0 },
   ];
 
-  useEffect(() => {
-    updateFilter(filter);
-  }, []);
+  const handleShorterThanChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(event.target.value, 10);
+    const newShorterThan = value > 0 ? value : undefined;
+    const correctedLongerThan =
+      newShorterThan !== undefined && longerThan !== undefined && longerThan >= newShorterThan
+        ? newShorterThan - 1 > 0
+          ? newShorterThan - 1
+          : undefined
+        : longerThan;
+    updateDurationBounds(newShorterThan, correctedLongerThan);
+  };
+
+  const handleLongerThanChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(event.target.value, 10);
+    const newLongerThan = value > 0 ? value : undefined;
+    const correctedShorterThan =
+      newLongerThan !== undefined && shorterThan !== undefined && shorterThan <= newLongerThan
+        ? newLongerThan + 1
+        : shorterThan;
+    updateDurationBounds(correctedShorterThan, newLongerThan);
+  };
 
   return (
     <div className="FilterButton__wrapper space-y-4 mb-6">
@@ -75,6 +103,49 @@ export function FilterButtons({
             >
               <span>{filterConf.label}</span>
               <span className="bg-opacity-20 bg-black px-2 rounded-full text-sm">{filterConf.count}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="FilterButton__duration flex flex-wrap items-center gap-6 border-t pt-4">
+        <label className="FilterButton__shorter-than flex items-center gap-2 text-sm text-gray-700">
+          <span>{t('durationFilter.shorterThan')}</span>
+          <input
+            type="number"
+            min={0}
+            value={shorterThan ?? ''}
+            onChange={handleShorterThanChange}
+            placeholder="—"
+            className="w-16 px-2 py-1 rounded border border-gray-300 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <span>{t('durationFilter.minutesSuffix')}</span>
+        </label>
+        <label className="FilterButton__longer-than flex items-center gap-2 text-sm text-gray-700">
+          <span>{t('durationFilter.longerThan')}</span>
+          <input
+            type="number"
+            min={0}
+            value={longerThan ?? ''}
+            onChange={handleLongerThanChange}
+            placeholder="—"
+            className="w-16 px-2 py-1 rounded border border-gray-300 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <span>{t('durationFilter.minutesSuffix')}</span>
+        </label>
+      </div>
+
+      <div className="FilterButton__is-short flex flex-wrap gap-4 border-t pt-4">
+        {shortsOptions.map(option => {
+          const isActive = isShort === option.value;
+          return (
+            <button
+              key={option.label}
+              onClick={() => updateIsShort(isActive ? undefined : option.value)}
+              className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800 aria-selected:bg-blue-600 aria-selected:text-white"
+              aria-selected={isActive}
+            >
+              {option.label}
             </button>
           );
         })}

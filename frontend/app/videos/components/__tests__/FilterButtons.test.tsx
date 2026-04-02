@@ -29,9 +29,14 @@ jest.mock('react-i18next', () => ({
         hideNotInterested: 'Hide dismissed',
         notInterested: 'Not Interested',
         includeNotInterested: 'Include dismissed',
+        'durationFilter.shorterThan': 'Shorter than',
+        'durationFilter.longerThan': 'Longer than',
+        'durationFilter.minutesSuffix': 'min',
+        'shortsFilter.all': 'All',
+        'shortsFilter.only': 'Shorts only',
+        'shortsFilter.hide': 'Hide Shorts',
       };
-      const hasKey = Object.prototype.hasOwnProperty.call(translations, key);
-      return hasKey ? (translations[key] ?? key) : key;
+      return translations[key] ?? key;
     },
   }),
 }));
@@ -219,6 +224,178 @@ describe('FilterButtons - Not Interested Filters', () => {
 
       const onlyButton = screen.getByRole('button', { name: /not interested/i });
       expect(onlyButton).toHaveTextContent('999');
+    });
+  });
+});
+
+describe('FilterButtons - Duration Inputs', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockSearchParamsString = '';
+  });
+
+  const defaultProps = {
+    totalCount: 100,
+    watchedCount: 30,
+    unwatchedCount: 70,
+    notInterestedCount: 15,
+  };
+
+  it('renders the duration section with border separator', () => {
+    const { container } = render(<FilterButtons {...defaultProps} />);
+    const durationSection = container.querySelector('.FilterButton__duration');
+    expect(durationSection).toBeInTheDocument();
+    expect(durationSection).toHaveClass('border-t');
+    expect(durationSection).toHaveClass('pt-4');
+  });
+
+  it('renders "Shorter than" and "Longer than" inputs', () => {
+    const { container } = render(<FilterButtons {...defaultProps} />);
+    const shorterInput = container.querySelector('.FilterButton__shorter-than input');
+    const longerInput = container.querySelector('.FilterButton__longer-than input');
+    expect(shorterInput).toBeInTheDocument();
+    expect(longerInput).toBeInTheDocument();
+  });
+
+  it('inputs are empty when no URL params are set', () => {
+    const { container } = render(<FilterButtons {...defaultProps} />);
+    const shorterInput = container.querySelector<HTMLInputElement>('.FilterButton__shorter-than input');
+    const longerInput = container.querySelector<HTMLInputElement>('.FilterButton__longer-than input');
+    expect(shorterInput?.value).toBe('');
+    expect(longerInput?.value).toBe('');
+  });
+
+  it('populates shorter_than input from URL param', () => {
+    mockSearchParamsString = 'shorter_than=10';
+    const { container } = render(<FilterButtons {...defaultProps} />);
+    const input = container.querySelector<HTMLInputElement>('.FilterButton__shorter-than input');
+    expect(input?.value).toBe('10');
+  });
+
+  it('populates longer_than input from URL param', () => {
+    mockSearchParamsString = 'longer_than=20';
+    const { container } = render(<FilterButtons {...defaultProps} />);
+    const input = container.querySelector<HTMLInputElement>('.FilterButton__longer-than input');
+    expect(input?.value).toBe('20');
+  });
+
+  it('updates URL with shorter_than when input changes to positive value', async () => {
+    const { container } = render(<FilterButtons {...defaultProps} />);
+    const input = container.querySelector<HTMLInputElement>('.FilterButton__shorter-than input')!;
+
+    fireEvent.change(input, { target: { value: '15' } });
+
+    await waitFor(() => {
+      expect(mockRouter.push).toHaveBeenCalledWith(expect.stringContaining('shorter_than=15'));
+    });
+  });
+
+  it('updates URL with longer_than when input changes to positive value', async () => {
+    const { container } = render(<FilterButtons {...defaultProps} />);
+    const input = container.querySelector<HTMLInputElement>('.FilterButton__longer-than input')!;
+
+    fireEvent.change(input, { target: { value: '30' } });
+
+    await waitFor(() => {
+      expect(mockRouter.push).toHaveBeenCalledWith(expect.stringContaining('longer_than=30'));
+    });
+  });
+
+  it('clears shorter_than from URL when input is set to 0', async () => {
+    mockSearchParamsString = 'shorter_than=10';
+    const { container } = render(<FilterButtons {...defaultProps} />);
+    const input = container.querySelector<HTMLInputElement>('.FilterButton__shorter-than input')!;
+
+    fireEvent.change(input, { target: { value: '0' } });
+
+    await waitFor(() => {
+      const pushArg: string = (mockRouter.push as jest.Mock).mock.calls[0][0];
+      expect(pushArg).not.toContain('shorter_than');
+    });
+  });
+});
+
+describe('FilterButtons - Shorts Filter', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockSearchParamsString = '';
+  });
+
+  const defaultProps = {
+    totalCount: 100,
+    watchedCount: 30,
+    unwatchedCount: 70,
+    notInterestedCount: 15,
+  };
+
+  it('renders all three Shorts filter buttons', () => {
+    const { container } = render(<FilterButtons {...defaultProps} />);
+
+    const shortsSection = container.querySelector('.FilterButton__is-short');
+    expect(shortsSection).not.toBeNull();
+    expect(shortsSection?.textContent).toContain('All');
+    expect(shortsSection?.textContent).toContain('Shorts only');
+    expect(shortsSection?.textContent).toContain('Hide Shorts');
+  });
+
+  it('"All" Shorts button is active when isShort is undefined', () => {
+    mockSearchParamsString = '';
+    const { container } = render(<FilterButtons {...defaultProps} />);
+    const shortsSection = container.querySelector('.FilterButton__is-short');
+    const allBtn = shortsSection?.querySelector('[aria-selected="true"]');
+    expect(allBtn?.textContent).toBe('All');
+  });
+
+  it('marks "Shorts only" as active when is_short=true in URL', () => {
+    mockSearchParamsString = 'is_short=true';
+    const { container } = render(<FilterButtons {...defaultProps} />);
+
+    const shortsSection = container.querySelector('.FilterButton__is-short');
+    const activeBtn = shortsSection?.querySelector('[aria-selected="true"]');
+    expect(activeBtn?.textContent).toBe('Shorts only');
+  });
+
+  it('marks "Hide Shorts" as active when is_short=false in URL', () => {
+    mockSearchParamsString = 'is_short=false';
+    const { container } = render(<FilterButtons {...defaultProps} />);
+
+    const shortsSection = container.querySelector('.FilterButton__is-short');
+    const activeBtn = shortsSection?.querySelector('[aria-selected="true"]');
+    expect(activeBtn?.textContent).toBe('Hide Shorts');
+  });
+
+  it('updates URL when "Shorts only" is clicked', async () => {
+    render(<FilterButtons {...defaultProps} />);
+
+    const shortsOnlyBtn = screen.getByRole('button', { name: /shorts only/i });
+    fireEvent.click(shortsOnlyBtn);
+
+    await waitFor(() => {
+      expect(mockRouter.push).toHaveBeenCalledWith(expect.stringContaining('is_short=true'));
+    });
+  });
+
+  it('updates URL when "Hide Shorts" is clicked', async () => {
+    render(<FilterButtons {...defaultProps} />);
+
+    const hideShortsBtn = screen.getByRole('button', { name: /hide shorts/i });
+    fireEvent.click(hideShortsBtn);
+
+    await waitFor(() => {
+      expect(mockRouter.push).toHaveBeenCalledWith(expect.stringContaining('is_short=false'));
+    });
+  });
+
+  it('clears is_short filter when active button is clicked again', async () => {
+    mockSearchParamsString = 'is_short=true';
+    render(<FilterButtons {...defaultProps} />);
+
+    const shortsOnlyBtn = screen.getByRole('button', { name: /shorts only/i });
+    fireEvent.click(shortsOnlyBtn);
+
+    await waitFor(() => {
+      const pushArg: string = (mockRouter.push as jest.Mock).mock.calls[0][0];
+      expect(pushArg).not.toContain('is_short');
     });
   });
 });

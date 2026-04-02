@@ -562,3 +562,94 @@ describe('buildVideoQueryParams', () => {
     });
   });
 });
+
+describe('buildVideoQueryParams - duration and shorts filters', () => {
+  const baseParams = {
+    filter: 'unwatched',
+    selectedTags: [],
+    tagMode: TagMode.ANY,
+    searchQuery: '',
+    notInterestedFilter: NotInterestedFilter.EXCLUDE,
+  };
+
+  describe('shorterThan param', () => {
+    it('appends shorter_than when shorterThan is a positive number', () => {
+      const result = buildVideoQueryParams({ ...baseParams, shorterThan: 10 });
+      expect(result).toContain('shorter_than=10');
+    });
+
+    it('omits shorter_than when shorterThan is absent', () => {
+      const result = buildVideoQueryParams({ ...baseParams });
+      expect(result).not.toContain('shorter_than');
+    });
+
+    it('omits shorter_than when shorterThan is 0', () => {
+      const result = buildVideoQueryParams({ ...baseParams, shorterThan: 0 });
+      expect(result).not.toContain('shorter_than');
+    });
+
+    it('omits shorter_than when not provided', () => {
+      const result = buildVideoQueryParams(baseParams);
+      expect(result).not.toContain('shorter_than');
+    });
+  });
+
+  describe('longerThan param', () => {
+    it('appends longer_than when longerThan is a positive number', () => {
+      const result = buildVideoQueryParams({ ...baseParams, longerThan: 20 });
+      expect(result).toContain('longer_than=20');
+    });
+
+    it('omits longer_than when longerThan is absent', () => {
+      const result = buildVideoQueryParams({ ...baseParams });
+      expect(result).not.toContain('longer_than');
+    });
+
+    it('omits longer_than when longerThan is 0', () => {
+      const result = buildVideoQueryParams({ ...baseParams, longerThan: 0 });
+      expect(result).not.toContain('longer_than');
+    });
+
+    it('omits longer_than when not provided', () => {
+      const result = buildVideoQueryParams(baseParams);
+      expect(result).not.toContain('longer_than');
+    });
+  });
+
+  describe('isShort param', () => {
+    it('appends is_short=true when isShort is true', () => {
+      const result = buildVideoQueryParams({ ...baseParams, isShort: true });
+      expect(result).toContain('is_short=true');
+    });
+
+    it('appends is_short=false when isShort is false', () => {
+      const result = buildVideoQueryParams({ ...baseParams, isShort: false });
+      expect(result).toContain('is_short=false');
+    });
+
+    it('omits is_short when isShort is absent', () => {
+      const result = buildVideoQueryParams({ ...baseParams });
+      expect(result).not.toContain('is_short');
+    });
+
+    it('omits is_short when not provided', () => {
+      const result = buildVideoQueryParams(baseParams);
+      expect(result).not.toContain('is_short');
+    });
+  });
+
+  describe('combination', () => {
+    it('includes both shorter_than and longer_than when both are set', () => {
+      const result = buildVideoQueryParams({ ...baseParams, shorterThan: 15, longerThan: 5 });
+      expect(result).toContain('shorter_than=15');
+      expect(result).toContain('longer_than=5');
+    });
+
+    it('includes shorter_than, longer_than, and is_short together', () => {
+      const result = buildVideoQueryParams({ ...baseParams, shorterThan: 20, longerThan: 5, isShort: false });
+      expect(result).toContain('shorter_than=20');
+      expect(result).toContain('longer_than=5');
+      expect(result).toContain('is_short=false');
+    });
+  });
+});

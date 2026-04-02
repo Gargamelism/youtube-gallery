@@ -11,6 +11,10 @@ export interface VideoFiltersActions {
   updateSearchQuery: (query: string) => void;
   updateNotInterestedFilter: (newFilter: NotInterestedFilter) => void;
   updateSort: (newSort: VideoSortMode) => void;
+  updateShorterThan: (minutes: number | undefined) => void;
+  updateLongerThan: (minutes: number | undefined) => void;
+  updateDurationBounds: (shorter: number | undefined, longer: number | undefined) => void;
+  updateIsShort: (value: boolean | undefined) => void;
   addTag: (tagName: string) => void;
   removeTag: (tagName: string) => void;
   areFiltersEqual: (otherFilters: VideoFilters) => boolean;
@@ -34,6 +38,17 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
       : NotInterestedFilter.EXCLUDE;
   const sort = (searchParams.get('sort') as VideoSortMode) || 'in_progress_first';
 
+  const rawShorterThan = searchParams.get('shorter_than');
+  const parsedShorterThan = rawShorterThan !== null ? parseInt(rawShorterThan, 10) : NaN;
+  const shorterThan: number | undefined = parsedShorterThan > 0 ? parsedShorterThan : undefined;
+
+  const rawLongerThan = searchParams.get('longer_than');
+  const parsedLongerThan = rawLongerThan !== null ? parseInt(rawLongerThan, 10) : NaN;
+  const longerThan: number | undefined = parsedLongerThan > 0 ? parsedLongerThan : undefined;
+
+  const rawIsShort = searchParams.get('is_short');
+  const isShort: boolean | undefined = rawIsShort === 'true' ? true : rawIsShort === 'false' ? false : undefined;
+
   // Helper function to update URL with current state
   const updateUrl = (updates: Record<string, string | string[] | undefined>) => {
     navigateWithUpdatedParams(router, pathname, searchParams, updates);
@@ -42,6 +57,9 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
   const updateAllFilters = (newFilters: Partial<VideoFilters>) => {
     const mergedTags = newFilters.selectedTags ?? selectedTags;
     const mergedTagMode = newFilters.tagMode ?? tagMode;
+    const mergedShorterThan = newFilters.shorterThan !== undefined ? newFilters.shorterThan : shorterThan;
+    const mergedLongerThan = newFilters.longerThan !== undefined ? newFilters.longerThan : longerThan;
+    const mergedIsShort = newFilters.isShort !== undefined ? newFilters.isShort : isShort;
 
     updateUrl({
       filter: newFilters.filter ?? filter,
@@ -49,6 +67,9 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
       tag_mode: mergedTags.length > 0 ? mergedTagMode : undefined,
       search: newFilters.searchQuery ?? searchQuery,
       not_interested_filter: newFilters.notInterestedFilter ?? notInterestedFilter,
+      shorter_than: mergedShorterThan !== undefined ? String(mergedShorterThan) : undefined,
+      longer_than: mergedLongerThan !== undefined ? String(mergedLongerThan) : undefined,
+      is_short: mergedIsShort !== undefined ? String(mergedIsShort) : undefined,
     });
   };
 
@@ -76,6 +97,25 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
     updateUrl({ sort: newSort, page: undefined });
   };
 
+  const updateShorterThan = (minutes: number | undefined) => {
+    updateUrl({ shorter_than: minutes !== undefined ? String(minutes) : undefined });
+  };
+
+  const updateLongerThan = (minutes: number | undefined) => {
+    updateUrl({ longer_than: minutes !== undefined ? String(minutes) : undefined });
+  };
+
+  const updateDurationBounds = (shorter: number | undefined, longer: number | undefined) => {
+    updateUrl({
+      shorter_than: shorter !== undefined ? String(shorter) : undefined,
+      longer_than: longer !== undefined ? String(longer) : undefined,
+    });
+  };
+
+  const updateIsShort = (newIsShort: boolean | undefined) => {
+    updateUrl({ is_short: newIsShort !== undefined ? String(newIsShort) : undefined });
+  };
+
   const addTag = (tagName: string) => {
     if (!selectedTags.includes(tagName)) {
       const newTags = [...selectedTags, tagName];
@@ -99,7 +139,10 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
       tagMode === otherFilters.tagMode &&
       searchQuery === otherFilters.searchQuery &&
       notInterestedFilter === otherFilters.notInterestedFilter &&
-      sort === (otherFilters.sort ?? 'in_progress_first')
+      sort === (otherFilters.sort ?? 'in_progress_first') &&
+      shorterThan === otherFilters.shorterThan &&
+      longerThan === otherFilters.longerThan &&
+      isShort === otherFilters.isShort
     );
   };
 
@@ -110,12 +153,19 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
     searchQuery,
     notInterestedFilter,
     sort,
+    ...(shorterThan !== undefined && { shorterThan }),
+    ...(longerThan !== undefined && { longerThan }),
+    ...(isShort !== undefined && { isShort }),
     updateFilter,
     updateTags,
     updateTagMode,
     updateSearchQuery,
     updateNotInterestedFilter,
     updateSort,
+    updateShorterThan,
+    updateLongerThan,
+    updateDurationBounds,
+    updateIsShort,
     addTag,
     removeTag,
     areFiltersEqual,
