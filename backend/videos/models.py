@@ -1,8 +1,10 @@
 import uuid
+from typing import Iterable
 
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 from django.db.models import Q
+from django.db.models.base import ModelBase
 from dirtyfields import DirtyFieldsMixin
 
 from .fields import YouTubeDurationField
@@ -103,11 +105,18 @@ class Video(TimestampMixin):
         duration_field = cast(YouTubeDurationField, self._meta.get_field("duration"))
         return duration_field.duration_to_seconds(self.duration)
 
-    def save(self, *args: object, **kwargs: object) -> None:
+    def save(
+        self,
+        *,
+        force_insert: bool | tuple[ModelBase, ...] = False,
+        force_update: bool = False,
+        using: str | None = None,
+        update_fields: Iterable[str] | None = None,
+    ) -> None:
         raw_seconds = self.get_duration_seconds()
         # Treat 0-second durations as unknown (null) — they indicate missing/unset duration data
         self.duration_seconds = raw_seconds or None
-        super().save(*args, **kwargs)
+        super().save(force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
 
     def __str__(self) -> str:
         return self.title or self.video_id

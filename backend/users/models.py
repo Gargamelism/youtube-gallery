@@ -83,6 +83,7 @@ class UserWatchPreferences(TimestampMixin):
         help_text="Percentage threshold for auto-marking (0-100), uses DEFAULT_AUTO_MARK_THRESHOLD if null",
         validators=[MinValueValidator(0), MaxValueValidator(100)],
     )
+
     class Meta:
         db_table = "user_watch_preferences"
         verbose_name_plural = "user watch preferences"

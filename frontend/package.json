@@ -54,7 +54,7 @@
     "autoprefixer": "^10.4.21",
     "dependency-cruiser": "^17.0.2",
     "eslint": "^10.1.0",
-    "eslint-config-next": "^15.4.6",
+    "eslint-config-next": "^0.2.4",
     "eslint-plugin-security": "^4.0.0",
     "eslint-plugin-security-node": "^1.1.4",
     "jest": "^30.2.0",

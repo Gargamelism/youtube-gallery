@@ -578,8 +578,8 @@ describe('buildVideoQueryParams - duration and shorts filters', () => {
       expect(result).toContain('shorter_than=10');
     });
 
-    it('omits shorter_than when shorterThan is undefined', () => {
-      const result = buildVideoQueryParams({ ...baseParams, shorterThan: undefined });
+    it('omits shorter_than when shorterThan is absent', () => {
+      const result = buildVideoQueryParams({ ...baseParams });
       expect(result).not.toContain('shorter_than');
     });
 
@@ -600,8 +600,8 @@ describe('buildVideoQueryParams - duration and shorts filters', () => {
       expect(result).toContain('longer_than=20');
     });
 
-    it('omits longer_than when longerThan is undefined', () => {
-      const result = buildVideoQueryParams({ ...baseParams, longerThan: undefined });
+    it('omits longer_than when longerThan is absent', () => {
+      const result = buildVideoQueryParams({ ...baseParams });
       expect(result).not.toContain('longer_than');
     });
 
@@ -627,8 +627,8 @@ describe('buildVideoQueryParams - duration and shorts filters', () => {
       expect(result).toContain('is_short=false');
     });
 
-    it('omits is_short when isShort is undefined', () => {
-      const result = buildVideoQueryParams({ ...baseParams, isShort: undefined });
+    it('omits is_short when isShort is absent', () => {
+      const result = buildVideoQueryParams({ ...baseParams });
       expect(result).not.toContain('is_short');
     });
 

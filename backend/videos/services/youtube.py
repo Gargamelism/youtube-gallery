@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, TypedDict, Union, cast
 from urllib.parse import urlparse
 
-import requests
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
@@ -387,9 +386,7 @@ class YouTubeService:
             if not items:
                 return set()
 
-            shorts_playlist_id = (
-                items[0].get("contentDetails", {}).get("relatedPlaylists", {}).get("shorts")
-            )
+            shorts_playlist_id = items[0].get("contentDetails", {}).get("relatedPlaylists", {}).get("shorts")
             if not shorts_playlist_id:
                 return set()
 
@@ -400,12 +397,16 @@ class YouTubeService:
                     logger.warning("Insufficient quota for playlistItems.list — Shorts playlist fetch incomplete")
                     break
 
-                pl_response = self.youtube.playlistItems().list(
-                    part="contentDetails",
-                    playlistId=shorts_playlist_id,
-                    maxResults=50,
-                    pageToken=page_token,
-                ).execute()
+                pl_response = (
+                    self.youtube.playlistItems()
+                    .list(
+                        part="contentDetails",
+                        playlistId=shorts_playlist_id,
+                        maxResults=50,
+                        pageToken=page_token,
+                    )
+                    .execute()
+                )
                 self.quota_tracker.record_usage("playlistItems.list")
 
                 for item in pl_response.get("items", []):
@@ -475,7 +476,7 @@ class YouTubeService:
                             "comment_count": int(video["statistics"].get("commentCount", 0)),
                             "duration": video["contentDetails"]["duration"],
                             "thumbnail_url": video["snippet"]["thumbnails"]["high"]["url"],
-                            "video_url": f'https://www.youtube.com/watch?v={video_id}',
+                            "video_url": f"https://www.youtube.com/watch?v={video_id}",
                             "category_id": video["snippet"].get("categoryId"),
                             "default_language": video["snippet"].get("defaultLanguage"),
                             "tags": (

@@ -51,9 +51,7 @@ class CheckIsShortViaRedirectTests(TestCase):
     def test_uses_correct_url_template(self, mock_http: MagicMock) -> None:
         mock_http.head.return_value = MagicMock(status_code=200)
         check_is_short_via_redirect("dQw4w9WgXcQ")
-        mock_http.head.assert_called_once_with(
-            "https://www.youtube.com/shorts/dQw4w9WgXcQ", allow_redirects=False
-        )
+        mock_http.head.assert_called_once_with("https://www.youtube.com/shorts/dQw4w9WgXcQ", allow_redirects=False)
 
 
 # ─── Video.save() duration_seconds computation ────────────────────────────────
@@ -66,9 +64,7 @@ class VideoSaveDurationSecondsTests(TestCase):
         self.channel = Channel.objects.create(channel_id="UC_test", title="Test Channel")
 
     def test_duration_seconds_computed_on_save(self) -> None:
-        video = Video.objects.create(
-            channel=self.channel, video_id="v1", title="T", duration="PT1H2M3S"
-        )
+        video = Video.objects.create(channel=self.channel, video_id="v1", title="T", duration="PT1H2M3S")
         video.refresh_from_db()
         self.assertEqual(video.duration_seconds, 3723)  # 1*3600 + 2*60 + 3
 
@@ -84,9 +80,7 @@ class VideoSaveDurationSecondsTests(TestCase):
 
     def test_is_short_not_set_by_save(self) -> None:
         """is_short is managed by the sync layer, not by save()"""
-        video = Video.objects.create(
-            channel=self.channel, video_id="v4", title="T", duration="PT30S", is_short=True
-        )
+        video = Video.objects.create(channel=self.channel, video_id="v4", title="T", duration="PT30S", is_short=True)
         video.refresh_from_db()
         self.assertIs(video.is_short, True)
 
@@ -391,9 +385,7 @@ class BackfillDurationFieldsCommandTests(TestCase):
     @patch("videos.management.commands.backfill_duration_fields.check_is_short_via_redirect")
     def test_populates_duration_seconds_and_is_short(self, mock_check: MagicMock) -> None:
         mock_check.return_value = False
-        video = Video.objects.create(
-            channel=self.channel, video_id="bf1", title="T", duration="PT5M", is_short=None
-        )
+        video = Video.objects.create(channel=self.channel, video_id="bf1", title="T", duration="PT5M", is_short=None)
         # Override duration_seconds to None to simulate backfill scenario
         Video.objects.filter(pk=video.pk).update(duration_seconds=None)
 
@@ -410,9 +402,7 @@ class BackfillDurationFieldsCommandTests(TestCase):
     @patch("videos.management.commands.backfill_duration_fields.check_is_short_via_redirect")
     def test_skips_already_set_without_force(self, mock_check: MagicMock) -> None:
         mock_check.return_value = True
-        Video.objects.create(
-            channel=self.channel, video_id="bf2", title="T", duration="PT5M", is_short=True
-        )
+        Video.objects.create(channel=self.channel, video_id="bf2", title="T", duration="PT5M", is_short=True)
         from django.core.management import call_command
         from io import StringIO
 
@@ -423,9 +413,7 @@ class BackfillDurationFieldsCommandTests(TestCase):
     @patch("videos.management.commands.backfill_duration_fields.check_is_short_via_redirect")
     def test_force_flag_reprocesses_all_rows(self, mock_check: MagicMock) -> None:
         mock_check.return_value = None
-        Video.objects.create(
-            channel=self.channel, video_id="bf3", title="T", duration="PT5M", is_short=True
-        )
+        Video.objects.create(channel=self.channel, video_id="bf3", title="T", duration="PT5M", is_short=True)
         from django.core.management import call_command
         from io import StringIO
 
@@ -436,9 +424,7 @@ class BackfillDurationFieldsCommandTests(TestCase):
     def test_handles_none_is_short_result(self, mock_check: MagicMock) -> None:
         """When check returns None, is_short is stored as None (unknown)"""
         mock_check.return_value = None
-        video = Video.objects.create(
-            channel=self.channel, video_id="bf4", title="T", duration="PT5M", is_short=None
-        )
+        video = Video.objects.create(channel=self.channel, video_id="bf4", title="T", duration="PT5M", is_short=None)
         from django.core.management import call_command
         from io import StringIO
 
