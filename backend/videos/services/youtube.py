@@ -90,7 +90,7 @@ class DeviceFlowResponse(TypedDict):
 _SHORTS_URL_TEMPLATE = "https://www.youtube.com/shorts/{video_id}"
 
 
-def check_is_short_via_redirect(video_id: str, session: requests.Session = http) -> Optional[bool]:
+def check_is_short_via_redirect(video_id: str) -> Optional[bool]:
     """
     Check whether a video is a YouTube Short using the redirect heuristic.
 
@@ -98,7 +98,7 @@ def check_is_short_via_redirect(video_id: str, session: requests.Session = http)
     No heuristic fallback — None means unknown, not a guess.
     """
     try:
-        response = session.head(_SHORTS_URL_TEMPLATE.format(video_id=video_id), allow_redirects=False)
+        response = http.head(_SHORTS_URL_TEMPLATE.format(video_id=video_id), allow_redirects=False)
         if response.status_code == 200:
             return True
         if 300 <= response.status_code < 400:

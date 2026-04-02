@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SearchAndTagFilter } from '@/components/ui/SearchAndTagFilter';
 import { useVideoFilters } from '@/hooks/useVideoFilters';
@@ -87,10 +86,6 @@ export function FilterButtons({
     }
   };
 
-  useEffect(() => {
-    updateFilter(filter);
-  }, []);
-
   return (
     <div className="FilterButton__wrapper space-y-4 mb-6">
       <div className="FilterButton__watch-status flex flex-wrap gap-4">
@@ -144,8 +139,8 @@ export function FilterButtons({
             <button
               key={option.label}
               onClick={() => updateIsShort(isActive ? undefined : option.value)}
-              className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800 aria-pressed:bg-blue-600 aria-pressed:text-white"
-              aria-pressed={isActive}
+              className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800 aria-selected:bg-blue-600 aria-selected:text-white"
+              aria-selected={isActive}
             >
               {option.label}
             </button>

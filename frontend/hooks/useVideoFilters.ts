@@ -46,8 +46,7 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
   const longerThan: number | undefined = parsedLongerThan > 0 ? parsedLongerThan : undefined;
 
   const rawIsShort = searchParams.get('is_short');
-  const isShort: boolean | undefined =
-    rawIsShort === 'true' ? true : rawIsShort === 'false' ? false : undefined;
+  const isShort: boolean | undefined = rawIsShort === 'true' ? true : rawIsShort === 'false' ? false : undefined;
 
   // Helper function to update URL with current state
   const updateUrl = (updates: Record<string, string | string[] | undefined>) => {
@@ -146,9 +145,9 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
     searchQuery,
     notInterestedFilter,
     sort,
-    shorterThan,
-    longerThan,
-    isShort,
+    ...(shorterThan !== undefined && { shorterThan }),
+    ...(longerThan !== undefined && { longerThan }),
+    ...(isShort !== undefined && { isShort }),
     updateFilter,
     updateTags,
     updateTagMode,

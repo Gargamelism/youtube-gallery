@@ -45,6 +45,9 @@ export default [
       '@typescript-eslint/no-unused-vars': 'warn',
       ...security.configs.recommended.rules,
       ...securityNode.configs.recommended.rules,
+      // eslint-plugin-security@3.x uses context.getSourceCode() which was removed in ESLint 10.
+      // Disable until the plugin ships an ESLint 10-compatible release.
+      'security/detect-unsafe-regex': 'off',
     },
   },
   {

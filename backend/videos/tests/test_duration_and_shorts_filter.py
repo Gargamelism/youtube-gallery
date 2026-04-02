@@ -327,7 +327,7 @@ class DurationAndShortsApiTests(TestCase):
         )
 
     def test_is_short_true_returns_only_confirmed_shorts(self) -> None:
-        response = self.client.get("/api/videos/?is_short=true")
+        response = self.client.get("/api/videos?is_short=true")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         ids = {v["video_id"] for v in response.data["results"]}
         self.assertIn("api_yt", ids)
@@ -335,7 +335,7 @@ class DurationAndShortsApiTests(TestCase):
         self.assertNotIn("api_unknown", ids)
 
     def test_is_short_false_excludes_confirmed_shorts_and_nulls(self) -> None:
-        response = self.client.get("/api/videos/?is_short=false")
+        response = self.client.get("/api/videos?is_short=false")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         ids = {v["video_id"] for v in response.data["results"]}
         self.assertNotIn("api_yt", ids)
@@ -344,7 +344,7 @@ class DurationAndShortsApiTests(TestCase):
 
     def test_shorter_than_filters_by_minutes(self) -> None:
         # shorter_than=3 → < 180s: api_yt(45s) and api_short(120s) qualify
-        response = self.client.get("/api/videos/?shorter_than=3")
+        response = self.client.get("/api/videos?shorter_than=3")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         ids = {v["video_id"] for v in response.data["results"]}
         self.assertIn("api_short", ids)  # 120s < 180
@@ -353,7 +353,7 @@ class DurationAndShortsApiTests(TestCase):
 
     def test_longer_than_filters_by_minutes(self) -> None:
         # longer_than=10 → > 600s: api_long(1800s) qualifies
-        response = self.client.get("/api/videos/?longer_than=10")
+        response = self.client.get("/api/videos?longer_than=10")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         ids = {v["video_id"] for v in response.data["results"]}
         self.assertIn("api_long", ids)
@@ -364,7 +364,7 @@ class DurationAndShortsApiTests(TestCase):
         # shorter_than=10 (600s) AND longer_than=2 (120s) → 120s < duration < 600s
         # api_unknown(300s) and api_short(120s - boundary, not > 120) could qualify
         # api_unknown(300s): 120 < 300 < 600 → included
-        response = self.client.get("/api/videos/?shorter_than=10&longer_than=2")
+        response = self.client.get("/api/videos?shorter_than=10&longer_than=2")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         ids = {v["video_id"] for v in response.data["results"]}
         self.assertIn("api_unknown", ids)  # 300s: 120 < 300 < 600
@@ -373,7 +373,7 @@ class DurationAndShortsApiTests(TestCase):
 
     def test_combination_shorter_than_and_is_short(self) -> None:
         # shorter_than=10 (600s) AND is_short=false: api_unknown(is_short=None) excluded
-        response = self.client.get("/api/videos/?shorter_than=10&is_short=false")
+        response = self.client.get("/api/videos?shorter_than=10&is_short=false")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         ids = {v["video_id"] for v in response.data["results"]}
         self.assertNotIn("api_unknown", ids)  # is_short=None → excluded by is_short=false
