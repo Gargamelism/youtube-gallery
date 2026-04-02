@@ -23,7 +23,11 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         batch_size = options["batch_size"]
-        queryset = Video.objects.all() if options["force"] else Video.objects.filter(Q(is_short__isnull=True) | Q(duration_seconds__isnull=True))
+        queryset = (
+            Video.objects.all()
+            if options["force"]
+            else Video.objects.filter(Q(is_short__isnull=True) | Q(duration_seconds__isnull=True))
+        )
         # Materialize PKs upfront so subsequent bulk_update calls (which change is_short)
         # don't shrink the queryset and cause offset-based pagination to skip videos.
         video_pks = list(queryset.values_list("pk", flat=True))
