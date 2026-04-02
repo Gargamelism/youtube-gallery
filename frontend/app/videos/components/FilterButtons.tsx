@@ -45,8 +45,7 @@ export function FilterButtons({
     updateSearchQuery,
     updateNotInterestedFilter,
     updateSort,
-    updateShorterThan,
-    updateLongerThan,
+    updateDurationBounds,
     updateIsShort,
   } = useVideoFilters();
 
@@ -71,19 +70,23 @@ export function FilterButtons({
   const handleShorterThanChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(event.target.value, 10);
     const newShorterThan = value > 0 ? value : undefined;
-    updateShorterThan(newShorterThan);
-    if (newShorterThan !== undefined && longerThan !== undefined && longerThan >= newShorterThan) {
-      updateLongerThan(newShorterThan - 1 > 0 ? newShorterThan - 1 : undefined);
-    }
+    const correctedLongerThan =
+      newShorterThan !== undefined && longerThan !== undefined && longerThan >= newShorterThan
+        ? newShorterThan - 1 > 0
+          ? newShorterThan - 1
+          : undefined
+        : longerThan;
+    updateDurationBounds(newShorterThan, correctedLongerThan);
   };
 
   const handleLongerThanChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(event.target.value, 10);
     const newLongerThan = value > 0 ? value : undefined;
-    updateLongerThan(newLongerThan);
-    if (newLongerThan !== undefined && shorterThan !== undefined && shorterThan <= newLongerThan) {
-      updateShorterThan(newLongerThan + 1);
-    }
+    const correctedShorterThan =
+      newLongerThan !== undefined && shorterThan !== undefined && shorterThan <= newLongerThan
+        ? newLongerThan + 1
+        : shorterThan;
+    updateDurationBounds(correctedShorterThan, newLongerThan);
   };
 
   return (

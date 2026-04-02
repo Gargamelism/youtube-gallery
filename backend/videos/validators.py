@@ -65,6 +65,15 @@ class VideoSearchParams(BaseModel):
     longer_than_seconds: Optional[int] = None
     is_short: Optional[bool] = None
 
+    @model_validator(mode="after")
+    def validate_duration_bounds(self) -> Self:
+        if self.shorter_than_seconds is not None and self.longer_than_seconds is not None:
+            if self.shorter_than_seconds <= self.longer_than_seconds:
+                raise ValueError(
+                    "shorter_than must be greater than longer_than — the provided duration range is impossible"
+                )
+        return self
+
     @field_validator("tags")
     @classmethod
     def validate_tags_belong_to_user(cls, tags: Optional[List[str]], info: ValidationInfo) -> Optional[List[str]]:

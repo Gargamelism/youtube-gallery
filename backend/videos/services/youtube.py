@@ -395,7 +395,7 @@ class YouTubeService:
             while True:
                 if not self.quota_tracker.can_make_request("playlistItems.list"):
                     logger.warning("Insufficient quota for playlistItems.list — Shorts playlist fetch incomplete")
-                    break
+                    return None
 
                 pl_response = (
                     self.youtube.playlistItems()

@@ -13,6 +13,7 @@ export interface VideoFiltersActions {
   updateSort: (newSort: VideoSortMode) => void;
   updateShorterThan: (minutes: number | undefined) => void;
   updateLongerThan: (minutes: number | undefined) => void;
+  updateDurationBounds: (shorter: number | undefined, longer: number | undefined) => void;
   updateIsShort: (value: boolean | undefined) => void;
   addTag: (tagName: string) => void;
   removeTag: (tagName: string) => void;
@@ -104,6 +105,13 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
     updateUrl({ longer_than: minutes !== undefined ? String(minutes) : undefined });
   };
 
+  const updateDurationBounds = (shorter: number | undefined, longer: number | undefined) => {
+    updateUrl({
+      shorter_than: shorter !== undefined ? String(shorter) : undefined,
+      longer_than: longer !== undefined ? String(longer) : undefined,
+    });
+  };
+
   const updateIsShort = (newIsShort: boolean | undefined) => {
     updateUrl({ is_short: newIsShort !== undefined ? String(newIsShort) : undefined });
   };
@@ -156,6 +164,7 @@ export function useVideoFilters(): VideoFilters & VideoFiltersActions {
     updateSort,
     updateShorterThan,
     updateLongerThan,
+    updateDurationBounds,
     updateIsShort,
     addTag,
     removeTag,

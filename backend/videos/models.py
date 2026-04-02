@@ -116,6 +116,9 @@ class Video(TimestampMixin):
         raw_seconds = self.get_duration_seconds()
         # Treat 0-second durations as unknown (null) — they indicate missing/unset duration data
         self.duration_seconds = raw_seconds or None
+        if update_fields is not None:
+            # Ensure duration_seconds is always persisted when a partial update includes duration
+            update_fields = list(dict.fromkeys(list(update_fields) + ["duration_seconds"]))
         super().save(force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
 
     def __str__(self) -> str:
