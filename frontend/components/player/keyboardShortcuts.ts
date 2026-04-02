@@ -2,15 +2,9 @@ import { KeyboardShortcut } from '@/components/keyboard/useKeyboardNavigation';
 
 export function createPlayerKeyboardShortcuts(
   playerRef: React.RefObject<YT.Player | null>,
-  containerRef: React.RefObject<HTMLDivElement | null>,
-  onClose: () => void
+  containerRef: React.RefObject<HTMLDivElement | null>
 ): KeyboardShortcut[] {
   return [
-    {
-      key: 'Escape',
-      action: onClose,
-      description: 'Close player',
-    },
     {
       key: ' ',
       action: () => {

@@ -79,7 +79,7 @@ export function VideoPlayer({
   }, [video.uuid, initialStartTime]);
 
   // Keyboard shortcuts configuration
-  const keyboardShortcuts = useMemo(() => createPlayerKeyboardShortcuts(playerRef, containerRef, onClose), [onClose]);
+  const keyboardShortcuts = useMemo(() => createPlayerKeyboardShortcuts(playerRef, containerRef), []);
 
   useKeyboardNavigation({
     enabled: isReady && !error,
@@ -233,25 +233,6 @@ export function VideoPlayer({
       aria-labelledby="video-player-title"
     >
       <div className="VideoPlayer__modal relative w-full max-w-6xl bg-black rounded-lg overflow-hidden">
-        {/* Header */}
-        <div className="VideoPlayer__header absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/80 to-transparent p-4 flex items-start justify-between">
-          <div className="VideoPlayer__info flex-1 pr-4">
-            <h2 id="video-player-title" className="VideoPlayer__title text-white text-lg font-semibold line-clamp-2">
-              {video.title}
-            </h2>
-            <p className="VideoPlayer__channel text-gray-300 text-sm mt-1">{video.channel_title}</p>
-          </div>
-
-          <button
-            onClick={onClose}
-            className="VideoPlayer__close text-white hover:text-gray-300 transition-colors flex-shrink-0"
-            aria-label={t('closePlayer')}
-            tabIndex={0}
-          >
-            <X className="VideoPlayer__close-icon w-6 h-6" />
-          </button>
-        </div>
-
         {/* Player Container */}
         <div className="VideoPlayer__container relative pt-[56.25%]">
           {isLoadingProgress && (
@@ -347,9 +328,18 @@ export function VideoPlayer({
               <div className="VideoPlayer__keyboard-hint text-xs text-gray-500 ml-auto hidden md:block">
                 <kbd className="px-2 py-1 bg-gray-800 rounded">Space</kbd> {t('playPause')} ·{' '}
                 <kbd className="px-2 py-1 bg-gray-800 rounded">←→</kbd> {t('seek')} ·{' '}
-                <kbd className="px-2 py-1 bg-gray-800 rounded">F</kbd> {t('fullscreen')} ·{' '}
-                <kbd className="px-2 py-1 bg-gray-800 rounded">Esc</kbd> {t('close')}
+                <kbd className="px-2 py-1 bg-gray-800 rounded">F</kbd> {t('fullscreen')}
               </div>
+
+              <button
+                onClick={onClose}
+                className="VideoPlayer__close flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex-shrink-0"
+                aria-label={t('closePlayer')}
+                tabIndex={0}
+              >
+                <X className="w-4 h-4" />
+                {t('closePlayer')}
+              </button>
             </div>
           </div>
         )}
