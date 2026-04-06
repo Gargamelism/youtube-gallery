@@ -1,71 +1,136 @@
 'use client';
 
+import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SearchAndTagFilter } from '@/components/ui/SearchAndTagFilter';
+import { Plus } from 'lucide-react';
 import { useVideoFilters } from '@/hooks/useVideoFilters';
 import { ScrollMode } from '@/lib/scrollMode';
-import { NotInterestedFilter } from '@/types';
+import { NotInterestedFilter, TagMode, TagModeType } from '@/types';
 import { SortSelector } from './SortSelector';
+import { TagBadge } from '@/components/tags/TagBadge';
+import { useChannelTags } from '@/components/tags/mutations';
 
 interface FilterButtonsProps {
-  totalCount: number;
-  watchedCount: number;
-  unwatchedCount: number;
   notInterestedCount: number;
   onScrollModeChange?: (mode: ScrollMode) => void;
 }
 
-interface Filter {
-  name: string;
+interface ToggleSwitchProps {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
   label: string;
-  count: number;
+  id: string;
 }
 
-export function FilterButtons({
-  totalCount,
-  watchedCount,
-  unwatchedCount,
-  notInterestedCount,
-  onScrollModeChange,
-}: FilterButtonsProps) {
+function ToggleSwitch({ checked, onChange, label, id }: ToggleSwitchProps) {
+  return (
+    <label htmlFor={id} className="ToggleSwitch flex items-center gap-2 cursor-pointer select-none">
+      <span className="text-sm text-gray-700">{label}</span>
+      <button
+        id={id}
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        className={`ToggleSwitch__track relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-1 ${
+          checked ? 'bg-purple-700' : 'bg-gray-300'
+        }`}
+      >
+        <span
+          className={`ToggleSwitch__thumb inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
+            checked ? 'translate-x-4' : 'translate-x-1'
+          }`}
+        />
+      </button>
+    </label>
+  );
+}
+
+interface AddTagDropdownProps {
+  availableTags: { id: string; name: string; color: string }[];
+  onAdd: (tagName: string) => void;
+}
+
+function AddTagDropdown({ availableTags, onAdd }: AddTagDropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  if (availableTags.length === 0) return null;
+
+  return (
+    <div className="AddTagDropdown relative" ref={ref}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="AddTagDropdown__trigger flex items-center gap-1 px-3 py-1 text-sm text-gray-600 border border-dashed border-gray-300 rounded-full hover:border-gray-400 hover:text-gray-800 transition-colors"
+      >
+        <Plus className="h-3 w-3" />
+        Add tag
+      </button>
+      {isOpen && (
+        <div className="AddTagDropdown__menu absolute top-full left-0 mt-1 z-30 bg-white rounded-lg shadow-lg border border-gray-200 py-2 min-w-40 max-h-56 overflow-y-auto">
+          {availableTags.map(tag => (
+            <button
+              key={tag.id}
+              onClick={() => {
+                onAdd(tag.name);
+                setIsOpen(false);
+              }}
+              className="AddTagDropdown__item w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 text-left"
+            >
+              <span
+                className="inline-block w-2 h-2 rounded-full flex-shrink-0"
+                style={{ backgroundColor: tag.color }}
+              />
+              {tag.name}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const TAG_MODE_OPTIONS: { value: TagModeType; label: string }[] = [
+  { value: TagMode.ANY, label: 'Any of these tags' },
+  { value: TagMode.ALL, label: 'All of these tags' },
+  { value: TagMode.EXCEPT, label: 'None of these tags' },
+];
+
+export function FilterButtons({ notInterestedCount: _notInterestedCount, onScrollModeChange }: FilterButtonsProps) {
   const { t } = useTranslation('videos');
   const {
-    filter,
     selectedTags,
     tagMode,
-    searchQuery,
     notInterestedFilter,
     sort,
     shorterThan,
     longerThan,
     isShort,
-    updateFilter,
     updateTags,
     updateTagMode,
-    updateSearchQuery,
     updateNotInterestedFilter,
     updateSort,
     updateDurationBounds,
     updateIsShort,
+    removeTag,
   } = useVideoFilters();
 
-  const watchFilters: Filter[] = [
-    { name: 'unwatched', label: t('unwatched'), count: unwatchedCount },
-    { name: 'watched', label: t('watched'), count: watchedCount },
-    { name: 'all', label: t('allVideos'), count: totalCount },
-  ];
+  const { data: tagsData } = useChannelTags();
+  const allTags = tagsData?.results ?? [];
+  const selectedTagObjects = allTags.filter(tag => selectedTags.includes(tag.name));
+  const availableTags = allTags.filter(tag => !selectedTags.includes(tag.name));
 
-  const shortsOptions: { value: boolean | undefined; label: string }[] = [
-    { value: undefined, label: t('shortsFilter.all') },
-    { value: true, label: t('shortsFilter.only') },
-    { value: false, label: t('shortsFilter.hide') },
-  ];
-
-  const notInterestedFilters: Filter[] = [
-    { name: NotInterestedFilter.EXCLUDE, label: t('hideNotInterested'), count: 0 },
-    { name: NotInterestedFilter.ONLY, label: t('notInterested'), count: notInterestedCount },
-    { name: NotInterestedFilter.INCLUDE, label: t('includeNotInterested'), count: 0 },
-  ];
+  const isShortsHidden = isShort === false;
+  const isNotInterestedHidden = notInterestedFilter === NotInterestedFilter.EXCLUDE;
 
   const handleShorterThanChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(event.target.value, 10);
@@ -89,27 +154,19 @@ export function FilterButtons({
     updateDurationBounds(correctedShorterThan, newLongerThan);
   };
 
-  return (
-    <div className="FilterButton__wrapper space-y-4 mb-6">
-      <div className="FilterButton__watch-status flex flex-wrap gap-4">
-        {watchFilters.map(filterConf => {
-          const isActive = filterConf.name === filter;
-          return (
-            <button
-              onClick={() => updateFilter(filterConf.name)}
-              className="px-4 py-2 rounded-lg flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-800 aria-selected:bg-blue-600 aria-selected:text-white"
-              aria-selected={isActive}
-              key={filterConf.name}
-            >
-              <span>{filterConf.label}</span>
-              <span className="bg-opacity-20 bg-black px-2 rounded-full text-sm">{filterConf.count}</span>
-            </button>
-          );
-        })}
-      </div>
+  const handleHideShortsToggle = (checked: boolean) => {
+    updateIsShort(checked ? false : undefined);
+  };
 
-      <div className="FilterButton__duration flex flex-wrap items-center gap-6 border-t pt-4">
-        <label className="FilterButton__shorter-than flex items-center gap-2 text-sm text-gray-700">
+  const handleHideNotInterestedToggle = (checked: boolean) => {
+    updateNotInterestedFilter(checked ? NotInterestedFilter.EXCLUDE : NotInterestedFilter.INCLUDE);
+  };
+
+  return (
+    <div className="FilterButtons__wrapper px-6 py-3 bg-white border-b border-gray-200 space-y-3">
+      {/* Row 1: Duration + Toggles + Sort */}
+      <div className="FilterButtons__controls flex flex-wrap items-center gap-6">
+        <label className="FilterButtons__shorter-than flex items-center gap-2 text-sm text-gray-700">
           <span>{t('durationFilter.shorterThan')}</span>
           <input
             type="number"
@@ -117,11 +174,12 @@ export function FilterButtons({
             value={shorterThan ?? ''}
             onChange={handleShorterThanChange}
             placeholder="—"
-            className="w-16 px-2 py-1 rounded border border-gray-300 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-14 px-2 py-1 rounded border border-gray-300 text-sm text-center focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
-          <span>{t('durationFilter.minutesSuffix')}</span>
+          <span className="text-gray-500 uppercase text-xs">{t('durationFilter.minutesSuffix')}</span>
         </label>
-        <label className="FilterButton__longer-than flex items-center gap-2 text-sm text-gray-700">
+
+        <label className="FilterButtons__longer-than flex items-center gap-2 text-sm text-gray-700">
           <span>{t('durationFilter.longerThan')}</span>
           <input
             type="number"
@@ -129,61 +187,67 @@ export function FilterButtons({
             value={longerThan ?? ''}
             onChange={handleLongerThanChange}
             placeholder="—"
-            className="w-16 px-2 py-1 rounded border border-gray-300 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-14 px-2 py-1 rounded border border-gray-300 text-sm text-center focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
-          <span>{t('durationFilter.minutesSuffix')}</span>
+          <span className="text-gray-500 uppercase text-xs">{t('durationFilter.minutesSuffix')}</span>
         </label>
+
+        <ToggleSwitch
+          id="hide-shorts-toggle"
+          checked={isShortsHidden}
+          onChange={handleHideShortsToggle}
+          label={t('shortsFilter.hide')}
+        />
+
+        <ToggleSwitch
+          id="hide-not-interested-toggle"
+          checked={isNotInterestedHidden}
+          onChange={handleHideNotInterestedToggle}
+          label={t('hideNotInterested')}
+        />
+
+        <div className="ml-auto">
+          <SortSelector sort={sort ?? 'in_progress_first'} onSortChange={updateSort} />
+        </div>
       </div>
 
-      <div className="FilterButton__is-short flex flex-wrap gap-4 border-t pt-4">
-        {shortsOptions.map(option => {
-          const isActive = isShort === option.value;
-          return (
-            <button
-              key={option.label}
-              onClick={() => updateIsShort(isActive ? undefined : option.value)}
-              className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800 aria-selected:bg-blue-600 aria-selected:text-white"
-              aria-selected={isActive}
-            >
-              {option.label}
-            </button>
-          );
-        })}
-      </div>
+      {/* Row 2: Tag filters */}
+      <div className="FilterButtons__tags flex flex-wrap items-center gap-2">
+        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider mr-1">Filters:</span>
 
-      <div className="FilterButton__not-interested flex flex-wrap gap-4 border-t pt-4">
-        {notInterestedFilters.map(filterConf => {
-          const isActive = filterConf.name === notInterestedFilter;
-          return (
-            <button
-              onClick={() => updateNotInterestedFilter(filterConf.name as NotInterestedFilter)}
-              className="px-4 py-2 rounded-lg flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-800 aria-selected:bg-red-100 aria-selected:text-red-700"
-              aria-selected={isActive}
-              key={filterConf.name}
-            >
-              <span>{filterConf.label}</span>
-              {filterConf.count > 0 && (
-                <span className="bg-opacity-20 bg-black px-2 rounded-full text-sm">{filterConf.count}</span>
-              )}
-            </button>
-          );
-        })}
-      </div>
+        {selectedTagObjects.map(tag => (
+          <TagBadge key={tag.id} tag={tag} size="sm" removable onRemove={() => removeTag(tag.name)} />
+        ))}
 
-      <div data-testid="sort-selector-row" className="flex items-center border-t pt-4">
-        <SortSelector sort={sort ?? 'in_progress_first'} onSortChange={updateSort} />
-      </div>
+        <AddTagDropdown availableTags={availableTags} onAdd={tagName => updateTags([...selectedTags, tagName])} />
 
-      <SearchAndTagFilter
-        searchValue={searchQuery}
-        onSearchChange={updateSearchQuery}
-        namespace="videos"
-        selectedTags={selectedTags}
-        tagMode={tagMode}
-        onTagsChange={updateTags}
-        onTagModeChange={updateTagMode}
-        {...(onScrollModeChange && { onScrollModeChange })}
-      />
+        {selectedTags.length > 0 && (
+          <button
+            onClick={() => updateTags([])}
+            className="FilterButtons__clear-all text-xs text-gray-500 hover:text-red-600 transition-colors"
+          >
+            Clear all
+          </button>
+        )}
+
+        {selectedTags.length > 0 && (
+          <div className="FilterButtons__tag-mode flex items-center gap-1 ml-auto">
+            {TAG_MODE_OPTIONS.map(option => (
+              <button
+                key={option.value}
+                onClick={() => updateTagMode(option.value)}
+                className={`px-3 py-1 text-xs rounded-full border transition-colors ${
+                  tagMode === option.value
+                    ? 'bg-purple-100 text-purple-700 border-purple-300'
+                    : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

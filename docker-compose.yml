@@ -113,6 +113,25 @@ services:
     command: npm test
     restart: 'no'
 
+  # Playwright E2E Tests — uses Debian image with Chromium deps
+  frontend_e2e:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: playwright
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - PLAYWRIGHT_BASE_URL=http://frontend:3000
+    networks:
+      - youtube_gallery_network
+    depends_on:
+      - frontend
+    command: npx playwright test
+    restart: 'no'
+
   # Django Backend (Development with hot reload)
   backend:
     build:

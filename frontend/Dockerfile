@@ -5,6 +5,15 @@ RUN npm install --legacy-peer-deps
 COPY . .
 CMD ["npm", "test"]
 
+# Playwright E2E stage — uses Debian so Chromium system deps are available
+FROM node:24-bookworm AS playwright
+WORKDIR /app
+COPY package*.json ./
+RUN npm install --legacy-peer-deps
+RUN npx playwright install --with-deps chromium
+COPY . .
+CMD ["npx", "playwright", "test"]
+
 FROM node:24-alpine
 
 # Set working directory

@@ -1,401 +1,292 @@
+import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { FilterButtons } from '../FilterButtons';
-import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
+import { NotInterestedFilter, TagMode } from '@/types';
 
-const mockRouter: AppRouterInstance = {
-  push: jest.fn(),
-  replace: jest.fn(),
-  prefetch: jest.fn(),
-  back: jest.fn(),
-  forward: jest.fn(),
-  refresh: jest.fn(),
+const mockUpdateDurationBounds = jest.fn();
+const mockUpdateIsShort = jest.fn();
+const mockUpdateNotInterestedFilter = jest.fn();
+const mockUpdateTags = jest.fn();
+const mockUpdateTagMode = jest.fn();
+const mockUpdateSort = jest.fn();
+
+const defaultFilters = {
+  filter: 'unwatched',
+  selectedTags: [] as string[],
+  tagMode: TagMode.ANY,
+  searchQuery: '',
+  notInterestedFilter: NotInterestedFilter.EXCLUDE,
+  sort: 'in_progress_first' as const,
+  shorterThan: undefined as number | undefined,
+  longerThan: undefined as number | undefined,
+  isShort: undefined as boolean | undefined,
+  updateFilter: jest.fn(),
+  updateTags: mockUpdateTags,
+  updateTagMode: mockUpdateTagMode,
+  updateSearchQuery: jest.fn(),
+  updateNotInterestedFilter: mockUpdateNotInterestedFilter,
+  updateSort: mockUpdateSort,
+  updateShorterThan: jest.fn(),
+  updateLongerThan: jest.fn(),
+  updateDurationBounds: mockUpdateDurationBounds,
+  updateIsShort: mockUpdateIsShort,
+  addTag: jest.fn(),
+  removeTag: jest.fn(),
+  areFiltersEqual: jest.fn(),
 };
 
-const mockPathname = '/videos';
+let mockFilters = { ...defaultFilters };
 
-jest.mock('next/navigation', () => ({
-  useRouter: () => mockRouter,
-  usePathname: () => mockPathname,
-  useSearchParams: () => new URLSearchParams(mockSearchParamsString),
+jest.mock('@/hooks/useVideoFilters', () => ({
+  useVideoFilters: () => mockFilters,
+}));
+
+jest.mock('@/components/tags/mutations', () => ({
+  useChannelTags: () => ({
+    data: {
+      results: [
+        { id: '1', name: 'yoga', color: '#ff6b6b' },
+        { id: '2', name: 'travel', color: '#4ecdc4' },
+        { id: '3', name: 'music', color: '#45b7d1' },
+      ],
+    },
+  }),
+}));
+
+jest.mock('../SortSelector', () => ({
+  SortSelector: ({ sort, onSortChange }: { sort: string; onSortChange: (value: string) => void }) => (
+    <select data-testid="sort-selector" value={sort} onChange={e => onSortChange(e.target.value)}>
+      <option value="in_progress_first">In Progress First</option>
+      <option value="newest">Newest</option>
+    </select>
+  ),
 }));
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => {
-      const translations: Record<string, string> = {
-        unwatched: 'Unwatched',
-        watched: 'Watched',
-        allVideos: 'All Videos',
-        hideNotInterested: 'Hide dismissed',
-        notInterested: 'Not Interested',
-        includeNotInterested: 'Include dismissed',
+      const map: Record<string, string> = {
         'durationFilter.shorterThan': 'Shorter than',
         'durationFilter.longerThan': 'Longer than',
         'durationFilter.minutesSuffix': 'min',
-        'shortsFilter.all': 'All',
-        'shortsFilter.only': 'Shorts only',
         'shortsFilter.hide': 'Hide Shorts',
+        hideNotInterested: 'Hide dismissed',
       };
-      return translations[key] ?? key;
+      return map[key] ?? key;
     },
   }),
 }));
 
-jest.mock('@/components/ui/SearchAndTagFilter', () => ({
-  SearchAndTagFilter: () => <div data-testid="search-and-tag-filter">SearchAndTagFilter</div>,
-}));
+function renderFilterButtons() {
+  return render(<FilterButtons notInterestedCount={5} />);
+}
 
-let mockSearchParamsString = '';
-
-describe('FilterButtons - Not Interested Filters', () => {
+describe('FilterButtons — Duration inputs', () => {
   beforeEach(() => {
+    mockFilters = { ...defaultFilters };
     jest.clearAllMocks();
-    mockSearchParamsString = '';
   });
 
-  const defaultProps = {
-    totalCount: 100,
-    watchedCount: 30,
-    unwatchedCount: 70,
-    notInterestedCount: 15,
-  };
-
-  describe('Rendering', () => {
-    it('renders all three not interested filter buttons', () => {
-      render(<FilterButtons {...defaultProps} />);
-
-      expect(screen.getByRole('button', { name: /hide dismissed/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /not interested/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /include dismissed/i })).toBeInTheDocument();
-    });
-
-    it('shows not interested count badge on ONLY filter', () => {
-      render(<FilterButtons {...defaultProps} />);
-
-      const notInterestedButton = screen.getByRole('button', { name: /not interested/i });
-      expect(notInterestedButton).toHaveTextContent('15');
-    });
-
-    it('does not show count badge on EXCLUDE and INCLUDE filters', () => {
-      render(<FilterButtons {...defaultProps} />);
-
-      const hideButton = screen.getByRole('button', { name: /hide dismissed/i });
-      const includeButton = screen.getByRole('button', { name: /include dismissed/i });
-
-      expect(hideButton).not.toHaveTextContent('15');
-      expect(includeButton).not.toHaveTextContent('15');
-    });
-
-    it('separates not interested filters with border', () => {
-      const { container } = render(<FilterButtons {...defaultProps} />);
-
-      const notInterestedSection = container.querySelector('.FilterButton__not-interested');
-      expect(notInterestedSection).toHaveClass('border-t');
-      expect(notInterestedSection).toHaveClass('pt-4');
-    });
+  it('renders Shorter than and Longer than labels', () => {
+    renderFilterButtons();
+    expect(screen.getByText('Shorter than')).toBeInTheDocument();
+    expect(screen.getByText('Longer than')).toBeInTheDocument();
   });
 
-  describe('Filter selection', () => {
-    it('marks EXCLUDE filter as active by default', () => {
-      mockSearchParamsString = '';
-      render(<FilterButtons {...defaultProps} />);
-
-      const hideButton = screen.getByRole('button', { name: /hide dismissed/i });
-      expect(hideButton).toHaveAttribute('aria-selected', 'true');
-    });
-
-    it('marks ONLY filter as active when selected', () => {
-      mockSearchParamsString = 'not_interested_filter=only';
-      render(<FilterButtons {...defaultProps} />);
-
-      const onlyButton = screen.getByRole('button', { name: /not interested/i });
-      expect(onlyButton).toHaveAttribute('aria-selected', 'true');
-    });
-
-    it('marks INCLUDE filter as active when selected', () => {
-      mockSearchParamsString = 'not_interested_filter=include';
-      render(<FilterButtons {...defaultProps} />);
-
-      const includeButton = screen.getByRole('button', { name: /include dismissed/i });
-      expect(includeButton).toHaveAttribute('aria-selected', 'true');
-    });
+  it('shorter than input is empty when not set', () => {
+    renderFilterButtons();
+    const input = document.querySelector<HTMLInputElement>('.FilterButtons__shorter-than input');
+    expect(input?.value).toBe('');
   });
 
-  describe('Filter interactions', () => {
-    it('updates URL when ONLY filter is clicked', async () => {
-      render(<FilterButtons {...defaultProps} />);
-
-      const onlyButton = screen.getByRole('button', { name: /not interested/i });
-      fireEvent.click(onlyButton);
-
-      await waitFor(() => {
-        expect(mockRouter.push).toHaveBeenCalledWith(expect.stringContaining('not_interested_filter=only'));
-      });
-    });
-
-    it('updates URL when INCLUDE filter is clicked', async () => {
-      render(<FilterButtons {...defaultProps} />);
-
-      const includeButton = screen.getByRole('button', { name: /include dismissed/i });
-      fireEvent.click(includeButton);
-
-      await waitFor(() => {
-        expect(mockRouter.push).toHaveBeenCalledWith(expect.stringContaining('not_interested_filter=include'));
-      });
-    });
-
-    it('updates URL when EXCLUDE filter is clicked', async () => {
-      mockSearchParamsString = 'not_interested_filter=only';
-      render(<FilterButtons {...defaultProps} />);
-
-      const hideButton = screen.getByRole('button', { name: /hide dismissed/i });
-      fireEvent.click(hideButton);
-
-      await waitFor(() => {
-        expect(mockRouter.push).toHaveBeenCalledWith(expect.stringContaining('not_interested_filter=exclude'));
-      });
-    });
+  it('shorter than input shows value from filter state', () => {
+    mockFilters = { ...defaultFilters, shorterThan: 15 };
+    renderFilterButtons();
+    const input = document.querySelector<HTMLInputElement>('.FilterButtons__shorter-than input');
+    expect(input?.value).toBe('15');
   });
 
-  describe('Styling', () => {
-    it('applies red theme to active not interested filter', () => {
-      mockSearchParamsString = 'not_interested_filter=only';
-      render(<FilterButtons {...defaultProps} />);
-
-      const onlyButton = screen.getByRole('button', { name: /not interested/i });
-      expect(onlyButton).toHaveClass('aria-selected:bg-red-100');
-      expect(onlyButton).toHaveClass('aria-selected:text-red-700');
-    });
-
-    it('applies gray theme to inactive not interested filters', () => {
-      mockSearchParamsString = 'not_interested_filter=exclude';
-      render(<FilterButtons {...defaultProps} />);
-
-      const onlyButton = screen.getByRole('button', { name: /not interested/i });
-      expect(onlyButton).toHaveClass('bg-gray-100');
-      expect(onlyButton).toHaveClass('text-gray-800');
-    });
+  it('changing shorter than input calls updateDurationBounds', () => {
+    renderFilterButtons();
+    const input = document.querySelector<HTMLInputElement>('.FilterButtons__shorter-than input')!;
+    fireEvent.change(input, { target: { value: '10' } });
+    expect(mockUpdateDurationBounds).toHaveBeenCalledWith(10, undefined);
   });
 
-  describe('Filter interactions', () => {
-    it('calls router.push when watch status filter clicked', async () => {
-      render(<FilterButtons {...defaultProps} />);
-
-      const buttons = screen.getAllByRole('button');
-      const watchedButton = buttons.find(
-        btn => btn.textContent?.includes('Watched') && btn.textContent?.includes('30')
-      );
-      expect(watchedButton).toBeDefined();
-
-      fireEvent.click(watchedButton!);
-
-      await waitFor(() => {
-        expect(mockRouter.push).toHaveBeenCalled();
-      });
-    });
-
-    it('calls router.push when not interested filter clicked', async () => {
-      render(<FilterButtons {...defaultProps} />);
-
-      const buttons = screen.getAllByRole('button');
-      const onlyButton = buttons.find(
-        btn => btn.textContent?.includes('Not Interested') && btn.textContent?.includes('15')
-      );
-      expect(onlyButton).toBeDefined();
-
-      fireEvent.click(onlyButton!);
-
-      await waitFor(() => {
-        expect(mockRouter.push).toHaveBeenCalled();
-      });
-    });
+  it('changing longer than input calls updateDurationBounds', () => {
+    renderFilterButtons();
+    const input = document.querySelector<HTMLInputElement>('.FilterButtons__longer-than input')!;
+    fireEvent.change(input, { target: { value: '5' } });
+    expect(mockUpdateDurationBounds).toHaveBeenCalledWith(undefined, 5);
   });
 
-  describe('Count display', () => {
-    it('shows zero count correctly', () => {
-      render(<FilterButtons {...defaultProps} notInterestedCount={0} />);
-
-      const onlyButton = screen.getByRole('button', { name: /not interested/i });
-      expect(onlyButton).not.toHaveTextContent('0');
-    });
-
-    it('shows large counts correctly', () => {
-      render(<FilterButtons {...defaultProps} notInterestedCount={999} />);
-
-      const onlyButton = screen.getByRole('button', { name: /not interested/i });
-      expect(onlyButton).toHaveTextContent('999');
-    });
-  });
-});
-
-describe('FilterButtons - Duration Inputs', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockSearchParamsString = '';
-  });
-
-  const defaultProps = {
-    totalCount: 100,
-    watchedCount: 30,
-    unwatchedCount: 70,
-    notInterestedCount: 15,
-  };
-
-  it('renders the duration section with border separator', () => {
-    const { container } = render(<FilterButtons {...defaultProps} />);
-    const durationSection = container.querySelector('.FilterButton__duration');
-    expect(durationSection).toBeInTheDocument();
-    expect(durationSection).toHaveClass('border-t');
-    expect(durationSection).toHaveClass('pt-4');
-  });
-
-  it('renders "Shorter than" and "Longer than" inputs', () => {
-    const { container } = render(<FilterButtons {...defaultProps} />);
-    const shorterInput = container.querySelector('.FilterButton__shorter-than input');
-    const longerInput = container.querySelector('.FilterButton__longer-than input');
-    expect(shorterInput).toBeInTheDocument();
-    expect(longerInput).toBeInTheDocument();
-  });
-
-  it('inputs are empty when no URL params are set', () => {
-    const { container } = render(<FilterButtons {...defaultProps} />);
-    const shorterInput = container.querySelector<HTMLInputElement>('.FilterButton__shorter-than input');
-    const longerInput = container.querySelector<HTMLInputElement>('.FilterButton__longer-than input');
-    expect(shorterInput?.value).toBe('');
-    expect(longerInput?.value).toBe('');
-  });
-
-  it('populates shorter_than input from URL param', () => {
-    mockSearchParamsString = 'shorter_than=10';
-    const { container } = render(<FilterButtons {...defaultProps} />);
-    const input = container.querySelector<HTMLInputElement>('.FilterButton__shorter-than input');
-    expect(input?.value).toBe('10');
-  });
-
-  it('populates longer_than input from URL param', () => {
-    mockSearchParamsString = 'longer_than=20';
-    const { container } = render(<FilterButtons {...defaultProps} />);
-    const input = container.querySelector<HTMLInputElement>('.FilterButton__longer-than input');
-    expect(input?.value).toBe('20');
-  });
-
-  it('updates URL with shorter_than when input changes to positive value', async () => {
-    const { container } = render(<FilterButtons {...defaultProps} />);
-    const input = container.querySelector<HTMLInputElement>('.FilterButton__shorter-than input')!;
-
-    fireEvent.change(input, { target: { value: '15' } });
-
-    await waitFor(() => {
-      expect(mockRouter.push).toHaveBeenCalledWith(expect.stringContaining('shorter_than=15'));
-    });
-  });
-
-  it('updates URL with longer_than when input changes to positive value', async () => {
-    const { container } = render(<FilterButtons {...defaultProps} />);
-    const input = container.querySelector<HTMLInputElement>('.FilterButton__longer-than input')!;
-
-    fireEvent.change(input, { target: { value: '30' } });
-
-    await waitFor(() => {
-      expect(mockRouter.push).toHaveBeenCalledWith(expect.stringContaining('longer_than=30'));
-    });
-  });
-
-  it('clears shorter_than from URL when input is set to 0', async () => {
-    mockSearchParamsString = 'shorter_than=10';
-    const { container } = render(<FilterButtons {...defaultProps} />);
-    const input = container.querySelector<HTMLInputElement>('.FilterButton__shorter-than input')!;
-
+  it('setting shorter than to 0 clears the value (undefined)', () => {
+    mockFilters = { ...defaultFilters, shorterThan: 10 };
+    renderFilterButtons();
+    const input = document.querySelector<HTMLInputElement>('.FilterButtons__shorter-than input')!;
     fireEvent.change(input, { target: { value: '0' } });
-
-    await waitFor(() => {
-      const pushArg: string = (mockRouter.push as jest.Mock).mock.calls[0][0];
-      expect(pushArg).not.toContain('shorter_than');
-    });
+    expect(mockUpdateDurationBounds).toHaveBeenCalledWith(undefined, undefined);
   });
 });
 
-describe('FilterButtons - Shorts Filter', () => {
+describe('FilterButtons — Hide Shorts toggle', () => {
   beforeEach(() => {
+    mockFilters = { ...defaultFilters };
     jest.clearAllMocks();
-    mockSearchParamsString = '';
   });
 
-  const defaultProps = {
-    totalCount: 100,
-    watchedCount: 30,
-    unwatchedCount: 70,
-    notInterestedCount: 15,
-  };
-
-  it('renders all three Shorts filter buttons', () => {
-    const { container } = render(<FilterButtons {...defaultProps} />);
-
-    const shortsSection = container.querySelector('.FilterButton__is-short');
-    expect(shortsSection).not.toBeNull();
-    expect(shortsSection?.textContent).toContain('All');
-    expect(shortsSection?.textContent).toContain('Shorts only');
-    expect(shortsSection?.textContent).toContain('Hide Shorts');
+  it('renders the Hide Shorts toggle switch', () => {
+    renderFilterButtons();
+    expect(screen.getByRole('switch', { name: /hide shorts/i })).toBeInTheDocument();
   });
 
-  it('"All" Shorts button is active when isShort is undefined', () => {
-    mockSearchParamsString = '';
-    const { container } = render(<FilterButtons {...defaultProps} />);
-    const shortsSection = container.querySelector('.FilterButton__is-short');
-    const allBtn = shortsSection?.querySelector('[aria-selected="true"]');
-    expect(allBtn?.textContent).toBe('All');
+  it('toggle is off when isShort is undefined', () => {
+    renderFilterButtons();
+    const toggle = screen.getByRole('switch', { name: /hide shorts/i });
+    expect(toggle).toHaveAttribute('aria-checked', 'false');
   });
 
-  it('marks "Shorts only" as active when is_short=true in URL', () => {
-    mockSearchParamsString = 'is_short=true';
-    const { container } = render(<FilterButtons {...defaultProps} />);
-
-    const shortsSection = container.querySelector('.FilterButton__is-short');
-    const activeBtn = shortsSection?.querySelector('[aria-selected="true"]');
-    expect(activeBtn?.textContent).toBe('Shorts only');
+  it('toggle is on when isShort is false', () => {
+    mockFilters = { ...defaultFilters, isShort: false };
+    renderFilterButtons();
+    const toggle = screen.getByRole('switch', { name: /hide shorts/i });
+    expect(toggle).toHaveAttribute('aria-checked', 'true');
   });
 
-  it('marks "Hide Shorts" as active when is_short=false in URL', () => {
-    mockSearchParamsString = 'is_short=false';
-    const { container } = render(<FilterButtons {...defaultProps} />);
-
-    const shortsSection = container.querySelector('.FilterButton__is-short');
-    const activeBtn = shortsSection?.querySelector('[aria-selected="true"]');
-    expect(activeBtn?.textContent).toBe('Hide Shorts');
+  it('clicking toggle when off calls updateIsShort(false)', () => {
+    renderFilterButtons();
+    fireEvent.click(screen.getByRole('switch', { name: /hide shorts/i }));
+    expect(mockUpdateIsShort).toHaveBeenCalledWith(false);
   });
 
-  it('updates URL when "Shorts only" is clicked', async () => {
-    render(<FilterButtons {...defaultProps} />);
+  it('clicking toggle when on calls updateIsShort(undefined)', () => {
+    mockFilters = { ...defaultFilters, isShort: false };
+    renderFilterButtons();
+    fireEvent.click(screen.getByRole('switch', { name: /hide shorts/i }));
+    expect(mockUpdateIsShort).toHaveBeenCalledWith(undefined);
+  });
+});
 
-    const shortsOnlyBtn = screen.getByRole('button', { name: /shorts only/i });
-    fireEvent.click(shortsOnlyBtn);
+describe('FilterButtons — Hide Not Interested toggle', () => {
+  beforeEach(() => {
+    mockFilters = { ...defaultFilters };
+    jest.clearAllMocks();
+  });
 
+  it('renders the Hide dismissed toggle', () => {
+    renderFilterButtons();
+    expect(screen.getByRole('switch', { name: /hide dismissed/i })).toBeInTheDocument();
+  });
+
+  it('toggle is on by default (EXCLUDE mode)', () => {
+    renderFilterButtons();
+    const toggle = screen.getByRole('switch', { name: /hide dismissed/i });
+    expect(toggle).toHaveAttribute('aria-checked', 'true');
+  });
+
+  it('toggle is off when notInterestedFilter is INCLUDE', () => {
+    mockFilters = { ...defaultFilters, notInterestedFilter: NotInterestedFilter.INCLUDE };
+    renderFilterButtons();
+    expect(screen.getByRole('switch', { name: /hide dismissed/i })).toHaveAttribute('aria-checked', 'false');
+  });
+
+  it('clicking toggle when on calls updateNotInterestedFilter(INCLUDE)', () => {
+    renderFilterButtons();
+    fireEvent.click(screen.getByRole('switch', { name: /hide dismissed/i }));
+    expect(mockUpdateNotInterestedFilter).toHaveBeenCalledWith(NotInterestedFilter.INCLUDE);
+  });
+
+  it('clicking toggle when off calls updateNotInterestedFilter(EXCLUDE)', () => {
+    mockFilters = { ...defaultFilters, notInterestedFilter: NotInterestedFilter.INCLUDE };
+    renderFilterButtons();
+    fireEvent.click(screen.getByRole('switch', { name: /hide dismissed/i }));
+    expect(mockUpdateNotInterestedFilter).toHaveBeenCalledWith(NotInterestedFilter.EXCLUDE);
+  });
+});
+
+describe('FilterButtons — Tag filter pills', () => {
+  beforeEach(() => {
+    mockFilters = { ...defaultFilters };
+    jest.clearAllMocks();
+  });
+
+  it('shows + Add tag button', () => {
+    renderFilterButtons();
+    expect(screen.getByText(/add tag/i)).toBeInTheDocument();
+  });
+
+  it('clicking + Add tag shows dropdown with available tags', () => {
+    renderFilterButtons();
+    fireEvent.click(screen.getByText(/add tag/i));
+    expect(screen.getByText('yoga')).toBeInTheDocument();
+    expect(screen.getByText('travel')).toBeInTheDocument();
+  });
+
+  it('clicking a tag in dropdown calls updateTags', () => {
+    renderFilterButtons();
+    fireEvent.click(screen.getByText(/add tag/i));
+    fireEvent.click(screen.getByText('yoga').closest('.AddTagDropdown__item')!);
+    expect(mockUpdateTags).toHaveBeenCalledWith(['yoga']);
+  });
+
+  it('does not show Clear all when no tags are selected', () => {
+    renderFilterButtons();
+    expect(screen.queryByText(/clear all/i)).not.toBeInTheDocument();
+  });
+
+  it('shows Clear all when tags are selected', () => {
+    mockFilters = { ...defaultFilters, selectedTags: ['yoga'] };
+    renderFilterButtons();
+    expect(screen.getByText(/clear all/i)).toBeInTheDocument();
+  });
+
+  it('clicking Clear all calls updateTags with empty array', () => {
+    mockFilters = { ...defaultFilters, selectedTags: ['yoga'] };
+    renderFilterButtons();
+    fireEvent.click(screen.getByText(/clear all/i));
+    expect(mockUpdateTags).toHaveBeenCalledWith([]);
+  });
+
+  it('does not render tag mode buttons when no tags selected', () => {
+    renderFilterButtons();
+    expect(screen.queryByText('Any of these tags')).not.toBeInTheDocument();
+  });
+
+  it('renders tag mode buttons when tags are selected', () => {
+    mockFilters = { ...defaultFilters, selectedTags: ['yoga'] };
+    renderFilterButtons();
+    expect(screen.getByText('Any of these tags')).toBeInTheDocument();
+    expect(screen.getByText('All of these tags')).toBeInTheDocument();
+    expect(screen.getByText('None of these tags')).toBeInTheDocument();
+  });
+
+  it('active tag mode button has purple styling', () => {
+    mockFilters = { ...defaultFilters, selectedTags: ['yoga'], tagMode: TagMode.ALL };
+    renderFilterButtons();
+    expect(screen.getByText('All of these tags').className).toMatch(/bg-purple-100/);
+  });
+
+  it('clicking All of these tags calls updateTagMode(ALL)', () => {
+    mockFilters = { ...defaultFilters, selectedTags: ['yoga'] };
+    renderFilterButtons();
+    fireEvent.click(screen.getByText('All of these tags'));
+    expect(mockUpdateTagMode).toHaveBeenCalledWith(TagMode.ALL);
+  });
+
+  it('clicking None of these tags calls updateTagMode(EXCEPT)', () => {
+    mockFilters = { ...defaultFilters, selectedTags: ['yoga'] };
+    renderFilterButtons();
+    fireEvent.click(screen.getByText('None of these tags'));
+    expect(mockUpdateTagMode).toHaveBeenCalledWith(TagMode.EXCEPT);
+  });
+
+  it('dropdown does not show already-selected tags', async () => {
+    mockFilters = { ...defaultFilters, selectedTags: ['yoga'] };
+    renderFilterButtons();
+    fireEvent.click(screen.getByText(/add tag/i));
     await waitFor(() => {
-      expect(mockRouter.push).toHaveBeenCalledWith(expect.stringContaining('is_short=true'));
+      expect(screen.queryByText('yoga')).not.toBeInTheDocument();
     });
-  });
-
-  it('updates URL when "Hide Shorts" is clicked', async () => {
-    render(<FilterButtons {...defaultProps} />);
-
-    const hideShortsBtn = screen.getByRole('button', { name: /hide shorts/i });
-    fireEvent.click(hideShortsBtn);
-
-    await waitFor(() => {
-      expect(mockRouter.push).toHaveBeenCalledWith(expect.stringContaining('is_short=false'));
-    });
-  });
-
-  it('clears is_short filter when active button is clicked again', async () => {
-    mockSearchParamsString = 'is_short=true';
-    render(<FilterButtons {...defaultProps} />);
-
-    const shortsOnlyBtn = screen.getByRole('button', { name: /shorts only/i });
-    fireEvent.click(shortsOnlyBtn);
-
-    await waitFor(() => {
-      const pushArg: string = (mockRouter.push as jest.Mock).mock.calls[0][0];
-      expect(pushArg).not.toContain('is_short');
-    });
+    expect(screen.getByText('travel')).toBeInTheDocument();
   });
 });

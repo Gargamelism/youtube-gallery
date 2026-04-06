@@ -60,6 +60,13 @@ repos:
         files: \.(ts|tsx)$
         pass_filenames: false
 
+      - id: playwright-e2e
+        name: Playwright E2E Tests
+        entry: docker-compose run --rm --use-aliases frontend_e2e
+        language: system
+        files: \.(ts|tsx)$
+        pass_filenames: false
+
       # # === BACKEND (Django) ===
       - id: black-fix
         name: Black Format
