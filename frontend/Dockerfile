@@ -5,6 +5,15 @@ RUN npm install --legacy-peer-deps
 COPY . .
 CMD ["npm", "test"]
 
+# Playwright E2E stage — uses Debian so Chromium system deps are available
+FROM node:24-bookworm AS playwright
+WORKDIR /app
+COPY package*.json ./
+RUN npm install --legacy-peer-deps
+RUN npx playwright install --with-deps chromium
+COPY . .
+CMD ["npx", "playwright", "test"]
+
 FROM node:24-alpine
 
 # Set working directory
@@ -27,6 +36,10 @@ RUN npm install --legacy-peer-deps
 
 # Run build to catch TypeScript/build errors early
 RUN npm run build
+
+# Healthcheck — container is healthy only once Next.js is accepting connections
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=3 \
+  CMD wget -qO- http://localhost:3000/ || exit 1
 
 # Expose port
 EXPOSE 3000

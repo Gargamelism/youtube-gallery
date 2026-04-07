@@ -31,6 +31,8 @@ module.exports = {
           '(^|/)(?:next|postcss|tailwind)[.]config[.](?:js|cjs|mjs|ts|cts|mts)$', // Next.js configs
           '^[.]next/', // Next.js build output
           '(^|/)jest[.](?:config|setup)[.](?:js|ts)$', // Jest config
+          '(^|/)eslint[.]config[.](?:js|cjs|mjs)$', // ESLint config
+          '(^|/)playwright[.]config[.](?:js|ts)$', // Playwright config
         ],
       },
       to: {},
@@ -200,7 +202,7 @@ module.exports = {
 
     /* Which modules to exclude */
     exclude: {
-      path: ['^[.]next/', 'node_modules/'],
+      path: ['^[.]next/', 'node_modules/', '^e2e/', 'playwright[.]config[.]ts$'],
     },
 
     /* Which modules to exclusively include (array of regular expressions in strings)

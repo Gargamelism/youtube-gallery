@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Poppins } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
-import Navigation from '@/components/navigation/Navigation';
+import Sidebar from '@/components/sidebar/Sidebar';
 import { YouTubeAuthBanner } from '@/components/auth';
 
 const poppins = Poppins({
@@ -20,9 +20,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={poppins.className}>
         <Providers>
-          <YouTubeAuthBanner />
-          <Navigation />
-          {children}
+          <div className="flex h-screen overflow-hidden bg-gray-50">
+            <Sidebar />
+            <div className="flex flex-col flex-1 overflow-hidden">
+              <YouTubeAuthBanner />
+              <div className="flex-1 overflow-y-auto">{children}</div>
+            </div>
+          </div>
         </Providers>
       </body>
     </html>

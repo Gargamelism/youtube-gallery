@@ -7,7 +7,7 @@ import securityNode from 'eslint-plugin-security-node';
 
 export default [
   {
-    ignores: ['tailwind.config.js', 'next-env.d.ts', 'backend/', '.next/', '.venv/'],
+    ignores: ['tailwind.config.js', 'next-env.d.ts', 'backend/', '.next/', '.venv/', 'e2e/**', 'playwright.config.ts'],
   },
   {
     ...eslint.configs.recommended,
@@ -66,6 +66,7 @@ export default [
     files: ['**/__tests__/**', '**/*.test.*', '**/*.spec.*'],
     rules: {
       'security/detect-object-injection': 'off',
+      '@next/next/no-img-element': 'off',
     },
   },
 ];
