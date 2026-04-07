@@ -55,7 +55,7 @@ export function VideoCard({
 
     if (hourMatch) parts.push(`${hourMatch[1]}h`);
     if (minuteMatch) parts.push(`${minuteMatch[1]}m`);
-    if (secondMatch && !hourMatch && !minuteMatch) parts.push(`${secondMatch[1]}s`);
+    if (secondMatch && !hourMatch) parts.push(`${secondMatch[1]}s`);
 
     return parts.length > 0 ? parts.join(' ') : duration;
   };

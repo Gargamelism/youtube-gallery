@@ -17,6 +17,35 @@ jest.mock('@/services', () => ({
 
 jest.mock('@/config/routes', () => ({
   isProtectedRoute: jest.fn().mockReturnValue(true),
+  APP_ROUTES: {
+    home: '/',
+    auth: '/auth',
+    videos: '/videos',
+    channels: '/channels',
+    profile: '/profile',
+    settings: '/settings',
+  },
+}));
+
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const map: Record<string, string> = {
+        appName: 'NoGarithmTube',
+        videoManagement: 'Video Management',
+        videos: 'Videos',
+        channels: 'Channels',
+        tags: 'Tags',
+        profile: 'Profile',
+        settings: 'Settings',
+        signOut: 'Sign out',
+        expandSidebar: 'Expand sidebar',
+        collapseSidebar: 'Collapse sidebar',
+      };
+      return map[key] ?? key;
+    },
+    i18n: { changeLanguage: jest.fn() },
+  }),
 }));
 
 jest.mock('@tanstack/react-query', () => ({
@@ -177,7 +206,10 @@ describe('Sidebar', () => {
       renderSidebar();
       fireEvent.click(document.querySelector('.Sidebar__user-button') as HTMLButtonElement);
       await waitFor(() => {
-        expect(screen.getByText('test@example.com')).toBeInTheDocument();
+        // Email appears in both the button info section and the dropdown header — check the dropdown specifically
+        const dropdown = document.querySelector('.Sidebar__user-dropdown');
+        expect(dropdown).toBeInTheDocument();
+        expect(dropdown?.textContent).toContain('test@example.com');
       });
     });
   });

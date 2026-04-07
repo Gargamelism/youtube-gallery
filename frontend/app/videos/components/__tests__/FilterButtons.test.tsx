@@ -71,6 +71,10 @@ jest.mock('react-i18next', () => ({
         'durationFilter.minutesSuffix': 'min',
         'shortsFilter.hide': 'Hide Shorts',
         hideNotInterested: 'Hide dismissed',
+        'tagFilters.addTag': 'Add tag',
+        'tagFilters.anyOfThese': 'Any of these tags',
+        'tagFilters.allOfThese': 'All of these tags',
+        'tagFilters.noneOfThese': 'None of these tags',
       };
       return map[key] ?? key;
     },
@@ -78,7 +82,7 @@ jest.mock('react-i18next', () => ({
 }));
 
 function renderFilterButtons() {
-  return render(<FilterButtons notInterestedCount={5} />);
+  return render(<FilterButtons />);
 }
 
 describe('FilterButtons — Duration inputs', () => {
@@ -284,8 +288,12 @@ describe('FilterButtons — Tag filter pills', () => {
     mockFilters = { ...defaultFilters, selectedTags: ['yoga'] };
     renderFilterButtons();
     fireEvent.click(screen.getByText(/add tag/i));
+    // 'yoga' appears as a selected tag badge, but must not appear in the dropdown items
     await waitFor(() => {
-      expect(screen.queryByText('yoga')).not.toBeInTheDocument();
+      const menu = document.querySelector('.AddTagDropdown__menu');
+      expect(menu).toBeInTheDocument();
+      const itemTexts = Array.from(menu!.querySelectorAll('.AddTagDropdown__item')).map(el => el.textContent?.trim());
+      expect(itemTexts).not.toContain('yoga');
     });
     expect(screen.getByText('travel')).toBeInTheDocument();
   });

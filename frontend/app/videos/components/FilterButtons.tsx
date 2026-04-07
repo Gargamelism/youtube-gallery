@@ -4,16 +4,10 @@ import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus } from 'lucide-react';
 import { useVideoFilters } from '@/hooks/useVideoFilters';
-import { ScrollMode } from '@/lib/scrollMode';
 import { NotInterestedFilter, TagMode, TagModeType } from '@/types';
 import { SortSelector } from './SortSelector';
 import { TagBadge } from '@/components/tags/TagBadge';
 import { useChannelTags } from '@/components/tags/mutations';
-
-interface FilterButtonsProps {
-  notInterestedCount: number;
-  onScrollModeChange?: (mode: ScrollMode) => void;
-}
 
 interface ToggleSwitchProps {
   checked: boolean;
@@ -24,12 +18,15 @@ interface ToggleSwitchProps {
 
 function ToggleSwitch({ checked, onChange, label, id }: ToggleSwitchProps) {
   return (
-    <label htmlFor={id} className="ToggleSwitch flex items-center gap-2 cursor-pointer select-none">
-      <span className="text-sm text-gray-700">{label}</span>
+    <div className="ToggleSwitch flex items-center gap-2 cursor-pointer select-none">
+      <span className="text-sm text-gray-700" onClick={() => onChange(!checked)}>
+        {label}
+      </span>
       <button
         id={id}
         role="switch"
         aria-checked={checked}
+        aria-label={label}
         onClick={() => onChange(!checked)}
         className={`ToggleSwitch__track relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-1 ${
           checked ? 'bg-purple-700' : 'bg-gray-300'
@@ -41,16 +38,17 @@ function ToggleSwitch({ checked, onChange, label, id }: ToggleSwitchProps) {
           }`}
         />
       </button>
-    </label>
+    </div>
   );
 }
 
 interface AddTagDropdownProps {
   availableTags: { id: string; name: string; color: string }[];
   onAdd: (tagName: string) => void;
+  triggerLabel: string;
 }
 
-function AddTagDropdown({ availableTags, onAdd }: AddTagDropdownProps) {
+function AddTagDropdown({ availableTags, onAdd, triggerLabel }: AddTagDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -73,7 +71,7 @@ function AddTagDropdown({ availableTags, onAdd }: AddTagDropdownProps) {
         className="AddTagDropdown__trigger flex items-center gap-1 px-3 py-1 text-sm text-gray-600 border border-dashed border-gray-300 rounded-full hover:border-gray-400 hover:text-gray-800 transition-colors"
       >
         <Plus className="h-3 w-3" />
-        Add tag
+        {triggerLabel}
       </button>
       {isOpen && (
         <div className="AddTagDropdown__menu absolute top-full left-0 mt-1 z-30 bg-white rounded-lg shadow-lg border border-gray-200 py-2 min-w-40 max-h-56 overflow-y-auto">
@@ -99,14 +97,14 @@ function AddTagDropdown({ availableTags, onAdd }: AddTagDropdownProps) {
   );
 }
 
-const TAG_MODE_OPTIONS: { value: TagModeType; label: string }[] = [
-  { value: TagMode.ANY, label: 'Any of these tags' },
-  { value: TagMode.ALL, label: 'All of these tags' },
-  { value: TagMode.EXCEPT, label: 'None of these tags' },
-];
-
-export function FilterButtons({ notInterestedCount: _notInterestedCount, onScrollModeChange }: FilterButtonsProps) {
+export function FilterButtons() {
   const { t } = useTranslation('videos');
+
+  const TAG_MODE_OPTIONS: { value: TagModeType; label: string }[] = [
+    { value: TagMode.ANY, label: t('tagFilters.anyOfThese') },
+    { value: TagMode.ALL, label: t('tagFilters.allOfThese') },
+    { value: TagMode.EXCEPT, label: t('tagFilters.noneOfThese') },
+  ];
   const {
     selectedTags,
     tagMode,
@@ -219,7 +217,11 @@ export function FilterButtons({ notInterestedCount: _notInterestedCount, onScrol
           <TagBadge key={tag.id} tag={tag} size="sm" removable onRemove={() => removeTag(tag.name)} />
         ))}
 
-        <AddTagDropdown availableTags={availableTags} onAdd={tagName => updateTags([...selectedTags, tagName])} />
+        <AddTagDropdown
+          availableTags={availableTags}
+          onAdd={tagName => updateTags([...selectedTags, tagName])}
+          triggerLabel={t('tagFilters.addTag')}
+        />
 
         {selectedTags.length > 0 && (
           <button

@@ -3,9 +3,10 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Video, TvMinimalPlay, User, Settings, LogOut } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
 import { logout } from '@/services';
-import { isProtectedRoute } from '@/config/routes';
+import { isProtectedRoute, APP_ROUTES } from '@/config/routes';
 import { useQueryClient } from '@tanstack/react-query';
 import { storage } from '@/lib/storage';
 import { useChannelTags } from '@/components/tags/mutations';
@@ -15,14 +16,14 @@ import { ChannelTag } from '@/types';
 const SIDEBAR_COLLAPSED_KEY = 'sidebar_collapsed';
 
 interface NavLink {
-  name: string;
+  nameKey: string;
   path: string;
   icon: React.ElementType;
 }
 
 const NAV_LINKS: NavLink[] = [
-  { name: 'Videos', path: '/videos', icon: Video },
-  { name: 'Channels', path: '/channels', icon: TvMinimalPlay },
+  { nameKey: 'videos', path: APP_ROUTES.videos, icon: Video },
+  { nameKey: 'channels', path: APP_ROUTES.channels, icon: TvMinimalPlay },
 ];
 
 function TagDot({ color }: { color: string }) {
@@ -36,6 +37,7 @@ interface SidebarTagSectionProps {
 
 function SidebarTagSection({ isCollapsed, allTags }: SidebarTagSectionProps) {
   const { addTag } = useVideoFilters();
+  const { t } = useTranslation('navigation');
 
   if (allTags.length === 0) return null;
 
@@ -43,7 +45,7 @@ function SidebarTagSection({ isCollapsed, allTags }: SidebarTagSectionProps) {
     <div className="Sidebar__tags mt-6">
       {!isCollapsed && (
         <p className="Sidebar__tags-label text-xs font-semibold text-gray-400 uppercase tracking-wider px-4 mb-2">
-          Tags
+          {t('tags')}
         </p>
       )}
       <ul className="Sidebar__tags-list space-y-1">
@@ -80,6 +82,7 @@ interface UserMenuProps {
 function UserMenu({ user, isCollapsed, onLogout }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
+  const { t } = useTranslation('navigation');
 
   const initials = user?.first_name?.[0] || user?.username?.[0] || 'U';
   const displayName = [user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.username || '';
@@ -118,22 +121,22 @@ function UserMenu({ user, isCollapsed, onLogout }: UserMenuProps) {
               <button
                 onClick={() => {
                   setIsOpen(false);
-                  router.push('/profile');
+                  router.push(APP_ROUTES.profile);
                 }}
                 className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               >
                 <User className="h-4 w-4 mr-3" />
-                Profile
+                {t('profile')}
               </button>
               <button
                 onClick={() => {
                   setIsOpen(false);
-                  router.push('/settings');
+                  router.push(APP_ROUTES.settings);
                 }}
                 className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               >
                 <Settings className="h-4 w-4 mr-3" />
-                Settings
+                {t('settings')}
               </button>
               <button
                 onClick={() => {
@@ -143,7 +146,7 @@ function UserMenu({ user, isCollapsed, onLogout }: UserMenuProps) {
                 className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               >
                 <LogOut className="h-4 w-4 mr-3" />
-                Sign out
+                {t('signOut')}
               </button>
             </div>
           </div>
@@ -159,6 +162,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const queryClient = useQueryClient();
   const { user, isAuthenticated, logout: logoutStore } = useAuthStore();
+  const { t } = useTranslation('navigation');
 
   useEffect(() => {
     const stored = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
@@ -199,15 +203,15 @@ export default function Sidebar() {
       {/* Logo / Header */}
       <div className="Sidebar__header flex items-center justify-between px-4 py-5 border-b border-gray-100">
         {!isCollapsed && (
-          <button onClick={() => router.push('/')} className="text-left">
-            <p className="Sidebar__title text-base font-bold text-gray-900 leading-tight">NoGarithmTube</p>
-            <p className="Sidebar__subtitle text-xs text-gray-500">Video Management</p>
+          <button onClick={() => router.push(APP_ROUTES.home)} className="text-left">
+            <p className="Sidebar__title text-base font-bold text-gray-900 leading-tight">{t('appName')}</p>
+            <p className="Sidebar__subtitle text-xs text-gray-500">{t('videoManagement')}</p>
           </button>
         )}
         <button
           onClick={handleToggleCollapse}
           className="Sidebar__collapse-btn p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors flex-shrink-0"
-          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-label={isCollapsed ? t('expandSidebar') : t('collapseSidebar')}
         >
           {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </button>
@@ -219,6 +223,7 @@ export default function Sidebar() {
           {NAV_LINKS.map(link => {
             const isActive = pathname === link.path;
             const Icon = link.icon;
+            const label = t(link.nameKey);
             return (
               <li key={link.path}>
                 <button
@@ -228,10 +233,10 @@ export default function Sidebar() {
                       ? 'bg-purple-100 text-purple-700 border-l-2 border-purple-700'
                       : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                   }`}
-                  title={isCollapsed ? link.name : undefined}
+                  title={isCollapsed ? label : undefined}
                 >
                   <Icon className="h-4 w-4 flex-shrink-0" />
-                  {!isCollapsed && <span>{link.name}</span>}
+                  {!isCollapsed && <span>{label}</span>}
                 </button>
               </li>
             );

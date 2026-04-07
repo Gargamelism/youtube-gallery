@@ -1,23 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { setupPage } from './helpers';
 
-/**
- * Sidebar E2E tests.
- * These tests verify the collapsible sidebar behaviour and tag filtering.
- * They require an authenticated session — set E2E_USERNAME and E2E_PASSWORD
- * and run auth.setup.ts first, or mock the auth cookie before navigating.
- */
 test.describe('Sidebar', () => {
   test.beforeEach(async ({ page }) => {
-    // Inject a minimal auth cookie so the app considers us logged in
-    await page.goto('/');
-    await page.evaluate(() => {
-      const authData = JSON.stringify({
-        user: { id: '1', username: 'testuser', email: 'test@example.com', first_name: 'Test', last_name: 'User' },
-        isAuthenticated: true,
-      });
-      localStorage.setItem('youtube-gallery-auth', JSON.stringify({ state: JSON.parse(authData) }));
-    });
-    await page.goto('/videos');
+    await setupPage(page);
   });
 
   test('sidebar is visible on the videos page', async ({ page }) => {

@@ -1,16 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { setupPage } from './helpers';
 
 test.describe('Filter bar', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await page.evaluate(() => {
-      const authData = JSON.stringify({
-        user: { id: '1', username: 'testuser', email: 'test@example.com', first_name: 'Test', last_name: 'User' },
-        isAuthenticated: true,
-      });
-      localStorage.setItem('youtube-gallery-auth', JSON.stringify({ state: JSON.parse(authData) }));
-    });
-    await page.goto('/videos');
+    await setupPage(page);
   });
 
   test('filter bar is rendered on the videos page', async ({ page }) => {
@@ -107,10 +100,16 @@ test.describe('Filter bar', () => {
   });
 
   test('watch status tabs switch filter in URL', async ({ page }) => {
-    await page.locator('.WatchStatusTabs__tab').filter({ hasText: 'Watched' }).click();
+    await page
+      .locator('.WatchStatusTabs__tab')
+      .filter({ hasText: /^Watched/ })
+      .click();
     await expect(page).toHaveURL(/filter=watched/);
 
-    await page.locator('.WatchStatusTabs__tab').filter({ hasText: 'All Videos' }).click();
+    await page
+      .locator('.WatchStatusTabs__tab')
+      .filter({ hasText: /^All Videos/ })
+      .click();
     await expect(page).toHaveURL(/filter=all/);
   });
 });

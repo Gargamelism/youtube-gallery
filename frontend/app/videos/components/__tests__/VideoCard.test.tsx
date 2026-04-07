@@ -26,6 +26,18 @@ jest.mock('../NotInterestedButton', () => ({
   ),
 }));
 
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const map: Record<string, string> = {
+        markAsWatched: 'Mark as watched',
+        watched: 'Watched',
+      };
+      return map[key] ?? key;
+    },
+  }),
+}));
+
 const makeVideo = (overrides: Partial<Video> = {}): Video => ({
   uuid: 'test-uuid',
   video_id: 'vid123',
@@ -127,7 +139,7 @@ describe('VideoCard', () => {
   it('shows "Watched" state button when video is watched', () => {
     const video = makeVideo({ is_watched: true });
     render(<VideoCard {...defaultProps} video={video} />);
-    expect(screen.getByText('watched')).toBeInTheDocument();
+    expect(screen.getByText('Watched')).toBeInTheDocument();
   });
 
   it('mark as watched button is full-width and dark purple when unwatched', () => {
@@ -166,7 +178,7 @@ describe('VideoCard', () => {
 
   it('clicking a tag badge calls addTag', () => {
     const video = makeVideo({
-      channel_tags: [{ id: 'tag1', name: 'yoga', color: '#ff6b6b' }],
+      channel_tags: [{ id: 'tag1', name: 'yoga', color: '#ff6b6b', channel_count: 0, created_at: '' }],
     });
     render(<VideoCard {...defaultProps} video={video} />);
     fireEvent.click(screen.getByText('yoga'));
@@ -176,10 +188,10 @@ describe('VideoCard', () => {
   it('shows up to 3 tags', () => {
     const video = makeVideo({
       channel_tags: [
-        { id: '1', name: 'yoga', color: '#ff0000' },
-        { id: '2', name: 'travel', color: '#00ff00' },
-        { id: '3', name: 'music', color: '#0000ff' },
-        { id: '4', name: 'food', color: '#ffff00' },
+        { id: '1', name: 'yoga', color: '#ff0000', channel_count: 0, created_at: '' },
+        { id: '2', name: 'travel', color: '#00ff00', channel_count: 0, created_at: '' },
+        { id: '3', name: 'music', color: '#0000ff', channel_count: 0, created_at: '' },
+        { id: '4', name: 'food', color: '#ffff00', channel_count: 0, created_at: '' },
       ],
     });
     render(<VideoCard {...defaultProps} video={video} />);

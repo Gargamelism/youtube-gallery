@@ -4,5 +4,11 @@
   "channels": "Channels",
   "dashboard": "Dashboard",
   "profile": "Profile",
-  "settings": "Settings"
+  "settings": "Settings",
+  "tags": "Tags",
+  "signOut": "Sign out",
+  "videoManagement": "Video Management",
+  "appName": "NoGarithmTube",
+  "expandSidebar": "Expand sidebar",
+  "collapseSidebar": "Collapse sidebar"
 }

@@ -110,7 +110,6 @@ export default function VideosPage() {
   const totalCount = statsResponse?.data?.total ?? 0;
   const watchedCount = statsResponse?.data?.watched ?? 0;
   const unwatchedCount = statsResponse?.data?.unwatched ?? 0;
-  const notInterestedCount = statsResponse?.data?.not_interested ?? 0;
 
   return (
     <main className="VideosPage flex flex-col h-full">
@@ -119,7 +118,7 @@ export default function VideosPage() {
       </Suspense>
 
       <Suspense>
-        <FilterButtons notInterestedCount={notInterestedCount} onScrollModeChange={setScrollMode} />
+        <FilterButtons />
       </Suspense>
 
       <div className="flex-1 overflow-y-auto px-6">

@@ -47,6 +47,15 @@
     "only": "Shorts only",
     "hide": "Hide Shorts"
   },
+  "archiveLibrary": "Archive Library",
+  "tagFilters": {
+    "label": "Filters:",
+    "addTag": "Add tag",
+    "clearAll": "Clear all",
+    "anyOfThese": "Any of these tags",
+    "allOfThese": "All of these tags",
+    "noneOfThese": "None of these tags"
+  },
   "keyboardShortcuts": {
     "scrollToTop": "Scroll to top",
     "focusSearch": "Focus search",

@@ -1,16 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { setupPage } from './helpers';
 
 test.describe('Video card', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await page.evaluate(() => {
-      const authData = JSON.stringify({
-        user: { id: '1', username: 'testuser', email: 'test@example.com', first_name: 'Test', last_name: 'User' },
-        isAuthenticated: true,
-      });
-      localStorage.setItem('youtube-gallery-auth', JSON.stringify({ state: JSON.parse(authData) }));
-    });
-    await page.goto('/videos');
+    await setupPage(page);
     // Wait for at least one video card to appear
     await expect(page.locator('.VideoCard').first()).toBeVisible({ timeout: 15000 });
   });

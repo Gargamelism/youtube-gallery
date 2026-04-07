@@ -1,3 +1,12 @@
+export const APP_ROUTES = {
+  home: '/',
+  auth: '/auth',
+  videos: '/videos',
+  channels: '/channels',
+  profile: '/profile',
+  settings: '/settings',
+} as const;
+
 /**
  * Single source of truth for public (unprotected) routes configuration
  * All other routes are considered protected by default
