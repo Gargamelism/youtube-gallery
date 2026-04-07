@@ -11,7 +11,6 @@ import { useVideoFilters } from '@/hooks/useVideoFilters';
 import { queryKeys } from '@/lib/reactQueryConfig';
 import { useTranslation } from 'react-i18next';
 import { SearchInput } from '@/components/ui/SearchInput';
-import NavigationLogo from '@/components/navigation/NavigationLogo';
 
 function WatchStatusTabs({
   totalCount,
@@ -85,7 +84,6 @@ function VideosPageHeader({
       <div className="flex-1 w-full md:w-auto overflow-x-auto md:overflow-visible">
         <WatchStatusTabs totalCount={totalCount} watchedCount={watchedCount} unwatchedCount={unwatchedCount} />
       </div>
-      <NavigationLogo />
     </div>
   );
 }
