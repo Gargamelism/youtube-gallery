@@ -37,6 +37,10 @@ RUN npm install --legacy-peer-deps
 # Run build to catch TypeScript/build errors early
 RUN npm run build
 
+# Healthcheck — container is healthy only once Next.js is accepting connections
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=3 \
+  CMD wget -qO- http://localhost:3000/ || exit 1
+
 # Expose port
 EXPOSE 3000
 

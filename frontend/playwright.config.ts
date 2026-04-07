@@ -1,10 +1,11 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000';
+const externalBaseURL = process.env.PLAYWRIGHT_BASE_URL?.trim() || undefined;
+const baseURL = externalBaseURL ?? 'http://localhost:3000';
 
 // When PLAYWRIGHT_BASE_URL is explicitly set (e.g. in Docker pre-commit), the server
 // is already running externally — skip launching a webServer.
-const webServerConfig = process.env.PLAYWRIGHT_BASE_URL
+const webServerConfig = externalBaseURL
   ? undefined
   : {
       command: 'npm run dev',

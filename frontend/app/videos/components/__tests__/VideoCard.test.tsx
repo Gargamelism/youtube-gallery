@@ -94,7 +94,7 @@ describe('VideoCard', () => {
 
   it('renders the published date', () => {
     render(<VideoCard {...defaultProps} />);
-    expect(document.querySelector('.VideoCard__date')).toBeInTheDocument();
+    expect(screen.getByText('1/15/2025')).toBeInTheDocument();
   });
 
   it('renders formatted duration on thumbnail', () => {
@@ -144,35 +144,34 @@ describe('VideoCard', () => {
 
   it('mark as watched button is full-width and dark purple when unwatched', () => {
     render(<VideoCard {...defaultProps} />);
-    const btn = document.querySelector('.VideoCard__watch-button');
-    expect(btn?.className).toMatch(/w-full/);
-    expect(btn?.className).toMatch(/bg-purple-900/);
+    const btn = screen.getByRole('button', { name: /mark as watched/i });
+    expect(btn).toHaveClass('w-full');
+    expect(btn).toHaveClass('bg-purple-900');
   });
 
   it('mark as watched button turns green when video is watched', () => {
     const video = makeVideo({ is_watched: true });
     render(<VideoCard {...defaultProps} video={video} />);
-    const btn = document.querySelector('.VideoCard__watch-button');
-    expect(btn?.className).toMatch(/bg-green-100/);
+    const btn = screen.getByRole('button', { name: 'Watched' });
+    expect(btn).toHaveClass('bg-green-100');
   });
 
   it('clicking thumbnail calls onWatch', () => {
     render(<VideoCard {...defaultProps} />);
-    const thumbnail = document.querySelector('.VideoCard__thumbnail') as HTMLButtonElement;
-    fireEvent.click(thumbnail);
+    fireEvent.click(screen.getByRole('button', { name: /Test Video Title/i }));
     expect(defaultProps.onWatch).toHaveBeenCalledTimes(1);
   });
 
   it('clicking mark as watched calls onToggleWatched', () => {
     render(<VideoCard {...defaultProps} />);
-    fireEvent.click(document.querySelector('.VideoCard__watch-button')!);
+    fireEvent.click(screen.getByRole('button', { name: /mark as watched/i }));
     expect(defaultProps.onToggleWatched).toHaveBeenCalledWith(true);
   });
 
   it('clicking mark as watched on watched video calls onToggleWatched with false', () => {
     const video = makeVideo({ is_watched: true });
     render(<VideoCard {...defaultProps} video={video} />);
-    fireEvent.click(document.querySelector('.VideoCard__watch-button')!);
+    fireEvent.click(screen.getByRole('button', { name: 'Watched' }));
     expect(defaultProps.onToggleWatched).toHaveBeenCalledWith(false);
   });
 

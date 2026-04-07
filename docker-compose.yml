@@ -128,7 +128,8 @@ services:
     networks:
       - youtube_gallery_network
     depends_on:
-      - frontend
+      frontend:
+        condition: service_healthy
     command: npx playwright test
     restart: 'no'
 

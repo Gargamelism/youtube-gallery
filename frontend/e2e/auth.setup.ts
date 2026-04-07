@@ -9,7 +9,7 @@ const AUTH_FILE = path.join(__dirname, '../.playwright/auth.json');
  *
  * To run authenticated tests:
  * 1. Set E2E_USERNAME and E2E_PASSWORD environment variables
- * 2. Run: npx playwright test --project=setup
+ * 2. Run: npx playwright test e2e/auth.setup.ts --project=chromium
  * 3. The auth state is saved to .playwright/auth.json
  */
 setup('authenticate', async ({ page }) => {
@@ -22,7 +22,7 @@ setup('authenticate', async ({ page }) => {
   }
 
   await page.goto('/auth');
-  await page.getByLabel('Username').fill(username);
+  await page.getByLabel(/email address/i).fill(username);
   await page.getByLabel('Password').fill(password);
   await page.getByRole('button', { name: /sign in/i }).click();
   await expect(page).toHaveURL('/videos');

@@ -84,6 +84,15 @@ function UserMenu({ user, isCollapsed, onLogout }: UserMenuProps) {
   const router = useRouter();
   const { t } = useTranslation('navigation');
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsOpen(false);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
+
   const initials = user?.first_name?.[0] || user?.username?.[0] || 'U';
   const displayName = [user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.username || '';
 

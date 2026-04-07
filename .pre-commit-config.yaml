@@ -66,6 +66,7 @@ repos:
         language: system
         files: \.(ts|tsx)$
         pass_filenames: false
+        stages: [pre-push]
 
       # # === BACKEND (Django) ===
       - id: black-fix

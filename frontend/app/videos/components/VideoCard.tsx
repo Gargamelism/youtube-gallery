@@ -145,7 +145,7 @@ export function VideoCard({
 
           <button
             onClick={handleWatchedToggle}
-            aria-selected={video.is_watched}
+            aria-pressed={video.is_watched}
             className={`VideoCard__watch-button mt-1 w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               video.is_watched
                 ? 'bg-green-100 text-green-700 hover:bg-green-200'

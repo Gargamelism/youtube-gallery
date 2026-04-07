@@ -30,14 +30,26 @@ function WatchStatusTabs({
     { name: 'all', label: t('allVideos'), count: totalCount },
   ];
 
+  const handleKeyDown = (event: React.KeyboardEvent, index: number) => {
+    if (event.key === 'ArrowRight') {
+      updateFilter(tabs[(index + 1) % tabs.length]!.name);
+    } else if (event.key === 'ArrowLeft') {
+      updateFilter(tabs[(index - 1 + tabs.length) % tabs.length]!.name);
+    }
+  };
+
   return (
-    <div className="WatchStatusTabs flex items-center gap-1">
-      {tabs.map(tab => {
+    <div role="tablist" className="WatchStatusTabs flex items-center gap-1">
+      {tabs.map((tab, index) => {
         const isActive = tab.name === filter;
         return (
           <button
             key={tab.name}
+            role="tab"
+            aria-selected={isActive}
+            tabIndex={isActive ? 0 : -1}
             onClick={() => updateFilter(tab.name)}
+            onKeyDown={event => handleKeyDown(event, index)}
             className={`WatchStatusTabs__tab px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
               isActive
                 ? 'border-purple-600 text-purple-700'
@@ -65,11 +77,11 @@ function VideosPageHeader({
   const { searchQuery, updateSearchQuery } = useVideoFilters();
 
   return (
-    <div className="VideosPage__header flex items-center gap-4 px-6 py-3 bg-white border-b border-gray-200">
-      <div className="flex-none w-72">
+    <div className="VideosPage__header flex flex-col md:flex-row items-center gap-4 px-6 py-3 bg-white border-b border-gray-200">
+      <div className="flex-none w-full md:w-72">
         <SearchInput value={searchQuery} onChange={updateSearchQuery} namespace="videos" />
       </div>
-      <div className="flex-1">
+      <div className="flex-1 w-full md:w-auto overflow-x-auto md:overflow-visible">
         <WatchStatusTabs totalCount={totalCount} watchedCount={watchedCount} unwatchedCount={unwatchedCount} />
       </div>
       <h1 className="VideosPage__title text-xl font-semibold text-gray-800 flex-none">Archive Library</h1>

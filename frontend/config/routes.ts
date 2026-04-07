@@ -11,13 +11,13 @@ export const APP_ROUTES = {
  * Single source of truth for public (unprotected) routes configuration
  * All other routes are considered protected by default
  */
-export const PUBLIC_ROUTES = ['/', '/auth'] as const;
+export const PUBLIC_ROUTES = [APP_ROUTES.home, APP_ROUTES.auth] as const;
 
 /**
  * Explicitly allowed routes for return URL sanitization
  * Only these routes can be used as return URLs after login
  */
-export const ALLOWED_RETURN_URL_ROUTES = ['/videos', '/channels'] as const;
+export const ALLOWED_RETURN_URL_ROUTES = [APP_ROUTES.videos, APP_ROUTES.channels] as const;
 
 /**
  * Check if a given pathname is a public (unprotected) route

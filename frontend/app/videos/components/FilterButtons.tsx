@@ -64,20 +64,29 @@ function AddTagDropdown({ availableTags, onAdd, triggerLabel }: AddTagDropdownPr
 
   if (availableTags.length === 0) return null;
 
+  const menuId = 'add-tag-dropdown-menu';
+
   return (
     <div className="AddTagDropdown relative" ref={ref}>
       <button
         onClick={() => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
+        aria-controls={menuId}
         className="AddTagDropdown__trigger flex items-center gap-1 px-3 py-1 text-sm text-gray-600 border border-dashed border-gray-300 rounded-full hover:border-gray-400 hover:text-gray-800 transition-colors"
       >
         <Plus className="h-3 w-3" />
         {triggerLabel}
       </button>
       {isOpen && (
-        <div className="AddTagDropdown__menu absolute top-full left-0 mt-1 z-30 bg-white rounded-lg shadow-lg border border-gray-200 py-2 min-w-40 max-h-56 overflow-y-auto">
+        <div
+          id={menuId}
+          role="menu"
+          className="AddTagDropdown__menu absolute top-full left-0 mt-1 z-30 bg-white rounded-lg shadow-lg border border-gray-200 py-2 min-w-40 max-h-56 overflow-y-auto"
+        >
           {availableTags.map(tag => (
             <button
               key={tag.id}
+              role="menuitem"
               onClick={() => {
                 onAdd(tag.name);
                 setIsOpen(false);
@@ -211,7 +220,9 @@ export function FilterButtons() {
 
       {/* Row 2: Tag filters */}
       <div className="FilterButtons__tags flex flex-wrap items-center gap-2">
-        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider mr-1">Filters:</span>
+        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider mr-1">
+          {t('tagFilters.label')}
+        </span>
 
         {selectedTagObjects.map(tag => (
           <TagBadge key={tag.id} tag={tag} size="sm" removable onRemove={() => removeTag(tag.name)} />
@@ -228,7 +239,7 @@ export function FilterButtons() {
             onClick={() => updateTags([])}
             className="FilterButtons__clear-all text-xs text-gray-500 hover:text-red-600 transition-colors"
           >
-            Clear all
+            {t('tagFilters.clearAll')}
           </button>
         )}
 
