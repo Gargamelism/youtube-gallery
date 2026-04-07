@@ -47,7 +47,6 @@
     "only": "Shorts only",
     "hide": "Hide Shorts"
   },
-  "archiveLibrary": "Archive Library",
   "tagFilters": {
     "label": "Filters:",
     "addTag": "Add tag",
