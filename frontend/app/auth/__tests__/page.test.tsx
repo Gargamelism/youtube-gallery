@@ -77,7 +77,7 @@ describe('AuthPage — stale-token reconciliation', () => {
     mockIsAuthenticated = true;
     render(<AuthPage />);
     expect(mockReplace).toHaveBeenCalledWith('/');
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    expect(screen.getByText('loading')).toBeInTheDocument();
     expect(screen.queryByTestId('login-form')).not.toBeInTheDocument();
     expect(mockLogout).not.toHaveBeenCalled();
   });

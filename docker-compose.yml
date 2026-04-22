@@ -1,5 +1,5 @@
-# YAML anchors for shared environment variables
 x-backend-env: &backend-env
+# YAML anchors for shared environment variables
   DEBUG: True
   ALLOWED_HOSTS: ${ALLOWED_HOSTS}
   DB_HOST: ${DB_HOST}
@@ -44,6 +44,7 @@ services:
   # Redis Stack Server with JSON support
   redis:
     image: redis/redis-stack-server:latest
+    restart: unless-stopped
     environment:
       - REDIS_ARGS=--requirepass ${REDIS_PASSWORD:-default_dev_password} --user default off --user ${REDIS_USER:-youtube_app} on >${REDIS_PASSWORD:-default_dev_password} ~* &* +@all
     ports:
@@ -56,6 +57,7 @@ services:
   # PostgreSQL Database
   db:
     image: postgres:15
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -94,7 +96,7 @@ services:
       - youtube_gallery_network
     # Exit after running tests (or debug mode)
     command: sh -c "python -m pytest -v && python manage.py test --verbosity=2"
-    restart: unless-stopped
+    restart: 'no'
 
   # Next.js Frontend Tests
   frontend_test:
@@ -110,7 +112,7 @@ services:
     networks:
       - youtube_gallery_network
     command: npm test
-    restart: unless-stopped
+    restart: 'no'
 
   # Playwright E2E Tests — uses Debian image with Chromium deps
   frontend_e2e:
@@ -130,7 +132,7 @@ services:
       frontend:
         condition: service_healthy
     command: npx playwright test
-    restart: unless-stopped
+    restart: 'no'
 
   # Django Backend (Development with hot reload)
   backend:
@@ -144,6 +146,7 @@ services:
     ports:
       - '8000:8000'
       - '5678:5678' # debugpy port for VS Code debugging
+    restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
@@ -225,6 +228,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    restart: unless-stopped
     ports:
       - '3000:3000'
     volumes:
