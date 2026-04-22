@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { getReturnUrl } from '@/utils/urlHelpers';
 import LoginForm from './components/LoginForm';
@@ -11,9 +11,24 @@ import { AuthViews } from '@/components/navigation/types';
 function AuthContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, logout } = useAuthStore();
+  const [hasReturnUrl] = useState(() => searchParams.get('returnUrl') !== null);
   const [returnUrl] = useState(() => getReturnUrl(searchParams));
   const [currentView, setCurrentView] = useState<typeof AuthViews.LOGIN | typeof AuthViews.REGISTER>(AuthViews.LOGIN);
+
+  // Middleware only forwards users to /auth?returnUrl=... when the auth cookie is missing.
+  // If the persisted store still claims authenticated, the client state is stale — reconcile it.
+  useEffect(() => {
+    if (isAuthenticated && hasReturnUrl) {
+      logout();
+    }
+  }, [isAuthenticated, hasReturnUrl, logout]);
+
+  useEffect(() => {
+    if (isAuthenticated && !hasReturnUrl) {
+      router.replace('/');
+    }
+  }, [isAuthenticated, hasReturnUrl, router]);
 
   const handleSuccess = () => {
     router.push(returnUrl || '/');
@@ -27,8 +42,8 @@ function AuthContent() {
     setCurrentView(AuthViews.LOGIN);
   };
 
-  if (isAuthenticated) {
-    return null;
+  if (isAuthenticated && !hasReturnUrl) {
+    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>;
   }
 
   return (

@@ -94,8 +94,7 @@ services:
       - youtube_gallery_network
     # Exit after running tests (or debug mode)
     command: sh -c "python -m pytest -v && python manage.py test --verbosity=2"
-    # Don't restart
-    restart: 'no'
+    restart: unless-stopped
 
   # Next.js Frontend Tests
   frontend_test:
@@ -111,7 +110,7 @@ services:
     networks:
       - youtube_gallery_network
     command: npm test
-    restart: 'no'
+    restart: unless-stopped
 
   # Playwright E2E Tests — uses Debian image with Chromium deps
   frontend_e2e:
@@ -131,7 +130,7 @@ services:
       frontend:
         condition: service_healthy
     command: npx playwright test
-    restart: 'no'
+    restart: unless-stopped
 
   # Django Backend (Development with hot reload)
   backend:
