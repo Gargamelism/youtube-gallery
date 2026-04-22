@@ -1,19 +1,41 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
-import { getReturnUrl } from '@/utils/urlHelpers';
+import { sanitizeReturnUrl } from '@/utils/urlHelpers';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import { AuthViews } from '@/components/navigation/types';
 
+function AuthLoading() {
+  const { t } = useTranslation('auth');
+  return <div className="min-h-screen bg-gray-50 flex items-center justify-center">{t('loading')}</div>;
+}
+
 function AuthContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { isAuthenticated } = useAuthStore();
-  const [returnUrl] = useState(() => getReturnUrl(searchParams));
+  const { isAuthenticated, logout } = useAuthStore();
+  const [rawReturnUrl] = useState(() => searchParams.get('returnUrl'));
+  const hasReturnUrl = rawReturnUrl !== null;
+  const returnUrl = sanitizeReturnUrl(rawReturnUrl);
   const [currentView, setCurrentView] = useState<typeof AuthViews.LOGIN | typeof AuthViews.REGISTER>(AuthViews.LOGIN);
+
+  // Middleware only forwards users to /auth?returnUrl=... when the auth cookie is missing.
+  // If the persisted store still claims authenticated, the client state is stale — reconcile it.
+  // Otherwise, an authenticated user landed here directly and should be sent home.
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+    if (hasReturnUrl) {
+      logout();
+    } else {
+      router.replace('/');
+    }
+  }, [isAuthenticated, hasReturnUrl, logout, router]);
 
   const handleSuccess = () => {
     router.push(returnUrl || '/');
@@ -27,8 +49,8 @@ function AuthContent() {
     setCurrentView(AuthViews.LOGIN);
   };
 
-  if (isAuthenticated) {
-    return null;
+  if (isAuthenticated && !hasReturnUrl) {
+    return <AuthLoading />;
   }
 
   return (
@@ -46,7 +68,7 @@ function AuthContent() {
 
 export default function AuthPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>}>
+    <Suspense fallback={<AuthLoading />}>
       <AuthContent />
     </Suspense>
   );
