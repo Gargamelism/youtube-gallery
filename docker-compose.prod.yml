@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # PostgreSQL Database
   db:
-    image: postgres:15
+    image: postgres:18
     environment:
       POSTGRES_DB: youtube_gallery
       POSTGRES_USER: postgres
@@ -14,6 +14,11 @@ services:
       - '5432:5432'
     networks:
       - youtube_gallery_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   # Django Backend (Production)
   backend:
@@ -52,10 +57,31 @@ services:
     networks:
       - youtube_gallery_network
 
+  # Database Backup (monthly → OneDrive)
+  db-backup:
+    build: ./backup
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: '5432'
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: youtube_gallery
+    volumes:
+      - backup_data:/backups
+      - ./backup/rclone:/config/rclone:ro
+    networks:
+      - youtube_gallery_network
+    restart: unless-stopped
+
 volumes:
   postgres_data:
     driver: local
   media_files:
+    driver: local
+  backup_data:
     driver: local
 
 networks:
