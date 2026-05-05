@@ -56,14 +56,14 @@ services:
 
   # PostgreSQL Database
   db:
-    image: postgres:15
+    image: postgres:18
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
     ports:
       - '5432:5432'
     networks:
@@ -223,6 +223,20 @@ services:
     command: celery -A youtube_gallery flower --address=0.0.0.0 --port=5555
     restart: unless-stopped
 
+  # Database Backup (opt-in; activate with: docker compose --profile backup up db-backup)
+  db-backup:
+    build: ./backup
+    profiles: [backup]
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    volumes:
+      - backup_data:/backups
+      - ./backup/rclone:/config/rclone:ro
+    networks:
+      - youtube_gallery_network
+
   # Next.js Frontend (Development with hot reload)
   frontend:
     build:
@@ -249,6 +263,8 @@ volumes:
   postgres_data:
     driver: local
   redis_data:
+    driver: local
+  backup_data:
     driver: local
 
 networks:

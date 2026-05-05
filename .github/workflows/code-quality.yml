@@ -57,7 +57,7 @@ jobs:
           fi
 
       - name: NPM Audit
-        run: npm audit --audit-level=moderate
+        run: npm audit --audit-level=high
 
   backend:
     name: Backend Quality (Django)
