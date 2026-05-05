@@ -31,9 +31,9 @@ case "${source}" in
       --config "${RCLONE_CONFIG}"
     dump="${work_dir}/${latest}"
     ;;
-  onedrive:*)
+  "${RCLONE_REMOTE}:"*)
     rclone copy "${source}" "${work_dir}/" --config "${RCLONE_CONFIG}"
-    dump="${work_dir}/$(basename "${source#onedrive:}")"
+    dump="${work_dir}/$(basename "${source#${RCLONE_REMOTE}:}")"
     ;;
   *)
     dump="${source}"

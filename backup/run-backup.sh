@@ -2,11 +2,15 @@
 set -euo pipefail
 timestamp="$(date +%Y%m%d-%H%M%S)"
 dump_file="${BACKUP_DIR}/youtube-gallery-${timestamp}.sql.gz"
+dump_file_tmp="${dump_file}.tmp"
+
+trap 'rm -f "${dump_file_tmp}"' EXIT
 
 export PGPASSWORD="${DB_PASSWORD}"
 pg_dumpall \
   -h "${DB_HOST}" -p "${DB_PORT}" -U "${DB_USER}" \
-  | gzip -9 > "${dump_file}"
+  | gzip -9 > "${dump_file_tmp}"
+mv "${dump_file_tmp}" "${dump_file}"
 
 rclone copy "${dump_file}" "${RCLONE_REMOTE}:${RCLONE_DEST_PATH}/" \
   --config "${RCLONE_CONFIG}"

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ ! -f "${RCLONE_CONFIG}" ]]; then
-  echo "ERROR: rclone config not found at ${RCLONE_CONFIG}" >&2
+if [[ -z "${RCLONE_CONFIG:-}" || ! -f "${RCLONE_CONFIG:-}" ]]; then
+  echo "ERROR: rclone config not found at ${RCLONE_CONFIG:-<unset>}" >&2
   echo "Mount your prepared rclone.conf into /config/rclone/rclone.conf." >&2
   echo "See backup/README.md for the bootstrap procedure." >&2
   exit 1
