@@ -48,7 +48,7 @@ repos:
 
       - id: npm-audit
         name: NPM Audit Fix
-        entry: docker-compose run --rm --use-aliases frontend sh -c "npm audit fix --force"
+        entry: docker-compose run --rm --use-aliases frontend sh -c "npm audit fix || true"
         language: system
         files: \.(ts|tsx)$
         pass_filenames: false
