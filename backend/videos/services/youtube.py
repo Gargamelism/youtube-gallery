@@ -6,6 +6,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, TypedDict, Union, cast
 from urllib.parse import urlparse
 
+from celery.exceptions import SoftTimeLimitExceeded
+
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
@@ -104,6 +106,8 @@ def check_is_short_via_redirect(video_id: str) -> Optional[bool]:
             return False
         logger.warning("Unexpected status %s for Shorts check on video %s", response.status_code, video_id)
         return None
+    except SoftTimeLimitExceeded:
+        raise
     except Exception:
         logger.warning("Shorts redirect check failed for video %s", video_id, exc_info=True)
         return None
