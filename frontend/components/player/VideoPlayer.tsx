@@ -204,20 +204,20 @@ export function VideoPlayer({
     } else if (state === window.YT.PlayerState.ENDED) {
       setIsPlaying(false);
       if (!isWatched) {
-        handleMarkAsWatched();
+        toggleWatchedStatus(true);
       }
     }
   };
 
-  const handleMarkAsWatched = async () => {
+  const toggleWatchedStatus = async (watched: boolean) => {
     try {
-      const response = await markAsWatched(true);
-      if (response.data?.is_watched) {
-        setIsWatched(true);
-        onWatchStatusChange(true);
+      const response = await markAsWatched(watched);
+      if (response.data?.is_watched !== undefined) {
+        setIsWatched(response.data.is_watched);
+        onWatchStatusChange(response.data.is_watched);
       }
     } catch {
-      // Failed to mark as watched - user can retry manually
+      // Failed to update watch status - user can retry
     }
   };
 
@@ -306,7 +306,7 @@ export function VideoPlayer({
             <div className="VideoPlayer__actions flex items-center gap-3 flex-wrap">
               {!isWatched ? (
                 <button
-                  onClick={handleMarkAsWatched}
+                  onClick={() => toggleWatchedStatus(true)}
                   disabled={isMarkingWatched}
                   className="VideoPlayer__watch-button flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white rounded-lg transition-colors"
                   aria-label={t('markAsWatched')}
@@ -315,14 +315,15 @@ export function VideoPlayer({
                   {isMarkingWatched ? t('marking') : t('markAsWatched')}
                 </button>
               ) : (
-                <div
-                  className="VideoPlayer__watched-badge flex items-center gap-2 px-4 py-2 bg-green-600/20 text-green-400 rounded-lg"
-                  role="status"
-                  aria-label={t('watched')}
+                <button
+                  onClick={() => toggleWatchedStatus(false)}
+                  disabled={isMarkingWatched}
+                  className="VideoPlayer__unwatch-button flex items-center gap-2 px-4 py-2 bg-green-600/20 hover:bg-yellow-600/20 text-green-400 hover:text-yellow-400 disabled:opacity-50 rounded-lg transition-colors"
+                  aria-label={t('markAsUnwatched')}
                 >
                   <Check className="VideoPlayer__watched-icon w-4 h-4" />
-                  {t('watched')}
-                </div>
+                  {isMarkingWatched ? t('unmarkingWatched') : t('markAsUnwatched')}
+                </button>
               )}
 
               <div className="VideoPlayer__keyboard-hint text-xs text-gray-500 ml-auto hidden md:block">

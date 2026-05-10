@@ -141,7 +141,7 @@ export function VideoList({ scrollMode }: VideoListProps) {
   };
 
   const handleWatchStatusChange = (isWatched: boolean) => {
-    if (isWatched && selectedVideo) {
+    if (selectedVideo) {
       queryClient.invalidateQueries({ queryKey: queryKeys.videos });
       queryClient.invalidateQueries({ queryKey: queryKeys.videoStats });
     }
