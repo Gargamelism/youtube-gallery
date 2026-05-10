@@ -15,5 +15,7 @@
   "playPause": "play/pause",
   "seek": "seek",
   "fullscreen": "fullscreen",
-  "close": "close"
+  "close": "close",
+  "markAsUnwatched": "Mark as unwatched",
+  "unmarkingWatched": "Unmarking..."
 }
