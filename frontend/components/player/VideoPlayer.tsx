@@ -322,7 +322,7 @@ export function VideoPlayer({
                   aria-label={t('markAsUnwatched')}
                 >
                   <Check className="VideoPlayer__watched-icon w-4 h-4" />
-                  {isMarkingWatched ? t('unmarkingWatched') : t('watched')}
+                  {isMarkingWatched ? t('unmarkingWatched') : t('markAsUnwatched')}
                 </button>
               )}
 
