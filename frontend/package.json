@@ -38,10 +38,7 @@
   "overrides": {
     "js-yaml": "^4.1.1",
     "glob": "^11.0.3",
-    "minimatch": "^10.2.1",
-    "next": {
-      "postcss": "^8.5.10"
-    }
+    "minimatch": "^10.2.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
