@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { useVideoFilters } from '@/hooks/useVideoFilters';
 import { NotInterestedFilter, TagMode, TagModeType } from '@/types';
 import { SortSelector } from './SortSelector';
@@ -49,13 +49,16 @@ interface AddTagDropdownProps {
 }
 
 function AddTagDropdown({ availableTags, onAdd, triggerLabel }: AddTagDropdownProps) {
+  const { t } = useTranslation('videos');
   const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (ref.current && !ref.current.contains(event.target as Node)) {
         setIsOpen(false);
+        setSearchTerm('');
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -64,6 +67,7 @@ function AddTagDropdown({ availableTags, onAdd, triggerLabel }: AddTagDropdownPr
 
   if (availableTags.length === 0) return null;
 
+  const filteredTags = availableTags.filter(tag => tag.name.toLowerCase().includes(searchTerm.toLowerCase()));
   const menuId = 'add-tag-dropdown-menu';
 
   return (
@@ -81,25 +85,54 @@ function AddTagDropdown({ availableTags, onAdd, triggerLabel }: AddTagDropdownPr
         <div
           id={menuId}
           role="menu"
-          className="AddTagDropdown__menu absolute top-full left-0 mt-1 z-30 bg-white rounded-lg shadow-lg border border-gray-200 py-2 min-w-40 max-h-56 overflow-y-auto"
+          className="AddTagDropdown__menu absolute top-full left-0 mt-1 z-30 bg-white rounded-lg shadow-lg border border-gray-200 min-w-40"
         >
-          {availableTags.map(tag => (
-            <button
-              key={tag.id}
-              role="menuitem"
-              onClick={() => {
-                onAdd(tag.name);
-                setIsOpen(false);
-              }}
-              className="AddTagDropdown__item w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 text-left"
-            >
-              <span
-                className="inline-block w-2 h-2 rounded-full flex-shrink-0"
-                style={{ backgroundColor: tag.color }}
-              />
-              {tag.name}
-            </button>
-          ))}
+          <div
+            className="AddTagDropdown__search flex items-center border-b border-gray-200"
+            onClick={event => event.stopPropagation()}
+          >
+            <input
+              type="text"
+              autoFocus
+              value={searchTerm}
+              onChange={event => setSearchTerm(event.target.value)}
+              placeholder={t('tagFilters.searchPlaceholder')}
+              className="flex-1 px-3 py-1.5 text-sm focus:outline-none rounded-tl-lg"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="px-2 text-gray-400 hover:text-gray-600"
+                aria-label={t('tagFilters.clearSearch')}
+              >
+                <X className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+          <div className="AddTagDropdown__list py-1 max-h-52 overflow-y-auto">
+            {filteredTags.length === 0 ? (
+              <p className="px-3 py-2 text-sm text-gray-400">{t('tagFilters.noMatchingTags')}</p>
+            ) : (
+              filteredTags.map(tag => (
+                <button
+                  key={tag.id}
+                  role="menuitem"
+                  onClick={() => {
+                    onAdd(tag.name);
+                    setIsOpen(false);
+                    setSearchTerm('');
+                  }}
+                  className="AddTagDropdown__item w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 text-left"
+                >
+                  <span
+                    className="inline-block w-2 h-2 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: tag.color }}
+                  />
+                  {tag.name}
+                </button>
+              ))
+            )}
+          </div>
         </div>
       )}
     </div>

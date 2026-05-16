@@ -53,7 +53,10 @@
     "clearAll": "Clear all",
     "anyOfThese": "Any of these tags",
     "allOfThese": "All of these tags",
-    "noneOfThese": "None of these tags"
+    "noneOfThese": "None of these tags",
+    "searchPlaceholder": "Search tags...",
+    "noMatchingTags": "No matching tags",
+    "clearSearch": "Clear search"
   },
   "keyboardShortcuts": {
     "scrollToTop": "Scroll to top",
