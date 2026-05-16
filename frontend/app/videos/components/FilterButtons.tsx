@@ -103,7 +103,7 @@ function AddTagDropdown({ availableTags, onAdd, triggerLabel }: AddTagDropdownPr
               <button
                 onClick={() => setSearchTerm('')}
                 className="px-2 text-gray-400 hover:text-gray-600"
-                aria-label="Clear search"
+                aria-label={t('tagFilters.clearSearch')}
               >
                 <X className="h-3 w-3" />
               </button>
