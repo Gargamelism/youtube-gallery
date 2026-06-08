@@ -226,6 +226,7 @@ services:
   # Database Backup (opt-in; activate with: docker compose --profile backup up db-backup)
   db-backup:
     build: ./backup
+    restart: unless-stopped
     profiles: [backup]
     depends_on:
       db:

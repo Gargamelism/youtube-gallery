@@ -6,6 +6,7 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Dict, Iterable, Optional
 
+from celery.exceptions import SoftTimeLimitExceeded
 from django.utils import timezone
 from googleapiclient.errors import HttpError
 from rest_framework import status
@@ -92,6 +93,8 @@ class ChannelUpdateService:
                 new_videos_added=new_videos_count,
             )
 
+        except SoftTimeLimitExceeded:
+            raise
         except Exception as e:
             return self._handle_update_error(channel, e)
 
@@ -230,6 +233,8 @@ class ChannelUpdateService:
             print(f"INFO: Added {videos_created} new videos for channel {channel.uuid}")
             return videos_created
 
+        except SoftTimeLimitExceeded:
+            raise
         except Exception as e:
             print(f"WARNING: Failed to fetch new videos for channel {channel.uuid}: {str(e)}")
             return 0
@@ -401,7 +406,10 @@ class ChannelUpdateService:
                 "failed": 0,
                 "quota_used": 0,
                 "stopped_due_to_quota": False,
+                "stopped_due_to_time": False,
+                "last_processed_uuid": None,
                 "results": [],
+                "quota_summary": self.quota_tracker.get_usage_summary(),
             }
 
         optimal_batch_size = self.quota_tracker.optimize_batch_size("channels.list")
@@ -413,21 +421,27 @@ class ChannelUpdateService:
         total_quota_used = 0
         results = []
         stopped_due_to_quota = len(channels_to_process) < len(channels_list)
+        last_processed_uuid: Optional[str] = None
+        stopped_due_to_time = False
 
-        for channel in channels_to_process:
-            if not self.quota_tracker.can_make_request("channels.list"):
-                stopped_due_to_quota = True
-                break
+        try:
+            for channel in channels_to_process:
+                if not self.quota_tracker.can_make_request("channels.list"):
+                    stopped_due_to_quota = True
+                    break
 
-            result = self.update_channel(channel)
-            results.append(result)
+                result = self.update_channel(channel)
+                last_processed_uuid = str(channel.uuid)
+                results.append(result)
 
-            if result.success:
-                successful_updates += 1
-            else:
-                failed_updates += 1
+                if result.success:
+                    successful_updates += 1
+                else:
+                    failed_updates += 1
 
-            total_quota_used += result.quota_used
+                total_quota_used += result.quota_used
+        except SoftTimeLimitExceeded:
+            stopped_due_to_time = True
 
         return {
             "processed": len(results),
@@ -435,6 +449,8 @@ class ChannelUpdateService:
             "failed": failed_updates,
             "quota_used": total_quota_used,
             "stopped_due_to_quota": stopped_due_to_quota,
+            "stopped_due_to_time": stopped_due_to_time,
+            "last_processed_uuid": last_processed_uuid,
             "results": results,
             "quota_summary": self.quota_tracker.get_usage_summary(),
         }

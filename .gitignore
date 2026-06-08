@@ -65,3 +65,6 @@ test-results/
 
 # backup
 backup/rclone/rclone.conf
+
+output/
+*.log

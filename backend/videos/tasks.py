@@ -1,6 +1,9 @@
 from typing import Any, Optional
 from celery import shared_task, Task
+from celery.exceptions import SoftTimeLimitExceeded
 from django.conf import settings
+from django.core.cache import cache
+from django.db.models import F
 
 from videos.models import Channel
 from videos.services.channel_updater import ChannelUpdateService
@@ -11,6 +14,9 @@ from videos.services.channel_cleanup import ChannelCleanupService
 # Task retry configuration
 MAX_RETRIES = 3
 BASE_BACKOFF_SECONDS = 60
+
+CHANNEL_UPDATE_CURSOR_KEY = "channel_update_cursor"
+CHANNEL_UPDATE_CURSOR_TTL = 25 * 60 * 60  # 25 hours
 
 
 def calculate_exponential_backoff(retry_count: int, base_seconds: int = BASE_BACKOFF_SECONDS) -> int:
@@ -56,6 +62,8 @@ def update_single_channel(self: Task, channel_uuid: str) -> dict[str, Any]:  # t
             "task_id": self.request.id,
         }
 
+    except SoftTimeLimitExceeded:
+        return {"status": "partial", "message": "Stopped due to soft time limit", "task_id": self.request.id}
     except Exception as exc:
         if isinstance(exc, (ConnectionError, TimeoutError)):
             raise self.retry(
@@ -73,18 +81,33 @@ def update_single_channel(self: Task, channel_uuid: str) -> dict[str, Any]:  # t
 
 @shared_task(bind=True, name="videos.tasks.update_channels_batch")
 def update_channels_batch(self: Task, channel_uuids: Optional[list[str]] = None) -> dict[str, Any]:  # type: ignore[type-arg]
-    """Batch update channels with quota management and dynamic sizing"""
+    """Batch update channels with quota management, resumable cursor, and soft time limit handling"""
     try:
-        if not channel_uuids:
-            channels = Channel.objects.filter(is_available=True)
+        is_full_batch = not channel_uuids
+        if is_full_batch:
+            channels = list(
+                Channel.objects.filter(is_available=True).order_by(F("last_updated").asc(nulls_first=True), "uuid")
+            )
+            cursor_uuid = cache.get(CHANNEL_UPDATE_CURSOR_KEY)
+            if cursor_uuid:
+                try:
+                    cursor_index = next(i for i, c in enumerate(channels) if str(c.uuid) == cursor_uuid)
+                    remaining = channels[cursor_index + 1 :]
+                    if remaining:
+                        channels = remaining
+                    # else cursor was at end — wrap around, use full list
+                except StopIteration:
+                    pass  # cursor channel gone, start from beginning
         else:
-            channels = Channel.objects.filter(uuid__in=channel_uuids, is_available=True)
+            channels = list(Channel.objects.filter(uuid__in=channel_uuids, is_available=True))
 
         youtube_service = YouTubeService(api_key=settings.YOUTUBE_API_KEY)
         quota_tracker = QuotaTracker()
         channel_updater = ChannelUpdateService(youtube_service, quota_tracker)
-
         result = channel_updater.update_channels_batch(channels)
+
+        if is_full_batch and result.get("last_processed_uuid"):
+            cache.set(CHANNEL_UPDATE_CURSOR_KEY, result["last_processed_uuid"], CHANNEL_UPDATE_CURSOR_TTL)
 
         return {
             "status": "success",
@@ -94,9 +117,13 @@ def update_channels_batch(self: Task, channel_uuids: Optional[list[str]] = None)
             "failed_updates": result["failed"],
             "quota_used": result["quota_used"],
             "stopped_due_to_quota": result["stopped_due_to_quota"],
+            "stopped_due_to_time": result.get("stopped_due_to_time", False),
+            "last_processed_uuid": result.get("last_processed_uuid"),
             "quota_summary": result["quota_summary"],
         }
 
+    except SoftTimeLimitExceeded:
+        return {"status": "partial", "message": "Stopped due to soft time limit", "task_id": self.request.id}
     except Exception as exc:
         if isinstance(exc, (ConnectionError, TimeoutError)):
             raise self.retry(
@@ -147,6 +174,8 @@ def update_priority_channels_async(self: Task, max_channels: int = 50) -> dict[s
             "quota_summary": result["quota_summary"],
         }
 
+    except SoftTimeLimitExceeded:
+        return {"status": "partial", "message": "Stopped due to soft time limit", "task_id": self.request.id}
     except Exception as exc:
         if isinstance(exc, (ConnectionError, TimeoutError)):
             raise self.retry(
@@ -201,6 +230,8 @@ def retry_unavailable_channels(self: Task, max_channels: int = 10) -> dict[str, 
             "quota_summary": result["quota_summary"],
         }
 
+    except SoftTimeLimitExceeded:
+        return {"status": "partial", "message": "Stopped due to soft time limit", "task_id": self.request.id}
     except Exception as exc:
         if isinstance(exc, (ConnectionError, TimeoutError)):
             raise self.retry(
@@ -239,6 +270,8 @@ def cleanup_orphaned_channels(self: Task, max_channels: int = 50) -> dict[str, A
             "error_message": result.get("error_message"),
         }
 
+    except SoftTimeLimitExceeded:
+        return {"status": "partial", "message": "Stopped due to soft time limit", "task_id": self.request.id}
     except Exception as exc:
         if isinstance(exc, (ConnectionError, TimeoutError)):
             raise self.retry(

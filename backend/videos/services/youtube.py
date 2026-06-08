@@ -496,6 +496,8 @@ class YouTubeService:
                 if not next_page_token:
                     break
 
+            except SoftTimeLimitExceeded:
+                raise
             except Exception:
                 break
 
