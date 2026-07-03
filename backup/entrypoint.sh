@@ -22,7 +22,7 @@ if [[ $# -gt 0 && "$1" != "cron" ]]; then
   exec "$@"
 fi
 
-echo "starting BusyBox crond in foreground (TZ=${TZ})"
+echo "starting BusyBox crond in foreground (TZ=${TZ:-UTC})"
 # BusyBox crond's default crontab directory is /var/spool/cron/crontabs/.
 # We installed our crontab to /etc/crontabs/root (Alpine convention),
 # so -c /etc/crontabs is required for crond to find it.
